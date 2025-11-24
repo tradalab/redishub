@@ -1,0 +1,43 @@
+app:
+  name: RDMS
+  version: 0.0.10
+  identifier: com.tradalab.rdms
+  description: "RDMS"
+  authors: [ "TradaLab Team" ]
+  license: "UNLICENSE"
+  icon: "assets/icon.ico"
+
+window:
+  title: RDMS
+  width: 1024
+  height: 768
+  debug: true
+
+security:
+  csp: none
+  allow_right_click: false
+  allowlist:
+    fs: true
+    shell: true
+    http: true
+    clipboard: true
+    notification: true
+
+logger:
+  level: debug
+  format: console        # console, json
+  output: stdout      # stdout, file, both
+  file: logs/app.log
+  max_size: 10        # MB
+  max_age: 7          # days
+
+extensions:
+  gorm:
+    dialect: sqlite
+    dsn: "app.dat?_pragma_key=passphrase&_pragma_cipher_page_size=4096&_crypto_key=passphrase"
+  updater:
+    appcast_url: https://pub-336553c07e1c43dca19a5bbb3f09d9e9.r2.dev/appcast.json
+    public_key_base_64:
+    platform_key: windows-amd64
+    force_elevate: true
+    current_version: 0.0.10

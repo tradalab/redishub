@@ -1,0 +1,16 @@
+.idea
+.scorix
+
+app.dat
+store.json
+
+/pkg/genicon
+/pkg/png2ico
+/pkg/svg2png
+/cmd
+
+dist/
+.goreleaser.yaml
+
+gen-signer.sh
+release.sh

@@ -1,0 +1,332 @@
+"use client"
+
+import { ReactNode, useEffect, useState } from "react"
+import { toast } from "sonner"
+import { CodeEditor } from "@/components/x/code-editor"
+import { KeyDetailHash } from "@/components/app/key-detail/key-detail-hash"
+import { HashType } from "@/types/hash.type"
+import { KeyDetailList } from "@/components/app/key-detail/key-detail-list"
+import { KeyDetailSet } from "@/components/app/key-detail/key-detail-set"
+import { KeyDetailZset } from "@/components/app/key-detail/key-detail-zset"
+import { KeyDetailStream } from "@/components/app/key-detail/key-detail-stream"
+import { KeyDetailString } from "@/components/app/key-detail/key-detail-string"
+import { Input } from "@/components/ui/input"
+import { RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
+import { Spinner } from "@/components/ui/kibo-ui/spinner"
+import { cn } from "@/lib/utils"
+import { useAppContext } from "@/ctx/app"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
+import scorix from "@/lib/scorix"
+
+export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKey }: { databaseId: string; databaseIdx: number; selectedKey?: string }) {
+  const [data, setData] = useState<string | undefined>("")
+  const [kind, setKind] = useState<string | undefined>()
+  const [ttl, setTtl] = useState<number | undefined>()
+
+  const [newKeyName, setNewKeyName] = useState<string | undefined>()
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const { setSelectedKey } = useAppContext()
+
+  const load = async (selectedKey?: string) => {
+    if (!selectedKey) {
+      return
+    }
+    try {
+      setLoading(true)
+      const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
+        database_id: databaseId,
+        database_index: databaseIdx,
+        key: selectedKey,
+      })
+      setTtl(ttl)
+      setKind(kind)
+      switch (kind) {
+        case "string": {
+          const val = value as string
+          if (val.startsWith("{") || val.startsWith("[")) {
+            try {
+              setData(JSON.stringify(JSON.parse(val), null, 2))
+              setKind("json")
+              return
+            } catch (_) {}
+          }
+          setData(val)
+          break
+        }
+        case "list":
+          setData(value)
+          break
+        case "hash":
+          setData(value)
+          break
+        case "set":
+          setData(value)
+          break
+        case "zset":
+          setData(value)
+          break
+        case "stream":
+          setData(value)
+          break
+        case "rejson-rl":
+          setData(value)
+          break
+      }
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteKey = async () => {
+    try {
+      await scorix.invoke("client:key-delete", { database_id: databaseId, database_index: databaseIdx, key: selectedKey })
+      toast.success("Deleted!")
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
+  }
+
+  const updateKeyName = async () => {
+    if (!newKeyName) {
+      return
+    }
+    try {
+      await scorix.invoke("client:key-name-update", { database_id: databaseId, database_index: databaseIdx, current_name: selectedKey, new_name: newKeyName })
+      toast.success("Updated!")
+      setSelectedKey(newKeyName)
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
+  }
+
+  const reload = () => {
+    load(selectedKey)
+  }
+
+  useEffect(() => {
+    load(selectedKey)
+  }, [selectedKey])
+
+  if (!databaseId || !selectedKey || !ttl) {
+    return null
+  }
+
+  if (loading) {
+    return (
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        <Spinner />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col min-h-0 gap-2 w-full h-full">
+      {/* header */}
+      <div className="flex w-full items-center justify-between gap-2 shrink-0">
+        <div className="relative w-full">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400">{kind?.toUpperCase()}</span>
+          <Input className="pl-20 pr-16" value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} />
+          <SaveIcon
+            className={cn("absolute right-3 top-1/2 -translate-y-1/2 p-0 h-5 w-5", {
+              "cursor-pointer": !!newKeyName,
+              "text-muted-foreground": !newKeyName,
+            })}
+            onClick={() => updateKeyName()}
+          />
+        </div>
+        <div className="flex gap-3.5 items-center justify-center">
+          <KeyTtlUpdateDialog reload={() => load(selectedKey)} databaseId={databaseId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
+            <div className="relative w-full cursor-pointer">
+              <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
+              <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
+            </div>
+          </KeyTtlUpdateDialog>
+          <RefreshCcwIcon className="h-7 w-7 cursor-pointer" onClick={() => load(selectedKey)} />
+          <Trash2Icon className="h-7 w-7 cursor-pointer" onClick={() => deleteKey()} />
+        </div>
+      </div>
+      {/* content scrollable */}
+      <div className="flex-1 min-h-0 overflow-auto">
+        <ViewKeyData
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          kind={kind}
+          selectedKey={selectedKey}
+          value={data}
+          loading={loading}
+          setLoading={setLoading}
+          reload={reload}
+        />
+      </div>
+    </div>
+  )
+}
+
+type ViewKeyDataProps = {
+  databaseId: string
+  databaseIdx: number
+  selectedKey: string
+  loading: boolean
+  setLoading: (value: boolean) => void
+  value: any
+  kind?: string
+  reload: () => void
+}
+
+function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loading, setLoading, reload }: ViewKeyDataProps) {
+  switch (kind) {
+    case "string":
+      return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} />
+    case "json":
+      return <CodeEditor value={value} language="json" autoFormat={true} defaultHeight={400} options={{ readOnly: true, minimap: { enabled: false } }} />
+    case "list":
+      if (!Array.isArray(value)) {
+        return null
+      }
+      return (
+        <KeyDetailList
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          data={value?.map((item: string, idx: number) => ({ id: idx + 1, value: item }))}
+        />
+      )
+    case "hash":
+      if (typeof value !== "object") {
+        return null
+      }
+      return (
+        <KeyDetailHash
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          data={Object.entries(value)?.map(([k, v], index) => ({ id: index + 1, key: k, value: v }) as HashType)}
+        />
+      )
+    case "set":
+      if (!Array.isArray(value)) {
+        return null
+      }
+      return (
+        <KeyDetailSet
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          data={value?.map((item: string, idx: number) => ({ id: idx + 1, value: item }))}
+        />
+      )
+    case "zset":
+      if (!Array.isArray(value)) {
+        return null
+      }
+      return (
+        <KeyDetailZset
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          data={value?.map((item: any, idx: number) => ({ id: idx + 1, member: item?.Member, score: item?.Score }))}
+        />
+      )
+    case "stream":
+      if (!Array.isArray(value)) {
+        return null
+      }
+      return <KeyDetailStream data={value?.map((item: any) => ({ id: item?.ID, value: JSON.stringify(item?.Values || {}) }))} />
+    case "rejson-rl":
+      return <div></div>
+    default:
+      return null
+  }
+}
+
+type KeyTtlUpdateDialogProps = {
+  children: ReactNode
+  reload: () => void
+  databaseId: string
+  databaseIdx: number
+  keyName: string
+  keyTtl: number
+}
+
+function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName, keyTtl }: KeyTtlUpdateDialogProps) {
+  const [open, setOpen] = useState(false)
+
+  const form = useForm<any>({
+    defaultValues: {
+      ttl: keyTtl,
+    },
+    resolver: zodResolver(
+      z.object({
+        ttl: z.number().min(-1),
+      })
+    ),
+  })
+
+  const submit = form.handleSubmit(async values => {
+    try {
+      await scorix.invoke("client:key-ttl-update", { database_id: databaseId, database_index: databaseIdx, key_name: keyName, key_ttl: values.ttl })
+      toast.success("Updated!")
+      setOpen(false)
+      form.reset()
+      reload()
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
+  })
+
+  return (
+    <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>Update TTL</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={submit} className="grid gap-4">
+            <FormField
+              control={form.control}
+              name="ttl"
+              render={({ field }) => {
+                return (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">TTL</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" onChange={e => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
+                Save
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}

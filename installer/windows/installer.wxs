@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <!-- Product info -->
+  <Product Id="*"
+           Name="RDMS"
+           Language="1033"
+           Version="0.0.10"
+           Manufacturer="TradaLab"
+           UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <!-- Allow upgrade version -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- Embed to one MSI file -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Icon: Control Panel + Shortcut -->
+    <Icon Id="RDMSIcon" SourceFile="$(var.BinPath)\RDMS.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="RDMSIcon" />
+
+    <Feature Id="ProductFeature" Title="RDMS" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+
+  <!-- Install Folder -->
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDERROOT" Name="TradaLab">
+          <Directory Id="INSTALLFOLDER" Name="RDMS" />
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="TradaLabPrograms" Name="TradaLab">
+          <Directory Id="ApplicationProgramsFolder" Name="RDMS" />
+        </Directory>
+      </Directory>
+      <Directory Id="DesktopFolder" />
+    </Directory>
+  </Fragment>
+
+  <!-- File, Shortcut, Registry -->
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+
+      <!-- File EXE -->
+      <Component Id="MainExecutable" Guid="b3e05cf1-55c0-4c27-94a3-1a31a7fb2f44">
+        <File Id="RDMSExe" Source="$(var.BinPath)\RDMS.exe" KeyPath="yes" />
+      </Component>
+
+      <!-- Shortcut Start Menu -->
+      <Component Id="StartMenuShortcut" Guid="a2f88b22-1e5b-47c6-9f8d-69f8a3b8d0d2">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Directory="ApplicationProgramsFolder"
+                  Name="RDMS"
+                  Description="Redis Desktop Manager Simple"
+                  Target="[INSTALLFOLDER]RDMS.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="RDMSIcon"/>
+        <RemoveFolder Id="RemoveApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall"/>
+        <RemoveFolder Id="RemoveTradaLabPrograms" Directory="TradaLabPrograms" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\RDMS" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+
+      <!-- Shortcut Uninstall -->
+      <Component Id="UninstallShortcut" Guid="c43d92f6-20f0-4d16-9e6b-50239cbcd75b">
+        <Shortcut Id="UninstallShortcut"
+                  Directory="ApplicationProgramsFolder"
+                  Name="Uninstall RDMS"
+                  Description="Uninstall RDMS"
+                  Target="[SystemFolder]msiexec.exe"
+                  Arguments="/x [ProductCode]"
+                  Icon="RDMSIcon"/>
+        <RegistryValue Root="HKCU" Key="Software\RDMS" Name="UninstallShortcut" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+
+      <!-- Shortcut Desktop -->
+      <Component Id="DesktopShortcut" Guid="7b9c22f9-17f8-4d7c-a91b-15b5f86a4d65">
+        <Shortcut Id="ApplicationDesktopShortcut"
+                  Directory="DesktopFolder"
+                  Name="RDMS"
+                  Description="Redis Desktop Manager Simple"
+                  Target="[INSTALLFOLDER]RDMS.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="RDMSIcon"/>
+        <RegistryValue Root="HKCU" Key="Software\RDMS" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+
+    </ComponentGroup>
+  </Fragment>
+</Wix>
