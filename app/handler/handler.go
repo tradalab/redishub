@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tradalab/rdms/app/logic/client"
+	"github.com/tradalab/rdms/app/logic/key"
 	"github.com/tradalab/rdms/app/svc"
 )
 
@@ -44,6 +45,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		},
 		"client:key-value-update": func(ctx context.Context, args client.KeyValueUpdateLogicArgs) (interface{}, error) {
 			return client.NewClientKeyValueUpdateLogic(ctx, svcCtx).ClientKeyValueUpdateLogic(args)
+		},
+		"key:load": func(ctx context.Context, args key.KeyLoadLogicArgs) (interface{}, error) {
+			return key.NewKeyLoadLogic(ctx, svcCtx).KeyLoadLogic(args)
 		},
 	}
 	for name, handler := range handlers {

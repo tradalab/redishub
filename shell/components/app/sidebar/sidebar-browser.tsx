@@ -1,7 +1,7 @@
 "use client"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
+import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -12,20 +12,31 @@ import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatabaseDO } from "@/types/database.do"
 import scorix from "@/lib/scorix"
+import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 
 export function SidebarBrowser() {
   const [dataset, setDataset] = useState<TreeItem[]>([])
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds] = useState<string[]>([])
-  const [totalDb, setTotalDb] = useState<number>(0)
+  const [dbs, setDbs] = useState<any[]>([])
 
-  const { connect, selectedDb, setLoading, setSelectedDbIdx, selectedDbIdx } = useAppContext()
+  const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
+  const { keys, isLoading, loadMore, loadAll, reload } = useRedisKeys(selectedDb || "", selectedDbIdx)
 
   useEffect(() => {
     loadInfo()
-    load()
   }, [selectedDb, selectedDbIdx])
+
+  useEffect(() => {
+    reload()
+  }, [selectedDb, selectedDbIdx])
+
+  useEffect(() => {
+    setDataset([...sortTree(buildTree(keys))])
+  }, [keys.length])
 
   const buildTree = (keys: string[], delimiter = ":"): TreeItem[] => {
     const root: TreeItem[] = []
@@ -56,29 +67,13 @@ export function SidebarBrowser() {
     return root
   }
 
-  const load = async () => {
-    if (!selectedDb) {
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await scorix.invoke<string[]>("client:load-all-keys", { database_id: selectedDb, database_index: selectedDbIdx })
-      setDataset(sortTree(buildTree(res)))
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const loadInfo = async () => {
     if (!selectedDb) {
       return
     }
     try {
-      const res = await scorix.invoke<{ total_db: number }>("client:general", { database_id: selectedDb, database_index: selectedDbIdx })
-      setTotalDb(res.total_db)
+      const res = await scorix.invoke<{ databases: any[] }>("client:general", { database_id: selectedDb, database_index: selectedDbIdx })
+      setDbs(res.databases || [])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
@@ -115,27 +110,35 @@ export function SidebarBrowser() {
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">Browser</div>
           <div className="flex gap-3.5">
-            <RefreshCcwIcon className="h-5 w-5 cursor-pointer" onClick={() => load()} />
-            <BrowserAddKeyDialog reload={load}>
+            <RefreshCcwIcon className="h-5 w-5 cursor-pointer" onClick={() => reload()} />
+            <BrowserAddKeyDialog reload={() => loadMore()}>
               <PlusIcon className="h-5 w-5 cursor-pointer" />
             </BrowserAddKeyDialog>
           </div>
         </div>
+        <div className="flex gap-2 items-center">
+          <Select value={selectedDbIdx.toString()} onValueChange={val => onChangeDbIdx(Number(val))}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select DB" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {dbs.map(db => (
+                  <SelectItem key={db.index} value={db.index?.toString()}>
+                    {db.name} {selectedDbIdx == db.index ? `(${keys.length}/${db.keys})` : `(${db.keys})`}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Button size="icon-sm" variant="outline" title="Load More" disabled={isLoading} onClick={loadMore}>
+            {isLoading ? <Spinner /> : <ArrowDownToLineIcon />}
+          </Button>
+          <Button size="icon-sm" variant="outline" title="Load All" disabled={isLoading} onClick={loadAll}>
+            {isLoading ? <Spinner /> : <ListEndIcon />}
+          </Button>
+        </div>
         <SidebarInput placeholder="Filter" onChange={e => setKeyword(e?.target?.value)} />
-        <Select value={selectedDbIdx.toString()} onValueChange={val => onChangeDbIdx(Number(val))}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select DB" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {Array.from({ length: totalDb }, (_, i) => i).map(i => (
-                <SelectItem key={i} value={i.toString()}>
-                  db{i.toString()}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="p-0">
@@ -144,7 +147,7 @@ export function SidebarBrowser() {
               <TreeProvider defaultExpandedIds={expandedIds} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                 <TreeView className="py-2 px-1">
                   {filteredDataset.map((item, index) => (
-                    <RenderTreeItem key={index} item={item} reload={load} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
+                    <RenderTreeItem key={index} item={item} reload={() => reload()} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
                   ))}
                 </TreeView>
               </TreeProvider>
