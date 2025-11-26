@@ -2,7 +2,7 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { GroupAddDialog } from "@/components/app/group-add-dialog"
-import { FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, SettingsIcon, Trash2Icon, UnplugIcon } from "lucide-react"
+import { FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, ServerIcon, SettingsIcon, Trash2Icon, UnplugIcon } from "lucide-react"
 import { DatabaseAddDialog } from "@/components/app/database-add-dialog"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import scorix from "@/lib/scorix"
@@ -70,10 +70,6 @@ export function SidebarDatabase() {
     return filterTree(dataset, keyword)
   }, [dataset, keyword])
 
-  useEffect(() => {
-    console.log({ filteredDataset })
-  }, [filteredDataset])
-
   return (
     <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
       <SidebarHeader className="gap-2 border-b p-2">
@@ -119,7 +115,7 @@ function RenderTreeItem({ item, reload }: { item: TreeItem; reload: () => void }
           // onClick={() => connect()} todo fix
         >
           <TreeExpander />
-          <TreeIcon />
+          <TreeIcon icon={<ServerIcon />} />
           <TreeLabel>{item.name}</TreeLabel>
           <ActionButton item={item} reload={reload} />
         </TreeNodeTrigger>

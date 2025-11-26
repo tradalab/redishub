@@ -75,7 +75,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
       <div>
         <Drawer direction="right">
           <DrawerTrigger asChild>
-            <Button size="sm">
+            <Button size="sm" variant="outline" className="mb-2">
               <PlusIcon />
               Insert Row
             </Button>

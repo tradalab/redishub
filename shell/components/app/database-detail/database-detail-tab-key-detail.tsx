@@ -12,7 +12,6 @@ import { KeyDetailStream } from "@/components/app/key-detail/key-detail-stream"
 import { KeyDetailString } from "@/components/app/key-detail/key-detail-string"
 import { Input } from "@/components/ui/input"
 import { RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
-import { Spinner } from "@/components/ui/kibo-ui/spinner"
 import { cn } from "@/lib/utils"
 import { useAppContext } from "@/ctx/app"
 import { useForm } from "react-hook-form"
@@ -22,6 +21,10 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import scorix from "@/lib/scorix"
+import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { Spinner } from "@/components/ui/spinner"
+import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
+import { Label } from "@/components/ui/label"
 
 export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKey }: { databaseId: string; databaseIdx: number; selectedKey?: string }) {
   const [data, setData] = useState<string | undefined>("")
@@ -32,11 +35,13 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
   const [loading, setLoading] = useState<boolean>(false)
 
   const { setSelectedKey } = useAppContext()
+  const { updateKey, deleteKey } = useRedisKeys(databaseId || "", databaseIdx)
 
   const load = async (selectedKey?: string) => {
     if (!selectedKey) {
       return
     }
+    setNewKeyName(undefined)
     try {
       setLoading(true)
       const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
@@ -86,28 +91,13 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
     }
   }
 
-  const deleteKey = async () => {
-    try {
-      await scorix.invoke("client:key-delete", { database_id: databaseId, database_index: databaseIdx, key: selectedKey })
-      toast.success("Deleted!")
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
-    }
-  }
-
   const updateKeyName = async () => {
-    if (!newKeyName) {
+    if (!newKeyName || !selectedKey) {
       return
     }
-    try {
-      await scorix.invoke("client:key-name-update", { database_id: databaseId, database_index: databaseIdx, current_name: selectedKey, new_name: newKeyName })
-      toast.success("Updated!")
+    updateKey(selectedKey, newKeyName).then(() => {
       setSelectedKey(newKeyName)
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
-    }
+    })
   }
 
   const reload = () => {
@@ -132,19 +122,22 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
 
   return (
     <div className="flex flex-col min-h-0 gap-2 w-full h-full">
-      {/* header */}
       <div className="flex w-full items-center justify-between gap-2 shrink-0">
-        <div className="relative w-full">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400">{kind?.toUpperCase()}</span>
-          <Input className="pl-20 pr-16" value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} />
-          <SaveIcon
-            className={cn("absolute right-3 top-1/2 -translate-y-1/2 p-0 h-5 w-5", {
-              "cursor-pointer": !!newKeyName,
-              "text-muted-foreground": !newKeyName,
-            })}
+        <ButtonGroup className="w-full">
+          <ButtonGroupText asChild>
+            <Label htmlFor="url">{kind?.toUpperCase()}</Label>
+          </ButtonGroupText>
+          <Input value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} />
+          <Button
+            variant="outline"
+            aria-label="Save"
+            className={cn("", { "cursor-pointer": !!newKeyName })}
+            disabled={!newKeyName}
             onClick={() => updateKeyName()}
-          />
-        </div>
+          >
+            <SaveIcon />
+          </Button>
+        </ButtonGroup>
         <div className="flex gap-3.5 items-center justify-center">
           <KeyTtlUpdateDialog reload={() => load(selectedKey)} databaseId={databaseId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
             <div className="relative w-full cursor-pointer">
@@ -152,11 +145,14 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
               <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
             </div>
           </KeyTtlUpdateDialog>
-          <RefreshCcwIcon className="h-7 w-7 cursor-pointer" onClick={() => load(selectedKey)} />
-          <Trash2Icon className="h-7 w-7 cursor-pointer" onClick={() => deleteKey()} />
+          <Button size="icon-sm" variant="outline" onClick={() => load(selectedKey)}>
+            <RefreshCcwIcon />
+          </Button>
+          <Button size="icon-sm" variant="outline" onClick={() => deleteKey(selectedKey).then(() => setSelectedKey())}>
+            <Trash2Icon />
+          </Button>
         </div>
       </div>
-      {/* content scrollable */}
       <div className="flex-1 min-h-0 overflow-auto">
         <ViewKeyData
           databaseId={databaseId}
