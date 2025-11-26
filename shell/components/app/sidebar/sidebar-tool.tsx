@@ -14,7 +14,7 @@ import {
 import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting-dialog"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 
 export function SidebarTool() {
   const { selectedTab, setSelectedTab, selectedDb } = useAppContext()

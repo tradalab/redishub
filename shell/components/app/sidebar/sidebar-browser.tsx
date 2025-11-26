@@ -5,7 +5,7 @@ import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwI
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/kibo-ui/tree"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
@@ -110,9 +110,9 @@ export function SidebarBrowser() {
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">Browser</div>
           <div className="flex gap-3.5">
-            <RefreshCcwIcon className="h-5 w-5 cursor-pointer" onClick={() => reload()} />
+            <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={() => reload()} />
             <BrowserAddKeyDialog>
-              <PlusIcon className="h-5 w-5 cursor-pointer" />
+              <PlusIcon className="h-4 w-4 cursor-pointer" />
             </BrowserAddKeyDialog>
           </div>
         </div>

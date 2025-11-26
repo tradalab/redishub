@@ -3,7 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DatabaseDetailTabGeneral } from "@/components/app/database-detail/database-detail-tab-general"
 import { DatabaseDetailTabKeyDetail } from "@/components/app/database-detail/database-detail-tab-key-detail"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 import { DatabaseDetailTabSlowQuery } from "@/components/app/database-detail/database-detail-tab-slow-query"
 import { DatabaseDetailTabConsole } from "@/components/app/database-detail/database-detail-tab-console"
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { DatabaseDetail } from "@/components/app/database-detail/database-detail"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 
 export default function Page() {
   const { selectedDb, selectedKey } = useAppContext()

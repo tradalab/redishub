@@ -1,6 +1,6 @@
 "use client"
 
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 import { Spinner } from "@/components/ui/kibo-ui/spinner"
 
 export function Loading() {

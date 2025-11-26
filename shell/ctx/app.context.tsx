@@ -76,10 +76,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  useEffect(() => {
-    //
-  }, [selectedDbIdx])
-
   return (
     <AppContext.Provider
       value={{
