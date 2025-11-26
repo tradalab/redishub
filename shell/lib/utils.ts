@@ -1,5 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { GroupDO } from "@/types/group.do"
+import { DatabaseDO } from "@/types/database.do"
+import { TreeItem } from "@/components/app/tree"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -47,4 +50,35 @@ export function parseRedisInfo(infoText: string): InfoObject {
   }
 
   return result
+}
+
+export const buildDbTree = (groups: GroupDO[], databases: DatabaseDO[]): TreeItem[] => {
+  const grouped = groups.map(g => ({
+    id: g.id,
+    name: g.name,
+    isGroup: true,
+    level: 0,
+    group: g,
+    children: databases
+      .filter(d => d.group_id === g.id)
+      .map(d => ({
+        id: d.id,
+        name: d.name,
+        isGroup: false,
+        level: 1,
+        database: d,
+      })),
+  }))
+
+  const ungrouped = databases
+    .filter(d => !d.group_id)
+    .map(d => ({
+      id: d.id,
+      name: d.name,
+      isGroup: false,
+      level: 0,
+      database: d,
+    }))
+
+  return [...grouped, ...ungrouped]
 }

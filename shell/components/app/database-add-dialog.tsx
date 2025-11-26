@@ -11,9 +11,11 @@ import { ulid } from "ulid"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 import { DatabaseForm } from "@/components/app/database-form"
+import { useDbStore } from "@/stores/db.store"
 
-export function DatabaseAddDialog({ children, reload }: { children: ReactNode; reload: () => void }) {
+export function DatabaseAddDialog({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
+  const { load } = useDbStore()
 
   const form = useForm<any>({
     defaultValues: {
@@ -47,7 +49,7 @@ export function DatabaseAddDialog({ children, reload }: { children: ReactNode; r
       toast.success("Created!")
       setOpen(false)
       form.reset()
-      reload()
+      await load()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
