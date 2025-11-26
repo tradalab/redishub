@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { DatabaseIcon, FolderTreeIcon, LayersIcon, SettingsIcon } from "lucide-react"
+import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting-dialog"
 import { useAppContext } from "@/ctx/app"
@@ -60,7 +60,7 @@ export function SidebarTool() {
                     isActive={selectedTab === "/browser"}
                     className="px-2.5 md:px-2"
                   >
-                    <FolderTreeIcon />
+                    <ServerIcon />
                     <span>Browser</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

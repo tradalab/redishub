@@ -48,7 +48,7 @@ export function KeyDetailString(props: KeyDetailStringProps) {
   return (
     <>
       <div>
-        <Button size="sm" disabled={!changed || loading} onClick={() => update()}>
+        <Button size="sm" variant="outline" className="mb-2" disabled={!changed || loading} onClick={() => update()}>
           {loading ? <Spinner /> : <SaveIcon />}
           Save
         </Button>
