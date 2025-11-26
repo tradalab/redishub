@@ -7,8 +7,6 @@ import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import scorix from "@/lib/scorix"
-import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CodeEditor } from "@/components/x/code-editor"
@@ -18,10 +16,12 @@ import { KeyAddValueList } from "@/components/app/key-add/key-add-value-list"
 import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
+import { useRedisKeys } from "@/hooks/use-redis-keys"
 
-export function BrowserAddKeyDialog({ children, reload }: { children: ReactNode; reload: () => void }) {
+export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
   const { selectedDb, selectedDbIdx } = useAppContext()
+  const { addKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
 
   const form = useForm<any>({
     defaultValues: {
@@ -49,16 +49,10 @@ export function BrowserAddKeyDialog({ children, reload }: { children: ReactNode;
   })
 
   const submit = form.handleSubmit(async values => {
-    try {
-      await scorix.invoke("client:key-create", { database_id: selectedDb, database_index: selectedDbIdx, ...values })
-      toast.success("Created!")
+    addKey(values.key, values).then(() => {
       setOpen(false)
       form.reset()
-      reload()
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
-    }
+    })
   })
 
   const kindValue: KeyKindEnum = form.watch("kind")

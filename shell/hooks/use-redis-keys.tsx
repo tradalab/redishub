@@ -17,7 +17,6 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
   const loadKeys = useCallback(
     async (count = DEFAULT_COUNT, loadAll = false) => {
       if (dbState.isLoading) return
-      console.log("loadKeys")
 
       dispatch({ type: "LOAD_KEYS_START", redisId, dbId })
 
@@ -27,10 +26,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
         let nextCursor: string | null = cursor
 
         do {
-          const res: { keys: string[]; cursor: string } = await scorix.invoke<{
-            keys: string[]
-            cursor: string
-          }>("key:load", {
+          const res: { keys: string[]; cursor: string } = await scorix.invoke<{ keys: string[]; cursor: string }>("key:load", {
             database_id: redisId,
             database_index: dbId,
             cursor: nextCursor,
@@ -40,16 +36,12 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
           mergedKeys = [...mergedKeys, ...res.keys]
           nextCursor = res.cursor
 
-          console.log("res.cursor", { nextCursor, loadAll, keys: res.keys.length })
-
           if (nextCursor === "0") {
-            console.log("set new next cursor: ", nextCursor)
             nextCursor = null
           }
 
           if (!loadAll) break
         } while (nextCursor && loadAll)
-        console.log("load key successfully")
         dispatch({ type: "LOAD_KEYS_SUCCESS", redisId, dbId, keys: mergedKeys, cursor: nextCursor })
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Unknown error"
@@ -65,19 +57,16 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
   // public method
 
   const reload = useCallback(() => {
-    console.log("reload")
     dispatch({ type: "RESET_KEYS_BEFORE_LOAD", redisId, dbId, pattern: "*" })
     return loadKeys(DEFAULT_COUNT, false)
   }, [redisId, dbId, loadKeys, dispatch])
 
   const loadMore = useCallback(() => {
-    console.log("loadMore")
     if (!dbState.cursor) return
     return loadKeys(DEFAULT_COUNT, false)
   }, [dbState.cursor, loadKeys])
 
   const loadAll = useCallback(() => {
-    console.log("loadAll")
     if (!dbState.cursor) return
     return loadKeys(DEFAULT_COUNT, true)
   }, [loadKeys])
@@ -85,16 +74,37 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
   // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
   // update
 
-  const updateKey = (oldKey: string, newKey: string) => {
-    dispatch({ type: "UPDATE_KEY", redisId, dbId, oldKey, newKey })
+  const updateKey = async (oldKey: string, newKey: string) => {
+    try {
+      await scorix.invoke("client:key-name-update", { database_id: redisId, database_index: dbId, current_name: oldKey, new_name: newKey })
+      dispatch({ type: "UPDATE_KEY", redisId, dbId, oldKey, newKey })
+      toast.success("Updated!")
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
   }
 
-  const addKey = (key: string) => {
-    dispatch({ type: "ADD_KEY", redisId, dbId, key })
+  const addKey = async (key: string, values: any) => {
+    try {
+      await scorix.invoke("client:key-create", { database_id: redisId, database_index: dbId, ...values })
+      dispatch({ type: "ADD_KEY", redisId, dbId, key })
+      toast.success("Created!")
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
   }
 
-  const deleteKey = (key: string) => {
-    dispatch({ type: "DELETE_KEY", redisId, dbId, key })
+  const deleteKey = async (key: string) => {
+    try {
+      await scorix.invoke("client:key-delete", { database_id: redisId, database_index: dbId, key: key })
+      dispatch({ type: "DELETE_KEY", redisId, dbId, key })
+      toast.success("Deleted!")
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+    }
   }
 
   return {

@@ -24,7 +24,7 @@ export function SidebarBrowser() {
   const [dbs, setDbs] = useState<any[]>([])
 
   const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
-  const { keys, isLoading, loadMore, loadAll, reload } = useRedisKeys(selectedDb || "", selectedDbIdx)
+  const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
 
   useEffect(() => {
     loadInfo()
@@ -111,7 +111,7 @@ export function SidebarBrowser() {
           <div className="text-foreground text-base font-medium">Browser</div>
           <div className="flex gap-3.5">
             <RefreshCcwIcon className="h-5 w-5 cursor-pointer" onClick={() => reload()} />
-            <BrowserAddKeyDialog reload={() => loadMore()}>
+            <BrowserAddKeyDialog>
               <PlusIcon className="h-5 w-5 cursor-pointer" />
             </BrowserAddKeyDialog>
           </div>
@@ -147,7 +147,7 @@ export function SidebarBrowser() {
               <TreeProvider defaultExpandedIds={expandedIds} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                 <TreeView className="py-2 px-1">
                   {filteredDataset.map((item, index) => (
-                    <RenderTreeItem key={index} item={item} reload={() => reload()} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
+                    <RenderTreeItem key={index} item={item} deleteKey={deleteKey} />
                   ))}
                 </TreeView>
               </TreeProvider>
@@ -159,7 +159,7 @@ export function SidebarBrowser() {
   )
 }
 
-function RenderTreeItem({ item, selectedDb, selectedDbIdx, reload }: { item: TreeItem; selectedDb: string; selectedDbIdx: number; reload: () => void }) {
+function RenderTreeItem({ item, deleteKey }: { item: TreeItem; deleteKey: (key: string) => Promise<void> }) {
   const { setSelectedKey, setSelectedSection } = useAppContext()
 
   const selectKey = () => {
@@ -174,7 +174,7 @@ function RenderTreeItem({ item, selectedDb, selectedDbIdx, reload }: { item: Tre
           <TreeExpander />
           <TreeIcon />
           <TreeLabel>{item.name}</TreeLabel>
-          <ActionButton item={item} reload={reload} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
+          <ActionButton item={item} deleteKey={deleteKey} />
         </TreeNodeTrigger>
       </TreeNode>
     )
@@ -186,29 +186,18 @@ function RenderTreeItem({ item, selectedDb, selectedDbIdx, reload }: { item: Tre
         <TreeExpander hasChildren />
         <TreeIcon hasChildren />
         <TreeLabel>{item.name}</TreeLabel>
-        <ActionButton item={item} reload={reload} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
+        <ActionButton item={item} deleteKey={deleteKey} />
       </TreeNodeTrigger>
       <TreeNodeContent hasChildren>
         {item.children?.map((item, index) => (
-          <RenderTreeItem key={index} item={item} reload={reload} selectedDb={selectedDb} selectedDbIdx={selectedDbIdx} />
+          <RenderTreeItem key={index} item={item} deleteKey={deleteKey} />
         ))}
       </TreeNodeContent>
     </TreeNode>
   )
 }
 
-const ActionButton = ({ item, selectedDb, selectedDbIdx, reload }: { item: TreeItem; selectedDb: string; selectedDbIdx: number; reload: () => void }) => {
-  const deleteItem = async (item: TreeItem) => {
-    try {
-      await scorix.invoke("client:key-delete", { database_id: selectedDb, database_index: selectedDbIdx, key: item.id })
-      toast.success("Deleted!")
-      reload()
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
-    }
-  }
-
+const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (key: string) => Promise<void> }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -221,7 +210,7 @@ const ActionButton = ({ item, selectedDb, selectedDbIdx, reload }: { item: TreeI
           className="gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
           onClick={async e => {
             e.stopPropagation()
-            await deleteItem(item)
+            await deleteKey(item.id)
           }}
           disabled={item.isGroup}
         >
