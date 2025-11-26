@@ -43,13 +43,13 @@ export function SidebarTool() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  tooltip={{ children: "Databases", hidden: false }}
-                  onClick={() => setSelectedTab("/databases")}
-                  isActive={selectedTab === "/databases"}
+                  tooltip={{ children: "Connections", hidden: false }}
+                  onClick={() => setSelectedTab("/connections")}
+                  isActive={selectedTab === "/connections"}
                   className="px-2.5 md:px-2"
                 >
                   <DatabaseIcon />
-                  <span>Databases</span>
+                  <span>Connections</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {selectedDb && (

@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
 import { Label } from "@/components/ui/label"
 
-export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKey }: { databaseId: string; databaseIdx: number; selectedKey?: string }) {
+export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, selectedKey }: { connectionId: string; databaseIdx: number; selectedKey?: string }) {
   const [data, setData] = useState<string | undefined>("")
   const [kind, setKind] = useState<string | undefined>()
   const [ttl, setTtl] = useState<number | undefined>()
@@ -35,7 +35,7 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
   const [loading, setLoading] = useState<boolean>(false)
 
   const { setSelectedKey } = useAppContext()
-  const { updateKey, deleteKey } = useRedisKeys(databaseId || "", databaseIdx)
+  const { updateKey, deleteKey } = useRedisKeys(connectionId || "", databaseIdx)
 
   const load = async (selectedKey?: string) => {
     if (!selectedKey) {
@@ -45,7 +45,7 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
     try {
       setLoading(true)
       const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
-        database_id: databaseId,
+        connection_id: connectionId,
         database_index: databaseIdx,
         key: selectedKey,
       })
@@ -108,7 +108,7 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
     load(selectedKey)
   }, [selectedKey])
 
-  if (!databaseId || !selectedKey || !ttl) {
+  if (!connectionId || !selectedKey || !ttl) {
     return null
   }
 
@@ -139,7 +139,7 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
           </Button>
         </ButtonGroup>
         <div className="flex gap-3.5 items-center justify-center">
-          <KeyTtlUpdateDialog reload={() => load(selectedKey)} databaseId={databaseId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
+          <KeyTtlUpdateDialog reload={() => load(selectedKey)} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
             <div className="relative w-full cursor-pointer">
               <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
               <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
@@ -155,7 +155,7 @@ export function DatabaseDetailTabKeyDetail({ databaseId, databaseIdx, selectedKe
       </div>
       <div className="flex-1 min-h-0 overflow-auto">
         <ViewKeyData
-          databaseId={databaseId}
+          databaseId={connectionId}
           databaseIdx={databaseIdx}
           kind={kind}
           selectedKey={selectedKey}
@@ -275,7 +275,7 @@ function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName
 
   const submit = form.handleSubmit(async values => {
     try {
-      await scorix.invoke("client:key-ttl-update", { database_id: databaseId, database_index: databaseIdx, key_name: keyName, key_ttl: values.ttl })
+      await scorix.invoke("client:key-ttl-update", { connection_id: databaseId, database_index: databaseIdx, key_name: keyName, key_ttl: values.ttl })
       toast.success("Updated!")
       setOpen(false)
       form.reset()

@@ -9,7 +9,7 @@ import (
 )
 
 type ConnectLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index" validate:""`
 }
 
@@ -26,8 +26,8 @@ func NewClientConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cli
 }
 
 func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interface{}, error) {
-	var database *do.DatabaseDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.DatabaseDO{}).Where("id = ?", params.DatabaseId).Find(&database)
+	var database *do.ConnectionDO
+	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&database)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -36,7 +36,7 @@ func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interf
 	}
 
 	if database.LastDb != params.DatabaseIndex {
-		l.svcCtx.Db.WithContext(l.ctx).Model(&do.DatabaseDO{}).Where("id = ?", params.DatabaseId).Updates(map[string]interface{}{"last_db": params.DatabaseIndex})
+		l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Updates(map[string]interface{}{"last_db": params.DatabaseIndex})
 	}
 
 	_, err := l.svcCtx.Cli.Add(database, params.DatabaseIndex)

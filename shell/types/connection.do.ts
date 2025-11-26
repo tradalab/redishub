@@ -1,6 +1,6 @@
 import {GroupDO} from "@/types/group.do"
 
-export type DatabaseDO = {
+export type ConnectionDo = {
   id: string
   created_at: string
   updated_at: string

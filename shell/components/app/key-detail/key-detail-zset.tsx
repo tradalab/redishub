@@ -59,7 +59,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   const submit = form.handleSubmit(async values => {
     try {
       await scorix.invoke("client:key-value-update", {
-        database_id: props.databaseId,
+        connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key_name: props.selectedKey,
         key_kind: KeyKindEnum.ZSET,

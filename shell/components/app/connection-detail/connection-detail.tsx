@@ -1,35 +1,35 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DatabaseDetailTabGeneral } from "@/components/app/database-detail/database-detail-tab-general"
-import { DatabaseDetailTabKeyDetail } from "@/components/app/database-detail/database-detail-tab-key-detail"
 import { useAppContext } from "@/ctx/app.context"
-import { DatabaseDetailTabSlowQuery } from "@/components/app/database-detail/database-detail-tab-slow-query"
-import { DatabaseDetailTabConsole } from "@/components/app/database-detail/database-detail-tab-console"
+import { ConnectionDetailTabGeneral } from "@/components/app/connection-detail/connection-detail-tab-general"
+import { ConnectionDetailTabConsole } from "@/components/app/connection-detail/connection-detail-tab-console"
+import { ConnectionDetailTabKeyDetail } from "@/components/app/connection-detail/connection-detail-tab-key-detail"
+import { ConnectionDetailTabSlowQuery } from "@/components/app/connection-detail/connection-detail-tab-slow-query"
 
-export function DatabaseDetail({ databaseId, selectedKey }: { databaseId: string; selectedKey?: string }) {
+export function ConnectionDetail({ connectionId, selectedKey }: { connectionId: string; selectedKey?: string }) {
   const { selectedSection, setSelectedSection, selectedDbIdx } = useAppContext()
 
   const tabs = [
     {
       value: "general",
       name: "General",
-      content: <DatabaseDetailTabGeneral databaseId={databaseId} databaseIdx={selectedDbIdx} />,
+      content: <ConnectionDetailTabGeneral connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
     {
       value: "console",
       name: "Console",
-      content: <DatabaseDetailTabConsole databaseId={databaseId} databaseIdx={selectedDbIdx} />,
+      content: <ConnectionDetailTabConsole connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
     {
       value: "key-detail",
       name: "Key Detail",
-      content: <DatabaseDetailTabKeyDetail databaseId={databaseId} databaseIdx={selectedDbIdx} selectedKey={selectedKey} />,
+      content: <ConnectionDetailTabKeyDetail connectionId={connectionId} databaseIdx={selectedDbIdx} selectedKey={selectedKey} />,
     },
     {
       value: "slow-query",
       name: "Slow Query",
-      content: <DatabaseDetailTabSlowQuery databaseId={databaseId} databaseIdx={selectedDbIdx} />,
+      content: <ConnectionDetailTabSlowQuery connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
   ]
 

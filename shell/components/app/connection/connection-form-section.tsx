@@ -9,7 +9,7 @@ import { GroupDO } from "@/types/group.do"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 
-export function DatabaseForm({ form }: { form: UseFormReturn }) {
+export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
   const [groups, setGroups] = useState<GroupDO[]>([])
 
   const network: string = form.watch("network")

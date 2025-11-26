@@ -9,7 +9,7 @@ import (
 )
 
 type DisconnectLogicArgs struct {
-	DatabaseId string `json:"database_id" validate:"required"`
+	ConnectionId string `json:"connection_id" validate:"required"`
 	//DatabaseIndex int    `json:"database_index" validate:""`
 }
 
@@ -26,8 +26,8 @@ func NewClientDisconnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 }
 
 func (l *ClientDisconnectLogic) ClientDisconnectLogic(params DisconnectLogicArgs) (interface{}, error) {
-	var database *do.DatabaseDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.DatabaseDO{}).Where("id = ?", params.DatabaseId).Find(&database)
+	var database *do.ConnectionDO
+	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&database)
 	if result.Error != nil {
 		return nil, result.Error
 	}

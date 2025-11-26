@@ -7,7 +7,7 @@ import (
 )
 
 type GetSlowQueryLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index" validate:""`
 }
 
@@ -28,7 +28,7 @@ func NewClientGetSlowQuery(ctx context.Context, svcCtx *svc.ServiceContext) *Cli
 }
 
 func (l *ClientGetSlowQuery) ClientGetSlowQuery(params GetSlowQueryLogicArgs) (interface{}, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

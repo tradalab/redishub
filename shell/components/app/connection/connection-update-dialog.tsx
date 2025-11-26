@@ -1,32 +1,34 @@
 "use client"
 
-import { ReactNode, useState } from "react"
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { ulid } from "ulid"
-import scorix from "@/lib/scorix"
 import { toast } from "sonner"
-import { DatabaseForm } from "@/components/app/database-form"
-import { useDbStore } from "@/stores/db.store"
+import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
+import scorix from "@/lib/scorix"
 
-export function DatabaseAddDialog({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false)
-  const { load } = useDbStore()
+type DatabaseUpdateDialogProps = {
+  connection: ConnectionDo
+  reload: () => void
+  open: boolean
+  setOpen: (open: boolean) => void
+}
 
+export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: DatabaseUpdateDialogProps) {
   const form = useForm<any>({
     defaultValues: {
-      name: "",
-      group_id: "",
-      network: "tcp",
-      host: "127.0.0.1",
-      port: 6379,
-      sock: "/tmp/redis.sock",
-      username: "",
-      password: "",
+      name: connection.name,
+      group_id: connection.group_id || "",
+      network: connection.network,
+      host: connection.host,
+      port: connection.port,
+      sock: connection.sock,
+      username: connection.username,
+      password: connection.password,
     },
     resolver: zodResolver(
       z.object({
@@ -44,12 +46,12 @@ export function DatabaseAddDialog({ children }: { children: ReactNode }) {
 
   const submit = form.handleSubmit(async values => {
     try {
-      const sql = `INSERT INTO "database" (id, name, network, host, port, sock, username, password, group_id) VALUES ("${ulid()}", "${values.name}", "${values.network}", "${values.host}", "${values.port}", "${values.sock}", "${values.username}", "${values.password}", "${values.group_id}")`
+      const sql = `UPDATE "connection" SET name="${values.name}", network="${values.network}", host="${values.host}", port="${values.port}", sock="${values.sock}", username="${values.username}", password="${values.password}", group_id="${values.group_id}" WHERE id="${connection.id}"`
       await scorix.invoke("ext:gorm:Query", sql)
-      toast.success("Created!")
+      toast.success("Updated!")
       setOpen(false)
-      form.reset()
-      await load()
+      form.reset(values)
+      reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
@@ -58,22 +60,13 @@ export function DatabaseAddDialog({ children }: { children: ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent
-        className="sm:max-w-[425px]"
-        onInteractOutside={e => {
-          e.preventDefault()
-        }}
-        onEscapeKeyDown={e => {
-          e.preventDefault()
-        }}
-      >
+      <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>New Database</DialogTitle>
+          <DialogTitle>Update Connection</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
-            <DatabaseForm form={form} />
+            <ConnectionFormSection form={form} />
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>

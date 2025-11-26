@@ -2,7 +2,7 @@
 
 import React, {createContext, useContext, useState, ReactNode, useEffect} from "react"
 import {toast} from "sonner"
-import {DatabaseDO} from "@/types/database.do"
+import {ConnectionDo} from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 
 interface AppContextType {
@@ -24,27 +24,27 @@ interface AppContextType {
   loading: boolean
   setLoading: (state: boolean) => void
 
-  connect: (database: DatabaseDO | undefined, dbIdx: number) => Promise<{total_db: number} | undefined>
-  disconnect: (database?: DatabaseDO) => Promise<void>
+  connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{total_db: number} | undefined>
+  disconnect: (database?: ConnectionDo) => Promise<void>
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedTab, setSelectedTab] = useState<string>("/databases")
+  const [selectedTab, setSelectedTab] = useState<string>("/connections")
   const [selectedSection, setSelectedSection] = useState<string>("general")
   const [selectedDb, setSelectedDb] = useState<string|undefined>()
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
   const [selectedKey, setSelectedKey] = useState<string|undefined>()
   const [loading, setLoading] = useState<boolean>(false)
 
-  const connect = async (database: DatabaseDO | undefined, dbIdx: number) => {
+  const connect = async (database: ConnectionDo | undefined, dbIdx: number) => {
     if (!database) {
       return
     }
     setLoading(true)
     try {
-      const res = await scorix.invoke<{total_db: number}>("client:connect", { database_id: database.id, database_index: dbIdx })
+      const res = await scorix.invoke<{total_db: number}>("client:connect", { connection_id: database.id, database_index: dbIdx })
       setSelectedDbIdx(dbIdx)
       setSelectedDb(database.id)
       setSelectedTab("/browser")
@@ -61,12 +61,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const disconnect = async (database: DatabaseDO | undefined) => {
+  const disconnect = async (database: ConnectionDo | undefined) => {
     if (!database) {
       return
     }
     try {
-      await scorix.invoke("client:disconnect", { database_id: database.id })
+      await scorix.invoke("client:disconnect", { connection_id: database.id })
       setSelectedDb(undefined)
       setSelectedDbIdx(0)
       toast.success("Disconnected!")

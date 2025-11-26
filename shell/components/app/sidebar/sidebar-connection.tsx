@@ -2,8 +2,8 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { GroupAddDialog } from "@/components/app/group-add-dialog"
-import { FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, ServerIcon, SettingsIcon, Trash2Icon, UnplugIcon } from "lucide-react"
-import { DatabaseAddDialog } from "@/components/app/database-add-dialog"
+import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, ServerIcon, SettingsIcon, Trash2Icon, UnplugIcon } from "lucide-react"
+import { ConnectionAddDialog } from "@/components/app/connection/connection-add-dialog"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
@@ -12,11 +12,11 @@ import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeT
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { GroupUpdateDialog } from "@/components/app/group-update-dialog"
-import { DatabaseUpdateDialog } from "@/components/app/database-update-dialog"
+import { ConnectionUpdateDialog } from "@/components/app/connection/connection-update-dialog"
 import { useDbStore } from "@/stores/db.store"
 import { buildDbTree } from "@/lib/utils"
 
-export function SidebarDatabase() {
+export function SidebarConnection() {
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds] = useState<string[]>([])
@@ -33,15 +33,15 @@ export function SidebarDatabase() {
     <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
       <SidebarHeader className="gap-2 border-b p-2">
         <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">Databases</div>
+          <div className="text-foreground text-base font-medium">Connections</div>
           <div className="flex gap-2">
             <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={() => load()} />
             <GroupAddDialog>
               <FolderPlusIcon className="h-4 w-4 cursor-pointer" />
             </GroupAddDialog>
-            <DatabaseAddDialog>
+            <ConnectionAddDialog>
               <PlusIcon className="h-4 w-4 cursor-pointer" />
-            </DatabaseAddDialog>
+            </ConnectionAddDialog>
           </div>
         </div>
         <SidebarInput placeholder="Filter" onChange={e => setKeyword(e?.target?.value)} />
@@ -122,13 +122,13 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" className="min-w-56 rounded-lg">
-          {!item.isGroup && item.database && (
+          {!item.isGroup && item.connection && (
             <>
               <DropdownMenuItem
                 className="gap-2 cursor-pointer"
                 onClick={async e => {
                   e.stopPropagation()
-                  await connect(item.database, item.database?.last_db || 0)
+                  await connect(item.connection, item.connection?.last_db || 0)
                 }}
               >
                 <PlugIcon className="h-4 w-4" />
@@ -138,7 +138,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
                 className="gap-2 cursor-pointer"
                 onClick={async e => {
                   e.stopPropagation()
-                  await disconnect(item.database)
+                  await disconnect(item.connection)
                 }}
               >
                 <UnplugIcon className="h-4 w-4" />
@@ -154,11 +154,11 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
                 setOpenEditGroup(true)
               }}
             >
-              <SettingsIcon className="h-4 w-4" />
-              Setting
+              <EditIcon className="h-4 w-4" />
+              Update
             </DropdownMenuItem>
           )}
-          {!item.isGroup && item.database && (
+          {!item.isGroup && item.connection && (
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={e => {
@@ -166,8 +166,8 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
                 setOpenEditDatabase(true)
               }}
             >
-              <SettingsIcon className="h-4 w-4" />
-              Setting
+              <EditIcon className="h-4 w-4" />
+              Update
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
@@ -183,8 +183,8 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
         </DropdownMenuContent>
       </DropdownMenu>
       {item.isGroup && item.group && <GroupUpdateDialog group={item.group} reload={reload} open={openEditGroup} setOpen={setOpenEditGroup} />}
-      {!item.isGroup && item.database && (
-        <DatabaseUpdateDialog database={item.database} reload={reload} open={openEditDatabase} setOpen={setOpenEditDatabase} />
+      {!item.isGroup && item.connection && (
+        <ConnectionUpdateDialog connection={item.connection} reload={reload} open={openEditDatabase} setOpen={setOpenEditDatabase} />
       )}
     </>
   )

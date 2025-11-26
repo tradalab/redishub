@@ -12,7 +12,7 @@ import (
 )
 
 type ConsoleConnectLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index"`
 }
 
@@ -26,13 +26,13 @@ func NewConsoleConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Co
 }
 
 func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs) (any, error) {
-	//cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	//cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	//if err != nil {
 	//	return nil, err
 	//}
 	//
-	//eventIn := "console:input:" + params.DatabaseId
-	//eventOut := "console:output:" + params.DatabaseId
+	//eventIn := "console:input:" + params.ConnectionId
+	//eventOut := "console:output:" + params.ConnectionId
 
 	//l.svcCtx.App.Context().OnPublicEvent(eventIn, func(payload any) {
 	//	str, ok := payload.(string)

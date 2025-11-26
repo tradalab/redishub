@@ -11,7 +11,7 @@ import (
 )
 
 type LoadKeyDetailLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index" validate:""`
 	Key           string `json:"key" validate:"required"`
 }
@@ -36,7 +36,7 @@ func NewClientLoadKeyDetailLogic(ctx context.Context, svcCtx *svc.ServiceContext
 }
 
 func (l *ClientLoadKeyDetailLogic) ClientLoadKeyDetailLogic(params LoadKeyDetailLogicArgs) (interface{}, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

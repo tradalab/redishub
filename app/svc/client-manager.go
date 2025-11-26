@@ -24,7 +24,7 @@ func NewManager() *ClientManager {
 	}
 }
 
-func (m *ClientManager) Add(cfg *do.DatabaseDO, dbIdx int) (*Client, error) {
+func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

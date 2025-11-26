@@ -10,7 +10,7 @@ import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeT
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DatabaseDO } from "@/types/database.do"
+import { ConnectionDo } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Button } from "@/components/ui/button"
@@ -72,7 +72,7 @@ export function SidebarBrowser() {
       return
     }
     try {
-      const res = await scorix.invoke<{ databases: any[] }>("client:general", { database_id: selectedDb, database_index: selectedDbIdx })
+      const res = await scorix.invoke<{ databases: any[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
       setDbs(res.databases || [])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -86,7 +86,7 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const databases = await scorix.invoke<DatabaseDO[]>("ext:gorm:Query", `SELECT *FROM "database" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
+      const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT *FROM "database" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
       if (!databases || databases.length < 1) {
         toast.error("database does not exist")
         return

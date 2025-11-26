@@ -10,7 +10,7 @@ import (
 )
 
 type KeyLoadLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index" validate:""`
 	Cursor        string `json:"cursor" validate:""`
 	Count         int64  `json:"count" validate:""`
@@ -34,7 +34,7 @@ func NewKeyLoadLogic(ctx context.Context, svcCtx *svc.ServiceContext) *KeyLoadLo
 }
 
 func (l *KeyLoadLogic) KeyLoadLogic(params KeyLoadLogicArgs) (*KeyLoadLogicResult, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

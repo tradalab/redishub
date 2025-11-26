@@ -8,7 +8,7 @@ import (
 )
 
 type KeyValueUpdateLogicArgs struct {
-	DatabaseId     string      `json:"database_id" validate:"required"`
+	ConnectionId   string      `json:"connection_id" validate:"required"`
 	DatabaseIndex  int         `json:"database_index" validate:""`
 	KeyName        string      `json:"key_name" validate:"required"`
 	KeyKind        string      `json:"key_kind" validate:"required"`
@@ -45,7 +45,7 @@ func NewClientKeyValueUpdateLogic(ctx context.Context, svcCtx *svc.ServiceContex
 }
 
 func (l *ClientKeyValueUpdateLogic) ClientKeyValueUpdateLogic(params KeyValueUpdateLogicArgs) (interface{}, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

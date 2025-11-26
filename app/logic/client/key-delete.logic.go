@@ -7,7 +7,7 @@ import (
 )
 
 type KeyDeleteLogicArgs struct {
-	DatabaseId    string `json:"database_id" validate:"required"`
+	ConnectionId  string `json:"connection_id" validate:"required"`
 	DatabaseIndex int    `json:"database_index" validate:""`
 	Key           string `json:"key" validate:"required"`
 }
@@ -25,7 +25,7 @@ func NewClientKeyDeleteLogic(ctx context.Context, svcCtx *svc.ServiceContext) *C
 }
 
 func (l *ClientKeyDeleteLogic) ClientKeyDeleteLogic(params KeyDeleteLogicArgs) (interface{}, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}
