@@ -110,7 +110,16 @@ export function SidebarBrowser() {
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">Browser</div>
           <div className="flex gap-3.5">
-            <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={() => reload()} />
+            <RefreshCcwIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() => {
+                if (isLoading) {
+                  return
+                }
+                loadInfo()
+                reload()
+              }}
+            />
             <BrowserAddKeyDialog>
               <PlusIcon className="h-4 w-4 cursor-pointer" />
             </BrowserAddKeyDialog>
