@@ -1,7 +1,7 @@
 "use client"
 
-import { DatabaseDetail } from "@/components/app/database-detail/database-detail"
-import { useAppContext } from "@/ctx/app"
+import { ConnectionDetail } from "@/components/app/connection-detail/connection-detail"
+import { useAppContext } from "@/ctx/app.context"
 
 export default function Page() {
   const { selectedDb, selectedKey } = useAppContext()
@@ -10,5 +10,5 @@ export default function Page() {
     return null
   }
 
-  return <DatabaseDetail databaseId={selectedDb} selectedKey={selectedKey} />
+  return <ConnectionDetail connectionId={selectedDb} selectedKey={selectedKey} />
 }

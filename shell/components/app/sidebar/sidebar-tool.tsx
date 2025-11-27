@@ -14,7 +14,7 @@ import {
 import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting-dialog"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 
 export function SidebarTool() {
   const { selectedTab, setSelectedTab, selectedDb } = useAppContext()
@@ -43,13 +43,13 @@ export function SidebarTool() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  tooltip={{ children: "Databases", hidden: false }}
-                  onClick={() => setSelectedTab("/databases")}
-                  isActive={selectedTab === "/databases"}
+                  tooltip={{ children: "Connections", hidden: false }}
+                  onClick={() => setSelectedTab("/connections")}
+                  isActive={selectedTab === "/connections"}
                   className="px-2.5 md:px-2"
                 >
                   <DatabaseIcon />
-                  <span>Databases</span>
+                  <span>Connections</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {selectedDb && (

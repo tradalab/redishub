@@ -10,7 +10,7 @@ import (
 )
 
 type KeyCreateLogicArgs struct {
-	DatabaseId    string        `json:"database_id" validate:"required"`
+	ConnectionId  string        `json:"connection_id" validate:"required"`
 	DatabaseIndex int           `json:"database_index" validate:""`
 	Kind          string        `json:"kind" validate:"required"`
 	Ttl           int           `json:"ttl" validate:"required"`
@@ -46,7 +46,7 @@ func NewClientKeyCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *C
 }
 
 func (l *ClientKeyCreateLogic) ClientKeyCreateLogic(params KeyCreateLogicArgs) (interface{}, error) {
-	cli, err := l.svcCtx.Cli.Get(params.DatabaseId, params.DatabaseIndex)
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

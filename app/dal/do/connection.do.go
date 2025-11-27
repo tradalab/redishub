@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type DatabaseDO struct {
+type ConnectionDO struct {
 	Base
 	Name     string   `json:"name" gorm:"column:name;"`
 	Network  string   `json:"network" gorm:"column:network;default:'tcp';"`
@@ -19,10 +19,10 @@ type DatabaseDO struct {
 	Group    *GroupDO `json:"group,omitempty" gorm:"_"`
 }
 
-func (d *DatabaseDO) TableName() string {
-	return "database"
+func (d *ConnectionDO) TableName() string {
+	return "connection"
 }
 
-func (d *DatabaseDO) Addr() string {
+func (d *ConnectionDO) Addr() string {
 	return net.JoinHostPort(d.Host, strconv.Itoa(d.Port))
 }

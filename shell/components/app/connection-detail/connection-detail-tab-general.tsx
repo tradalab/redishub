@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import scorix from "@/lib/scorix"
 
-export function DatabaseDetailTabGeneral({ databaseId, databaseIdx }: { databaseId: string; databaseIdx: number }) {
+export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const [info, setInfo] = useState<object | undefined>()
 
   const general = async (id: string) => {
@@ -15,7 +15,7 @@ export function DatabaseDetailTabGeneral({ databaseId, databaseIdx }: { database
       return
     }
     try {
-      const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { database_id: id, database_index: databaseIdx })
+      const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { connection_id: id, database_index: databaseIdx })
       setInfo(parseRedisInfo(res.info))
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -24,8 +24,8 @@ export function DatabaseDetailTabGeneral({ databaseId, databaseIdx }: { database
   }
 
   useEffect(() => {
-    general(databaseId)
-  }, [databaseId])
+    general(connectionId)
+  }, [connectionId])
 
   if (!info) {
     return null

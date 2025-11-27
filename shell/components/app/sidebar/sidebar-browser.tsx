@@ -5,12 +5,12 @@ import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwI
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useAppContext } from "@/ctx/app"
+import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/kibo-ui/tree"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DatabaseDO } from "@/types/database.do"
+import { ConnectionDo } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Button } from "@/components/ui/button"
@@ -72,7 +72,7 @@ export function SidebarBrowser() {
       return
     }
     try {
-      const res = await scorix.invoke<{ databases: any[] }>("client:general", { database_id: selectedDb, database_index: selectedDbIdx })
+      const res = await scorix.invoke<{ databases: any[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
       setDbs(res.databases || [])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -86,7 +86,7 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const databases = await scorix.invoke<DatabaseDO[]>("ext:gorm:Query", `SELECT *FROM "database" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
+      const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT *FROM "database" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
       if (!databases || databases.length < 1) {
         toast.error("database does not exist")
         return
@@ -110,9 +110,18 @@ export function SidebarBrowser() {
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">Browser</div>
           <div className="flex gap-3.5">
-            <RefreshCcwIcon className="h-5 w-5 cursor-pointer" onClick={() => reload()} />
+            <RefreshCcwIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() => {
+                if (isLoading) {
+                  return
+                }
+                loadInfo()
+                reload()
+              }}
+            />
             <BrowserAddKeyDialog>
-              <PlusIcon className="h-5 w-5 cursor-pointer" />
+              <PlusIcon className="h-4 w-4 cursor-pointer" />
             </BrowserAddKeyDialog>
           </div>
         </div>

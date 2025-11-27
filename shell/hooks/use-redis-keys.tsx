@@ -27,7 +27,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
         do {
           const res: { keys: string[]; cursor: string } = await scorix.invoke<{ keys: string[]; cursor: string }>("key:load", {
-            database_id: redisId,
+              connection_id: redisId,
             database_index: dbId,
             cursor: nextCursor,
             count,
@@ -76,7 +76,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
   const updateKey = async (oldKey: string, newKey: string) => {
     try {
-      await scorix.invoke("client:key-name-update", { database_id: redisId, database_index: dbId, current_name: oldKey, new_name: newKey })
+      await scorix.invoke("client:key-name-update", { connection_id: redisId, database_index: dbId, current_name: oldKey, new_name: newKey })
       dispatch({ type: "UPDATE_KEY", redisId, dbId, oldKey, newKey })
       toast.success("Updated!")
     } catch (e: any) {
@@ -87,7 +87,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
   const addKey = async (key: string, values: any) => {
     try {
-      await scorix.invoke("client:key-create", { database_id: redisId, database_index: dbId, ...values })
+      await scorix.invoke("client:key-create", { connection_id: redisId, database_index: dbId, ...values })
       dispatch({ type: "ADD_KEY", redisId, dbId, key })
       toast.success("Created!")
     } catch (e: any) {
@@ -98,7 +98,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
   const deleteKey = async (key: string) => {
     try {
-      await scorix.invoke("client:key-delete", { database_id: redisId, database_index: dbId, key: key })
+      await scorix.invoke("client:key-delete", { connection_id: redisId, database_index: dbId, key: key })
       dispatch({ type: "DELETE_KEY", redisId, dbId, key })
       toast.success("Deleted!")
     } catch (e: any) {

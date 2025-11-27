@@ -1,34 +1,32 @@
 "use client"
 
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { ReactNode, useState } from "react"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { toast } from "sonner"
-import { DatabaseDO } from "@/types/database.do"
-import { DatabaseForm } from "@/components/app/database-form"
+import { ulid } from "ulid"
 import scorix from "@/lib/scorix"
+import { toast } from "sonner"
+import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
+import { useDbStore } from "@/stores/db.store"
 
-type DatabaseUpdateDialogProps = {
-  database: DatabaseDO
-  reload: () => void
-  open: boolean
-  setOpen: (open: boolean) => void
-}
+export function ConnectionAddDialog({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const { load } = useDbStore()
 
-export function DatabaseUpdateDialog({ database, reload, open, setOpen }: DatabaseUpdateDialogProps) {
   const form = useForm<any>({
     defaultValues: {
-      name: database.name,
-      group_id: database.group_id || "",
-      network: database.network,
-      host: database.host,
-      port: database.port,
-      sock: database.sock,
-      username: database.username,
-      password: database.password,
+      name: "",
+      group_id: "",
+      network: "tcp",
+      host: "127.0.0.1",
+      port: 6379,
+      sock: "/tmp/redis.sock",
+      username: "",
+      password: "",
     },
     resolver: zodResolver(
       z.object({
@@ -46,12 +44,12 @@ export function DatabaseUpdateDialog({ database, reload, open, setOpen }: Databa
 
   const submit = form.handleSubmit(async values => {
     try {
-      const sql = `UPDATE "database" SET name="${values.name}", network="${values.network}", host="${values.host}", port="${values.port}", sock="${values.sock}", username="${values.username}", password="${values.password}", group_id="${values.group_id}" WHERE id="${database.id}"`
+      const sql = `INSERT INTO "connection" (id, name, network, host, port, sock, username, password, group_id) VALUES ("${ulid()}", "${values.name}", "${values.network}", "${values.host}", "${values.port}", "${values.sock}", "${values.username}", "${values.password}", "${values.group_id}")`
       await scorix.invoke("ext:gorm:Query", sql)
-      toast.success("Updated!")
+      toast.success("Created!")
       setOpen(false)
-      form.reset(values)
-      reload()
+      form.reset()
+      await load()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
@@ -60,13 +58,22 @@ export function DatabaseUpdateDialog({ database, reload, open, setOpen }: Databa
 
   return (
     <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
-      <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onInteractOutside={e => {
+          e.preventDefault()
+        }}
+        onEscapeKeyDown={e => {
+          e.preventDefault()
+        }}
+      >
         <DialogHeader>
-          <DialogTitle>Update Database</DialogTitle>
+          <DialogTitle>New Connection</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
-            <DatabaseForm form={form} />
+            <ConnectionFormSection form={form} />
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>

@@ -11,9 +11,11 @@ import { z } from "zod"
 import { ulid } from "ulid"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
+import { useDbStore } from "@/stores/db.store"
 
-export function GroupAddDialog({ children, reload }: { children: ReactNode; reload: () => void }) {
+export function GroupAddDialog({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
+  const { load } = useDbStore()
 
   const form = useForm({
     defaultValues: {
@@ -33,7 +35,7 @@ export function GroupAddDialog({ children, reload }: { children: ReactNode; relo
       toast.success("Created!")
       setOpen(false)
       form.reset()
-      reload()
+      await load()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       form.setError("name", { type: "manual", message: msg })

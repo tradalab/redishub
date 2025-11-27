@@ -10,13 +10,13 @@ import (
 
 type Client struct {
 	Rdb   *redis.Client
-	Cfg   *do.DatabaseDO
+	Cfg   *do.ConnectionDO
 	DbIdx int
 }
 
 //type RdbInfo map[string]map[string]string
 
-func NewClient(rdb *redis.Client, cfg *do.DatabaseDO, dbIdx int) *Client {
+func NewClient(rdb *redis.Client, cfg *do.ConnectionDO, dbIdx int) *Client {
 	return &Client{Rdb: rdb, Cfg: cfg, DbIdx: dbIdx}
 }
 

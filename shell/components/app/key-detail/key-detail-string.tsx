@@ -26,7 +26,7 @@ export function KeyDetailString(props: KeyDetailStringProps) {
     setLoading(true)
     await scorix
       .invoke("client:key-value-update", {
-        database_id: props.databaseId,
+        connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key_name: props.selectedKey,
         key_kind: KeyKindEnum.STRING,

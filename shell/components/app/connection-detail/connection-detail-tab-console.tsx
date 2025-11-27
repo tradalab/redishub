@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import "@xterm/xterm/css/xterm.css"
 import scorix from "@/lib/scorix"
 
-export function DatabaseDetailTabConsole({ databaseId, databaseIdx }: { databaseId: string; databaseIdx: number }) {
+export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const terminalRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
@@ -35,7 +35,7 @@ export function DatabaseDetailTabConsole({ databaseId, databaseIdx }: { database
       fitAddon.fit()
 
       try {
-        await scorix.invoke("client:console-connect", { database_id: databaseId, database_index: databaseIdx })
+        await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
         term.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         term.writeln("Type commands like: SET name Alice, GET name")
         term.write("> ")
@@ -76,7 +76,7 @@ export function DatabaseDetailTabConsole({ databaseId, databaseIdx }: { database
     const handleCommand = async (cmd: string) => {
       if (!cmd) return
       try {
-        await scorix.emit("console:input:" + databaseId, cmd)
+        await scorix.emit("console:input:" + connectionId, cmd)
         // if (data.error) {
         //   term.writeln(`\x1b[31m(error)\x1b[0m ${data.error}`)
         // } else {
@@ -90,7 +90,7 @@ export function DatabaseDetailTabConsole({ databaseId, databaseIdx }: { database
 
     initTerminal()
 
-    scorix.on("console:output:" + databaseId, (payload: string) => {
+    scorix.on("console:output:" + connectionId, (payload: string) => {
       term.writeln(`\x1b[36m${payload}\x1b[0m`)
     })
 

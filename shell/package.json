@@ -91,7 +91,8 @@
     "ulid": "^3.0.1",
     "use-file-picker": "2.1.2",
     "vaul": "^1.1.2",
-    "zod": "^3.25.71"
+    "zod": "^3.25.71",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

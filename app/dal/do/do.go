@@ -1,6 +1,6 @@
 package do
 
 var MigrationDst = []interface{}{
-	new(DatabaseDO),
+	new(ConnectionDO),
 	new(GroupDO),
 }
