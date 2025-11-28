@@ -4,13 +4,13 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleName</key>
-  <string>RDMS</string>
+  <string>RedisHub</string>
   <key>CFBundleDisplayName</key>
-  <string>RDMS</string>
+  <string>RedisHub</string>
   <key>CFBundleExecutable</key>
-  <string>RDMS</string>
+  <string>RedisHub</string>
   <key>CFBundleIdentifier</key>
-  <string>com.tradalab.rdms</string>
+  <string>com.tradalab.redishub</string>
   <key>CFBundleVersion</key>
   <string>1.0.0</string>
   <key>CFBundlePackageType</key>

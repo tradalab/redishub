@@ -96,7 +96,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       try {
         await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
         term.writeln("\x1b[32mRedis Console Ready\x1b[0m")
-        term.writeln("Type commands like: SET name Alice, GET name")
         termPrompt()
         setStatus("connected")
       } catch (e) {

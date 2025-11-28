@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="RDMS"
+APP_NAME="RedisHub"
 DIST_DIR=".scorix"
 
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
