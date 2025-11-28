@@ -5,6 +5,29 @@ import { Card, CardContent } from "@/components/ui/card"
 import "@xterm/xterm/css/xterm.css"
 import scorix from "@/lib/scorix"
 
+const REDIS_COMMANDS = [
+  "GET",
+  "SET",
+  "DEL",
+  "EXISTS",
+  "EXPIRE",
+  "HGET",
+  "HSET",
+  "HGETALL",
+  "HEXISTS",
+  "LRANGE",
+  "LLEN",
+  "SADD",
+  "SMEMBERS",
+  "ZADD",
+  "ZRANGE",
+  "ZREM",
+  "ZCARD",
+  "PING",
+  "INFO",
+  "SCAN",
+]
+
 export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const terminalRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
@@ -12,6 +35,42 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
   useEffect(() => {
     let term: any
     let fitAddon: any
+
+    const history: string[] = []
+    let historyIndex = -1
+    let buffer = ""
+
+    const prompt = `db${databaseIdx}> `
+
+    const termPrompt = () => term.write(prompt)
+
+    const replaceInput = (text: string) => {
+      // erase current buffer from terminal
+      while (buffer.length > 0) {
+        term.write("\b \b")
+        buffer = buffer.slice(0, -1)
+      }
+      // write history text
+      buffer = text
+      term.write(text)
+    }
+
+    const getSuggestions = (buf: string) => {
+      const input = buf.trim().toUpperCase()
+      if (!input) return []
+      return REDIS_COMMANDS.filter(cmd => cmd.startsWith(input))
+    }
+
+    const commonPrefix = (arr: string[]) => {
+      if (!arr.length) return ""
+      let prefix = arr[0]
+      for (let i = 1; i < arr.length; i++) {
+        let j = 0
+        while (j < prefix.length && j < arr[i].length && prefix[j] === arr[i][j]) j++
+        prefix = prefix.slice(0, j)
+      }
+      return prefix
+    }
 
     const initTerminal = async () => {
       const { Terminal } = await import("@xterm/xterm")
@@ -38,7 +97,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
         term.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         term.writeln("Type commands like: SET name Alice, GET name")
-        term.write("> ")
+        termPrompt()
         setStatus("connected")
       } catch (e) {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -47,27 +106,74 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         return
       }
 
-      let buffer = ""
-
       term.onData((data: string) => {
         const code = data.charCodeAt(0)
+
+        // ENTER
         if (code === 13) {
-          handleCommand(buffer.trim())
+          const cmd = buffer.trim()
+          term.write("\r\n")
+
+          // store into history
+          if (cmd.length > 0) {
+            history.push(cmd)
+            historyIndex = history.length
+          }
+
           buffer = ""
-          term.write("\r\n> ")
-        } else if (code === 127) {
-          // backspace
+          handleCommand(cmd)
+          termPrompt()
+          return
+        }
+
+        // BACKSPACE
+        if (code === 127) {
           if (buffer.length > 0) {
             buffer = buffer.slice(0, -1)
             term.write("\b \b")
           }
-        } else {
-          buffer += data
-          term.write(data)
+          return
         }
+
+        // ArrowUp
+        if (code === 27 && data === "\u001b[A") {
+          if (history.length === 0) return
+          if (historyIndex > 0) historyIndex--
+          replaceInput(history[historyIndex])
+          return
+        }
+
+        // ArrowDown
+        if (code === 27 && data === "\u001b[B") {
+          if (history.length === 0) return
+          if (historyIndex < history.length - 1) {
+            historyIndex++
+            replaceInput(history[historyIndex])
+          } else {
+            historyIndex = history.length
+            replaceInput("")
+          }
+          return
+        }
+
+        // TAB autocomplete inline
+        if (code === 9) {
+          const suggestions = getSuggestions(buffer)
+          if (!suggestions.length) return
+
+          const prefix = commonPrefix(suggestions)
+          if (prefix.length > buffer.length) {
+            replaceInput(prefix + " ")
+          }
+          return
+        }
+
+        // normal input
+        buffer += data
+        term.write(data)
       })
 
-      // refit on resize
+      // auto-fit
       const handleResize = () => fitAddon.fit()
       window.addEventListener("resize", handleResize)
       return () => window.removeEventListener("resize", handleResize)
@@ -77,13 +183,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       if (!cmd) return
       try {
         await scorix.emit("console:input:" + connectionId, cmd)
-        // if (data.error) {
-        //   term.writeln(`\x1b[31m(error)\x1b[0m ${data.error}`)
-        // } else {
-        //   term.writeln(`\x1b[36m${JSON.stringify(data.result)}\x1b[0m`)
-        // }
       } catch (err: any) {
         term.writeln(`\x1b[31m(error)\x1b[0m ${err.message}`)
+        termPrompt()
         setStatus("error")
       }
     }
@@ -91,7 +193,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     initTerminal()
 
     scorix.on("console:output:" + connectionId, (payload: string) => {
-      term.writeln(`\x1b[36m${payload}\x1b[0m`)
+      term.write("\r")
+      term.writeln(`\x1b[37m${payload}\x1b[0m`)
+      termPrompt()
     })
 
     return () => {
