@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import { ReactNode, useState } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -14,6 +14,13 @@ import scorix from "@/lib/scorix"
 export function SettingDialog({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme()
   const { checkUpdate, newVersion, loading } = useUpdater(false)
+  const [checked, setChecked] = useState(false)
+
+  const handleCheck = async () => {
+    setChecked(false)
+    await checkUpdate()
+    setChecked(true)
+  }
 
   return (
     <Dialog>
@@ -41,13 +48,17 @@ export function SettingDialog({ children }: { children: ReactNode }) {
           <div className="grid gap-2">
             <Label>Check Update</Label>
             <div className="flex items-center gap-2">
-              <Button className="w-full" size="sm" variant="outline" onClick={checkUpdate}>
+              <Button className="w-full" size="sm" variant="outline" onClick={handleCheck}>
                 {loading ? (
                   <>
                     <Spinner /> Checking...
                   </>
-                ) : newVersion ? (
-                  `Update available: v${newVersion}`
+                ) : checked ? (
+                  newVersion ? (
+                    `⬆️ Update available: v${newVersion}`
+                  ) : (
+                    "✅ Up to date"
+                  )
                 ) : (
                   "Check Update"
                 )}
