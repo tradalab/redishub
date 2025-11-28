@@ -3,25 +3,30 @@
 import { ReactNode } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTheme } from "next-themes"
 import { version } from "../../package.json"
+import { Button } from "@/components/ui/button"
+import { useUpdater } from "@/hooks/use-updater"
+import { Spinner } from "@/components/ui/spinner"
+import scorix from "@/lib/scorix"
 
 export function SettingDialog({ children }: { children: ReactNode }) {
   const { theme, setTheme } = useTheme()
+  const { checkUpdate, newVersion, loading } = useUpdater(false)
 
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] space-y-4">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name-1">Theme</Label>
+          <div className="grid gap-2">
+            <Label htmlFor="theme-select">Theme</Label>
             <Select value={theme} onValueChange={setTheme}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="theme-select" className="w-full">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
@@ -33,9 +38,49 @@ export function SettingDialog({ children }: { children: ReactNode }) {
               </SelectContent>
             </Select>
           </div>
+          <div className="grid gap-2">
+            <Label>Check Update</Label>
+            <div className="flex items-center gap-2">
+              <Button className="w-full" size="sm" variant="outline" onClick={checkUpdate}>
+                {loading ? (
+                  <>
+                    <Spinner /> Checking...
+                  </>
+                ) : newVersion ? (
+                  `Update available: v${newVersion}`
+                ) : (
+                  "Check Update"
+                )}
+              </Button>
+            </div>
+          </div>
         </div>
         <DialogFooter>
-          <span className="text-sm text-bold">v{version}</span>
+          <div className="flex items-center justify-between w-full text-sm">
+            <div className="flex gap-4">
+              <a
+                href="#"
+                onClick={e => {
+                  e.preventDefault()
+                  scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub")
+                }}
+                className="text-blue-500 underline"
+              >
+                GitHub
+              </a>
+              <a
+                href="#"
+                onClick={e => {
+                  e.preventDefault()
+                  scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub/issues")
+                }}
+                className="text-blue-500 underline"
+              >
+                Report Issues
+              </a>
+            </div>
+            <span className="font-bold">v{version}</span>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
