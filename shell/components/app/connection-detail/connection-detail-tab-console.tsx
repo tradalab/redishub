@@ -13,7 +13,22 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     let term: any
     let fitAddon: any
 
+    const history: string[] = []
+    let historyIndex = -1
+    let buffer = ""
+
     const termPrompt = () => term.write(`db${databaseIdx}> `)
+
+    const replaceInput = (text: string) => {
+      // erase current buffer from terminal
+      while (buffer.length > 0) {
+        term.write("\b \b")
+        buffer = buffer.slice(0, -1)
+      }
+      // write history text
+      buffer = text
+      term.write(text)
+    }
 
     const initTerminal = async () => {
       const { Terminal } = await import("@xterm/xterm")
@@ -49,27 +64,61 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         return
       }
 
-      let buffer = ""
-
       term.onData((data: string) => {
         const code = data.charCodeAt(0)
+
+        // handle ENTER
         if (code === 13) {
-          handleCommand(buffer.trim())
+          const cmd = buffer.trim()
+          term.write("\r\n")
+
+          // store into history
+          if (cmd.length > 0) {
+            history.push(cmd)
+            historyIndex = history.length
+          }
+
           buffer = ""
-          term.write("\r\n> ")
-        } else if (code === 127) {
-          // backspace
+          handleCommand(cmd)
+          termPrompt()
+          return
+        }
+
+        // BACKSPACE
+        if (code === 127) {
           if (buffer.length > 0) {
             buffer = buffer.slice(0, -1)
             term.write("\b \b")
           }
-        } else {
-          buffer += data
-          term.write(data)
+          return
         }
+
+        // handle ArrowUp
+        if (code === 27 && data === "\u001b[A") {
+          if (history.length === 0) return
+          if (historyIndex > 0) historyIndex--
+          replaceInput(history[historyIndex])
+          return
+        }
+
+        // handle ArrowDown
+        if (code === 27 && data === "\u001b[B") {
+          if (history.length === 0) return
+          if (historyIndex < history.length - 1) {
+            historyIndex++
+            replaceInput(history[historyIndex])
+          } else {
+            historyIndex = history.length
+            replaceInput("")
+          }
+          return
+        }
+
+        buffer += data
+        term.write(data)
       })
 
-      // refit on resize
+      // auto-fit
       const handleResize = () => fitAddon.fit()
       window.addEventListener("resize", handleResize)
       return () => window.removeEventListener("resize", handleResize)
@@ -79,11 +128,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       if (!cmd) return
       try {
         await scorix.emit("console:input:" + connectionId, cmd)
-        // if (data.error) {
-        //   term.writeln(`\x1b[31m(error)\x1b[0m ${data.error}`)
-        // } else {
-        //   term.writeln(`\x1b[36m${JSON.stringify(data.result)}\x1b[0m`)
-        // }
       } catch (err: any) {
         term.writeln(`\x1b[31m(error)\x1b[0m ${err.message}`)
         termPrompt()
