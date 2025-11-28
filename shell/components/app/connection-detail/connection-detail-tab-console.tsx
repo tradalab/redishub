@@ -13,6 +13,8 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     let term: any
     let fitAddon: any
 
+    const termPrompt = () => term.write(`db${databaseIdx}> `)
+
     const initTerminal = async () => {
       const { Terminal } = await import("@xterm/xterm")
       const { FitAddon } = await import("@xterm/addon-fit")
@@ -38,7 +40,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
         term.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         term.writeln("Type commands like: SET name Alice, GET name")
-        term.write("> ")
+        termPrompt()
         setStatus("connected")
       } catch (e) {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -84,6 +86,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         // }
       } catch (err: any) {
         term.writeln(`\x1b[31m(error)\x1b[0m ${err.message}`)
+        termPrompt()
         setStatus("error")
       }
     }
@@ -91,7 +94,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     initTerminal()
 
     scorix.on("console:output:" + connectionId, (payload: string) => {
-      term.writeln(`\x1b[36m${payload}\x1b[0m`)
+      term.write("\r")
+      term.writeln(`\x1b[37m${payload}\x1b[0m`)
+      termPrompt()
     })
 
     return () => {

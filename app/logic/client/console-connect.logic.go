@@ -3,10 +3,13 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/google/shlex"
+	"github.com/redis/go-redis/v9"
 	"github.com/samber/lo"
 	"github.com/tradalab/rdms/app/svc"
 )
@@ -26,46 +29,47 @@ func NewConsoleConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Co
 }
 
 func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs) (any, error) {
-	//cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//eventIn := "console:input:" + params.ConnectionId
-	//eventOut := "console:output:" + params.ConnectionId
+	cli, err := l.svcCtx.Cli.Get(params.ConnectionId, params.DatabaseIndex)
+	if err != nil {
+		return nil, err
+	}
 
-	//l.svcCtx.App.Context().OnPublicEvent(eventIn, func(payload any) {
-	//	str, ok := payload.(string)
-	//	if !ok {
-	//		return
-	//	}
-	//
-	//	cmds := SplitCmd(str)
-	//	if len(cmds) == 0 || cmds[0] == "" {
-	//		return
-	//	}
-	//
-	//	args := lo.ToAnySlice(cmds)
-	//	result, err := cli.Rdb.Do(context.Background(), args...).Result()
-	//
-	//	if err != nil && !errors.Is(err, redis.Nil) {
-	//		l.svcCtx.App.Context().EmitPublicEvent(eventOut, err.Error())
-	//		return
-	//	}
-	//
-	//	// handle SELECT db
-	//	if strings.EqualFold(cmds[0], "select") {
-	//		if db, err := strconv.Atoi(cmds[1]); err == nil {
-	//			_ = db
-	//			// TODO: switch DB | block switch
-	//			return
-	//		}
-	//	}
-	//
-	//	// TODO: handler monitor command
-	//
-	//	l.svcCtx.App.Context().EmitPublicEvent(eventOut, AnyToString(result))
-	//})
+	eventIn := "console:input:" + params.ConnectionId
+	eventOut := "console:output:" + params.ConnectionId
+
+	l.svcCtx.App.On(eventIn, func(payload any) {
+		raw := payload.(json.RawMessage)
+		var str string
+		if err := json.Unmarshal(raw, &str); err != nil {
+			l.svcCtx.App.Emit(eventOut, err.Error())
+			return
+		}
+
+		cmds := SplitCmd(str)
+		if len(cmds) == 0 || cmds[0] == "" {
+			return
+		}
+
+		args := lo.ToAnySlice(cmds)
+		result, err := cli.Rdb.Do(context.Background(), args...).Result()
+		if err != nil && !errors.Is(err, redis.Nil) {
+			l.svcCtx.App.Emit(eventOut, err.Error())
+			return
+		}
+
+		// handle select db
+		if strings.EqualFold(cmds[0], "select") {
+			if db, err := strconv.Atoi(cmds[1]); err == nil {
+				_ = db
+				// TODO: switch DB | block switch
+				return
+			}
+		}
+
+		// TODO: handler monitor command
+
+		l.svcCtx.App.Emit(eventOut, AnyToString(result))
+	})
 
 	return nil, nil
 }
