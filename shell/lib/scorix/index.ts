@@ -27,14 +27,16 @@ const scorix = {
     await (window as any).__scorix_bind_invoke?.(JSON.stringify(envelope))
   },
 
-  _dispatch(data: string) {
+  _dispatch(data: any) {
     try {
-      const msg = JSON.parse(data)
-      const event = new CustomEvent("scorix:" + msg.name, {
-        detail: msg.data,
+      const msg = data as any
+      const event = new CustomEvent("scorix:" + msg.payload.name, {
+        detail: msg.payload.data,
       })
       window.dispatchEvent(event)
-    } catch {}
+    } catch (e) {
+      console.error(e)
+    }
   },
 
   onResolve(name: string, handler: ScorixResolveHandler) {
@@ -46,6 +48,16 @@ const scorix = {
     window.addEventListener("scorix:" + topic, handler)
     return () => window.removeEventListener("scorix:" + topic, handler)
   },
+}
+
+declare global {
+  interface Window {
+    scorix: typeof scorix
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.scorix = scorix
 }
 
 export default scorix
