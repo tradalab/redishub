@@ -26,20 +26,20 @@ func NewClientConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cli
 }
 
 func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interface{}, error) {
-	var database *do.ConnectionDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&database)
+	var connection *do.ConnectionDO
+	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&connection)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	if result.RowsAffected == 0 {
-		return nil, fmt.Errorf("database does not exist")
+		return nil, fmt.Errorf("connection does not exist")
 	}
 
-	if database.LastDb != params.DatabaseIndex {
+	if connection.LastDb != params.DatabaseIndex {
 		l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Updates(map[string]interface{}{"last_db": params.DatabaseIndex})
 	}
 
-	_, err := l.svcCtx.Cli.Add(database, params.DatabaseIndex)
+	_, err := l.svcCtx.Cli.Add(connection, params.DatabaseIndex)
 	if err != nil {
 		return nil, err
 	}

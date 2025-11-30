@@ -86,9 +86,9 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT *FROM "database" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
+      const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT * FROM "connection" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
       if (!databases || databases.length < 1) {
-        toast.error("database does not exist")
+        toast.error("connection does not exist")
         return
       }
       await connect(databases[0], idx)
