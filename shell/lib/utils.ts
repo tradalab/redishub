@@ -57,6 +57,7 @@ export const buildDbTree = (groups: GroupDO[], connections: ConnectionDo[]): Tre
     id: g.id,
     name: g.name,
     isGroup: true,
+    isLeaf: false,
     level: 0,
     group: g,
     children: connections
@@ -65,6 +66,7 @@ export const buildDbTree = (groups: GroupDO[], connections: ConnectionDo[]): Tre
         id: c.id,
         name: c.name,
         isGroup: false,
+        isLeaf: true,
         level: 1,
         connection: c,
       })),
@@ -76,6 +78,7 @@ export const buildDbTree = (groups: GroupDO[], connections: ConnectionDo[]): Tre
       id: c.id,
       name: c.name,
       isGroup: false,
+      isLeaf: true,
       level: 0,
       connection: c,
     }))

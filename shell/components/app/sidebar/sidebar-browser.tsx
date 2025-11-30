@@ -46,24 +46,40 @@ export function SidebarBrowser() {
       let currentLevel = root
 
       parts.forEach((part, index) => {
-        let node = currentLevel.find(n => n.name === part)
-        if (!node) {
-          node = {
-            id: parts.slice(0, index + 1).join(delimiter), // id = path
-            name: part,
-            isGroup: index < parts.length - 1,
-            level: index,
-            children: [],
+        const isLast = index === parts.length - 1
+
+        // find node group same name
+        let nodeGroup = currentLevel.find(n => n.name === part && n.isGroup)
+
+        if (isLast) {
+          // leaf node
+          const leafExists = currentLevel.find(n => n.name === part && n.isLeaf)
+          if (!leafExists) {
+            const leafNode: TreeItem = {
+              id: parts.slice(0, index + 1).join(delimiter),
+              name: part,
+              isLeaf: true,
+              level: index,
+              children: [],
+            }
+            currentLevel.push(leafNode)
           }
-          currentLevel.push(node)
-        }
-        if (index < parts.length - 1) {
-          if (!node.children) node.children = []
-          currentLevel = node.children
+        } else {
+          if (!nodeGroup) {
+            const groupNode: TreeItem = {
+              id: "group__" + parts.slice(0, index + 1).join(delimiter),
+              name: part,
+              isGroup: true,
+              level: index,
+              children: [],
+            }
+            currentLevel.push(groupNode)
+            nodeGroup = groupNode
+          }
+          currentLevel = nodeGroup.children!
         }
       })
     }
-
     return root
   }
 

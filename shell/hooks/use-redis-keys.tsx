@@ -27,7 +27,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
         do {
           const res: { keys: string[]; cursor: string } = await scorix.invoke<{ keys: string[]; cursor: string }>("key:load", {
-              connection_id: redisId,
+            connection_id: redisId,
             database_index: dbId,
             cursor: nextCursor,
             count,

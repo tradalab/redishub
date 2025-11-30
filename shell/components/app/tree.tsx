@@ -5,7 +5,8 @@ export type TreeItem = {
   id: string
   name: string
   level?: number
-  isGroup: boolean
+  isGroup?: boolean
+  isLeaf?: boolean
   group?: GroupDO
   connection?: ConnectionDo
   children?: TreeItem[]
