@@ -5,7 +5,7 @@ import { useRedisKeysContext } from "@/ctx/redis-keys.context"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 
-const DEFAULT_COUNT = 1000
+const DEFAULT_COUNT = 5000
 
 export function useRedisKeys(redisId: string, dbId: number = 0) {
   const { state, dispatch } = useRedisKeysContext()
