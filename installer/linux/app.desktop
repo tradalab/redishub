@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=RedisHub
+Comment=RedisHub – A simple Redis desktop client
+Exec=/usr/bin/redishub
+Icon=/usr/share/icons/redishub.png
+Terminal=false
+Type=Application
+Categories=Utility;Development;Database;
+StartupNotify=true

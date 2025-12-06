@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+APP_ID="redishub"
 APP_NAME="RedisHub"
+APP_DESC="RedisHub – A fast, lightweight, and intuitive Redis desktop client"
+
 DIST_DIR=".scorix"
 
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
@@ -9,7 +12,7 @@ VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
 GOOS=${1:-$(go env GOOS)}
 GOARCH=${2:-$(go env GOARCH)}
 
-OUT_DIR="$DIST_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}"
+OUT_DIR="$DIST_DIR/$APP_ID-$VERSION-$GOOS-$GOARCH"
 
 echo "==> Building application $APP_NAME version $VERSION"
 
@@ -22,9 +25,8 @@ sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" ./shell/package
 sed -i -E "s/(Version=\")[0-9]+\.[0-9]+\.[0-9]+/\1$VERSION/" ./installer/windows/installer.wxs
 sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" ./etc/app.yaml
 
-echo "+ Copy icon"
+echo "+ Make out dir"
 mkdir -p "$OUT_DIR"
-cp ./assets/icon.ico "$OUT_DIR/$APP_NAME.ico"
 
 ####################################################################################################
 
@@ -34,10 +36,13 @@ cd shell && pnpm install && pnpm lint && pnpm build && cd ..
 
 ####################################################################################################
 
-echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
-
 case "$GOOS" in
   windows)
+    echo "==> Make assets"
+
+    cp ./installer/windows/icon.ico "$OUT_DIR/$APP_NAME.ico"
+
+    echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
     GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-H=windowsgui" -o "$OUT_DIR/$APP_NAME" ./main.go
 
     echo "==> Packaging MSI..."
@@ -48,13 +53,16 @@ case "$GOOS" in
     if command -v candle >/dev/null && command -v light >/dev/null; then
       candle installer/windows/installer.wxs -dBinPath="$OUT_DIR"
       mv installer.wixobj installer/windows/installer.wixobj
-      light installer/windows/installer.wixobj -o "$DIST_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
+      light installer/windows/installer.wixobj -o "$DIST_DIR/$APP_ID-$VERSION-$GOOS-$GOARCH.msi"
     else
       echo "!! WiX toolset (candle, light) not found. Skipping MSI package."
     fi
     ;;
 
   darwin)
+    echo "==> Make assets"
+
+    echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
     GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/$APP_NAME" ./main.go
 
     echo "==> Packaging macOS .app + .dmg..."
@@ -74,12 +82,38 @@ case "$GOOS" in
     ;;
 
   linux)
-    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/$APP_NAME" ./main.go
+    echo "==> Make assets"
+
+    cp ./installer/linux/icon-256.png "$OUT_DIR/icon.png"
+    cp ./installer/linux/app.desktop "$OUT_DIR/$APP_ID.desktop"
+
+    echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
+    GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/$APP_ID" ./main.go
+
+    echo "==> Set assets permission"
+    chmod 755 $OUT_DIR/$APP_ID
+    chmod 644 $OUT_DIR/$APP_ID.desktop
+    chmod 644 $OUT_DIR/icon.png
 
     echo "==> Packaging Linux .deb and .rpm..."
     if command -v fpm >/dev/null; then
-      fpm -s dir -t deb -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
-      fpm -s dir -t rpm -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
+      fpm -s dir -t deb \
+        -n "$APP_ID" \
+        -v "$VERSION" \
+        --description "$APP_DESC" \
+        -p "${DIST_DIR}/${APP_ID}_${VERSION}_${GOARCH}.deb" \
+        $OUT_DIR/$APP_ID=/usr/bin/$APP_ID \
+        $OUT_DIR/icon.png=/usr/share/icons/$APP_ID.png \
+        $OUT_DIR/$APP_ID.desktop=/usr/share/applications/$APP_ID.desktop
+
+      #fpm -s dir -t rpm \
+      #  -n "$APP_ID" \
+      #  -v "$VERSION" \
+      #  --description "$APP_DESC" \
+      #  --architecture x86_64 \
+      #  $OUT_DIR/$APP_ID=/usr/bin/$APP_ID \
+      #  $OUT_DIR/icon.png=/usr/share/icons/hicolor/256x256/apps/$APP_ID.png \
+      #  $OUT_DIR/$APP_ID.desktop=/usr/share/applications/$APP_ID.desktop
     else
       echo "!! fpm not found. Skipping Linux packages."
     fi
