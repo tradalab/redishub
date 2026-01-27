@@ -210,7 +210,9 @@ function RenderTreeItem({ item, deleteKey }: { item: TreeItem; deleteKey: (key: 
       <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item">
         <TreeExpander hasChildren />
         <TreeIcon hasChildren />
-        <TreeLabel>{item.name}</TreeLabel>
+        <TreeLabel title={item.name}>
+          {item.name || "[Empty]"} {item?.children?.length && `(${item.children?.length})`}
+        </TreeLabel>
         <ActionButton item={item} deleteKey={deleteKey} />
       </TreeNodeTrigger>
       <TreeNodeContent hasChildren>
