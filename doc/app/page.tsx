@@ -27,7 +27,7 @@ export default function HomePage() {
           </Link>
 
           <Link
-            href="https://github.com/your-org/redishub"
+            href="https://github.com/tradalab/redishub"
             className="
               rounded-lg
               bg-neutral-200 text-neutral-900
