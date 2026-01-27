@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-export default function HomePage() {
+export default function Page() {
   return (
     <main className="mx-auto max-w-7xl px-6 py-24">
       <section className="mb-24">

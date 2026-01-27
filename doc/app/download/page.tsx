@@ -16,7 +16,7 @@ const MATRIX: Record<OS, { label: string; ext: string; archs: Arch[] }> = {
   // linux: { label: "Linux", ext: "AppImage", archs: ["x64", "arm64"] },
 }
 
-export default function DownloadPage() {
+export default function Page() {
   const [os, setOs] = useState<OS>("windows")
   const [arch, setArch] = useState<Arch>("x64")
 
