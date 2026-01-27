@@ -1,0 +1,8 @@
+"*.ts"    eol=lf
+"*.js"    eol=lf
+"*.css"   eol=lf
+"*.scss"  eol=lf
+"*.json"  eol=lf
+"*.yaml"  eol=lf
+"*.sh"    eol=lf
+"*.md"    eol=lf

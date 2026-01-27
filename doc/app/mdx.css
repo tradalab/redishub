@@ -1,0 +1,194 @@
+/* =========================
+   MDX / Markdown Typography
+   Tailwind v4 safe
+   ========================= */
+
+.mdx {
+  max-width: 70ch;
+  line-height: 1.75;
+  font-size: 1rem;
+  color: rgb(15 23 42); /* slate-900 */
+}
+
+/* Dark mode */
+.dark .mdx {
+  color: rgb(226 232 240); /* slate-200 */
+}
+
+/* Headings */
+.mdx h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 3rem 0 1.25rem;
+}
+
+.mdx h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 2.5rem 0 1rem;
+}
+
+.mdx h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+}
+
+.mdx h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* Paragraphs */
+.mdx p {
+  margin: 1rem 0;
+}
+
+/* Lists */
+.mdx ul,
+.mdx ol {
+  margin: 1rem 0 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.mdx ul {
+  list-style-type: disc;
+}
+
+.mdx ol {
+  list-style-type: decimal;
+}
+
+.mdx li {
+  margin: 0.4rem 0;
+}
+
+.mdx li > p {
+  margin: 0.25rem 0;
+}
+
+/* Blockquote */
+.mdx blockquote {
+  border-left: 4px solid rgb(203 213 225); /* slate-300 */
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: rgb(71 85 105); /* slate-600 */
+}
+
+.dark .mdx blockquote {
+  border-color: rgb(51 65 85); /* slate-700 */
+  color: rgb(148 163 184); /* slate-400 */
+}
+
+/* Links */
+.mdx a {
+  color: rgb(79 70 229); /* indigo-600 */
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mdx a:hover {
+  color: rgb(67 56 202); /* indigo-700 */
+}
+
+/* Inline code */
+.mdx code {
+  background: rgb(241 245 249); /* slate-100 */
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+  "Liberation Mono", "Courier New", monospace;
+}
+
+.dark .mdx code {
+  background: rgb(30 41 59); /* slate-800 */
+}
+
+/* Code blocks */
+.mdx pre {
+  background: rgb(15 23 42); /* slate-900 */
+  color: rgb(226 232 240); /* slate-200 */
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.mdx pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Tables */
+.mdx table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.95rem;
+}
+
+.mdx th,
+.mdx td {
+  border: 1px solid rgb(226 232 240); /* slate-200 */
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.dark .mdx th,
+.dark .mdx td {
+  border-color: rgb(51 65 85); /* slate-700 */
+}
+
+.mdx th {
+  background: rgb(248 250 252); /* slate-50 */
+  font-weight: 600;
+}
+
+.dark .mdx th {
+  background: rgb(30 41 59); /* slate-800 */
+}
+
+/* Horizontal rule */
+.mdx hr {
+  border: none;
+  border-top: 1px solid rgb(226 232 240);
+  margin: 3rem 0;
+}
+
+.dark .mdx hr {
+  border-color: rgb(51 65 85);
+}
+
+/* Images */
+.mdx img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Strong / emphasis */
+.mdx strong {
+  font-weight: 600;
+}
+
+.mdx em {
+  font-style: italic;
+}
+
+/* Small text */
+.mdx small {
+  font-size: 0.875rem;
+  color: rgb(100 116 139); /* slate-500 */
+}
+
+.dark .mdx small {
+  color: rgb(148 163 184); /* slate-400 */
+}
