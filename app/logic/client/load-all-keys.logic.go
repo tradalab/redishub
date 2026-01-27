@@ -42,7 +42,7 @@ func (l *ClientLoadAllKeysLogic) ClientLoadAllKeysLogic(params LoadAllKeysLogicA
 func scanKeys(ctx context.Context, client redis.UniversalClient, match, keyType string, cursor uint64, count int64) ([]any, uint64, error) {
 	var err error
 	filterType := len(keyType) > 0
-	scanSize := int64(5000)
+	scanSize := int64(10000)
 
 	scan := func(ctx context.Context, cli redis.UniversalClient, count int64, appendFunc func(k []any)) error {
 		var loadedKey []string
