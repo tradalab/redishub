@@ -1,0 +1,66 @@
+name: Build & Push Doc Image
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "doc/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set SHORT_SHA
+        id: vars
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_ENV
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./doc
+          file: ./doc/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-doc:${{ steps.vars.outputs.short_sha }}
+            ghcr.io/${{ github.repository }}-doc:latest
+
+      - name: Setup SSH (GitLab)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GITOPS_GITLAB_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+
+      - name: Update GitOps repo (GitLab)
+        run: |
+          git clone ${GITOPS_GITLAB_REPO}
+          cd gitops
+
+          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:${{ steps.vars.outputs.short_sha }}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
+          
+          git config user.email "gitops-bot@gitlab.com"
+          git config user.name "gitops-bot"
+
+          git commit -am "ci(redishub): update image ghcr.io/${{ github.repository }}-doc:${{ steps.vars.outputs.short_sha }}"
+          git push
+        env:
+          GITOPS_GITLAB_SSH_KEY: ${{ secrets.GITOPS_GITLAB_SSH_KEY }}
+          GITOPS_GITLAB_REPO: ${{ secrets.GITOPS_GITLAB_REPO }}
