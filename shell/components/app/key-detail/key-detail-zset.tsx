@@ -15,6 +15,7 @@ import { PlusIcon } from "lucide-react"
 import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 type KeyDetailZsetProps = {
   databaseId: string
@@ -25,6 +26,7 @@ type KeyDetailZsetProps = {
 }
 
 export function KeyDetailZset(props: KeyDetailZsetProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
 
   const columns: ColumnDef<ZsetType>[] = [
@@ -65,10 +67,10 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
         key_kind: KeyKindEnum.ZSET,
         key_value_zset: values.value_zset,
       })
-      toast.success("Updated!")
+      toast.success(t("updated"))
       props.reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -82,14 +84,14 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
               <PlusIcon />
-              Insert Row
+              {t("insert_row")}
             </Button>
           </DrawerTrigger>
           <DrawerContent>
             <Form {...form}>
               <form onSubmit={submit} className="grid gap-4">
                 <DrawerHeader>
-                  <DrawerTitle>New Field</DrawerTitle>
+                  <DrawerTitle>{t("new_field")}</DrawerTitle>
                   <DrawerDescription></DrawerDescription>
                 </DrawerHeader>
                 <FormItem>
@@ -102,11 +104,11 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
                 <DrawerFooter>
                   <div className="flex items-right">
                     <Button size="sm" type="submit" disabled={loading}>
-                      Save
+                      {t("save")}
                     </Button>
                     <DrawerClose>
                       <Button size="sm" variant="outline">
-                        Cancel
+                        {t("cancel")}
                       </Button>
                     </DrawerClose>
                   </div>

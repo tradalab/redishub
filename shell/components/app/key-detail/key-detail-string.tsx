@@ -8,6 +8,7 @@ import { KeyKindEnum } from "@/types/key-kind.enum"
 import { Spinner } from "@/components/ui/kibo-ui/spinner"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 export type KeyDetailStringProps = {
   databaseId: string
@@ -18,6 +19,7 @@ export type KeyDetailStringProps = {
 }
 
 export function KeyDetailString(props: KeyDetailStringProps) {
+  const { t } = useTranslation()
   const [changed, setChanged] = useState<boolean>(false)
   const [newVal, setNewVal] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
@@ -34,10 +36,10 @@ export function KeyDetailString(props: KeyDetailStringProps) {
       })
       .then(() => {
         props.reload()
-        toast.success("Updated!")
+        toast.success(t("updated"))
       })
       .catch(e => {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
         toast.error(msg)
       })
       .finally(() => {
@@ -50,7 +52,7 @@ export function KeyDetailString(props: KeyDetailStringProps) {
       <div>
         <Button size="sm" variant="outline" className="mb-2" disabled={!changed || loading} onClick={() => update()}>
           {loading ? <Spinner /> : <SaveIcon />}
-          Save
+          {t("save")}
         </Button>
       </div>
       <CodeEditor

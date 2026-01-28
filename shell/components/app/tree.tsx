@@ -39,6 +39,6 @@ export function sortTree(items: TreeItem[]): TreeItem[] {
       if (a.isGroup && !b.isGroup) return -1
       if (!a.isGroup && b.isGroup) return 1
 
-      return a.name.localeCompare(b.name, "vi", { sensitivity: "base" })
+      return a.name.localeCompare(b.name, "en", { sensitivity: "base" })
     })
 }

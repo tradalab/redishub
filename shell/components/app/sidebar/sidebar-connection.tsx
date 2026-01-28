@@ -15,8 +15,10 @@ import { GroupUpdateDialog } from "@/components/app/group-update-dialog"
 import { ConnectionUpdateDialog } from "@/components/app/connection/connection-update-dialog"
 import { useDbStore } from "@/stores/db.store"
 import { buildDbTree } from "@/lib/utils"
+import { useTranslation } from "react-i18next"
 
 export function SidebarConnection() {
+  const { t } = useTranslation()
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds] = useState<string[]>([])
@@ -33,7 +35,7 @@ export function SidebarConnection() {
     <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
       <SidebarHeader className="gap-2 border-b p-2">
         <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">Connections</div>
+          <div className="text-foreground text-base font-medium">{t("connections")}</div>
           <div className="flex gap-2">
             <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={() => load()} />
             <GroupAddDialog>
@@ -97,6 +99,7 @@ function RenderTreeItem({ item, reload }: { item: TreeItem; reload: () => void }
 }
 
 const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) => {
+  const { t } = useTranslation()
   const [openEditGroup, setOpenEditGroup] = useState<boolean>(false)
   const [openEditDatabase, setOpenEditDatabase] = useState<boolean>(false)
   const { connect, disconnect } = useAppContext()
@@ -108,7 +111,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
       toast.success("Deleted!")
       reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   }
@@ -132,7 +135,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
                 }}
               >
                 <PlugIcon className="h-4 w-4" />
-                Connect
+                {t("connect")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="gap-2 cursor-pointer"
@@ -142,7 +145,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
                 }}
               >
                 <UnplugIcon className="h-4 w-4" />
-                Disconnect
+                {t("disconnect")}
               </DropdownMenuItem>
             </>
           )}
@@ -155,7 +158,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
               }}
             >
               <EditIcon className="h-4 w-4" />
-              Update
+              {t("update")}
             </DropdownMenuItem>
           )}
           {!item.isGroup && item.connection && (
@@ -167,7 +170,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
               }}
             >
               <EditIcon className="h-4 w-4" />
-              Update
+              {t("update")}
             </DropdownMenuItem>
           )}
           <DropdownMenuItem
@@ -178,7 +181,7 @@ const ActionButton = ({ item, reload }: { item: TreeItem; reload: () => void }) 
             }}
           >
             <Trash2Icon className="h-4 w-4 text-red-600" />
-            Delete
+            {t("delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

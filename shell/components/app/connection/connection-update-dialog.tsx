@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { ConnectionDo } from "@/types/connection.do"
 import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 type DatabaseUpdateDialogProps = {
   connection: ConnectionDo
@@ -19,6 +20,8 @@ type DatabaseUpdateDialogProps = {
 }
 
 export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: DatabaseUpdateDialogProps) {
+  const { t } = useTranslation()
+
   const form = useForm<any>({
     defaultValues: {
       name: connection.name,
@@ -48,12 +51,12 @@ export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: Da
     try {
       const sql = `UPDATE "connection" SET name="${values.name}", network="${values.network}", host="${values.host}", port="${values.port}", sock="${values.sock}", username="${values.username}", password="${values.password}", group_id="${values.group_id}" WHERE id="${connection.id}"`
       await scorix.invoke("ext:gorm:Query", sql)
-      toast.success("Updated!")
+      toast.success(t("updated"))
       setOpen(false)
       form.reset(values)
       reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   })
@@ -62,7 +65,7 @@ export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: Da
     <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
       <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Update Connection</DialogTitle>
+          <DialogTitle>{t("update_connection")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -70,11 +73,11 @@ export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: Da
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

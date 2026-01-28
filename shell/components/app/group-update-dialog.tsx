@@ -10,6 +10,7 @@ import { z } from "zod"
 import { toast } from "sonner"
 import { GroupDO } from "@/types/group.do"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 type GroupUpdateDialogProps = {
   group: GroupDO
@@ -19,6 +20,8 @@ type GroupUpdateDialogProps = {
 }
 
 export function GroupUpdateDialog({ reload, group, open, setOpen }: GroupUpdateDialogProps) {
+  const { t } = useTranslation()
+
   const form = useForm({
     defaultValues: {
       name: group.name,
@@ -34,12 +37,12 @@ export function GroupUpdateDialog({ reload, group, open, setOpen }: GroupUpdateD
     try {
       const sql = `UPDATE "group" SET name="${values.name}" WHERE id = "${group.id}"`
       await scorix.invoke("ext:gorm:Query", sql)
-      toast.success("Updated!")
+      toast.success(t("updated"))
       setOpen(false)
       form.reset(values)
       reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       form.setError("name", { type: "manual", message: msg })
     }
   })
@@ -56,7 +59,7 @@ export function GroupUpdateDialog({ reload, group, open, setOpen }: GroupUpdateD
         }}
       >
         <DialogHeader>
-          <DialogTitle>Update Group</DialogTitle>
+          <DialogTitle>{t("update_group")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -77,11 +80,11 @@ export function GroupUpdateDialog({ reload, group, open, setOpen }: GroupUpdateD
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

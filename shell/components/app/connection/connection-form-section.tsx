@@ -8,8 +8,10 @@ import { useEffect, useState } from "react"
 import { GroupDO } from "@/types/group.do"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
+  const { t } = useTranslation()
   const [groups, setGroups] = useState<GroupDO[]>([])
 
   const network: string = form.watch("network")
@@ -19,7 +21,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
       .invoke<GroupDO[]>("ext:gorm:Query", 'SELECT * FROM "group" WHERE deleted_at IS NULL')
       .then(data => setGroups(data || []))
       .catch(e => {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
         toast.error(msg)
       })
   }, [])
@@ -47,7 +49,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Group</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("group")}</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger className="w-full">

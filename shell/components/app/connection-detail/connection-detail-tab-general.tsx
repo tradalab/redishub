@@ -6,8 +6,10 @@ import { parseRedisInfo } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
+  const { t } = useTranslation()
   const [info, setInfo] = useState<object | undefined>()
 
   const general = async (id: string) => {
@@ -18,7 +20,7 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
       const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { connection_id: id, database_index: databaseIdx })
       setInfo(parseRedisInfo(res.info))
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   }

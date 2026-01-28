@@ -25,8 +25,10 @@ import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Spinner } from "@/components/ui/spinner"
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
 import { Label } from "@/components/ui/label"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, selectedKey }: { connectionId: string; databaseIdx: number; selectedKey?: string }) {
+  const { t } = useTranslation()
   const [data, setData] = useState<string | undefined>("")
   const [kind, setKind] = useState<string | undefined>()
   const [ttl, setTtl] = useState<number | undefined>()
@@ -84,7 +86,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           break
       }
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -260,6 +262,7 @@ type KeyTtlUpdateDialogProps = {
 }
 
 function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName, keyTtl }: KeyTtlUpdateDialogProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   const form = useForm<any>({
@@ -276,12 +279,12 @@ function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName
   const submit = form.handleSubmit(async values => {
     try {
       await scorix.invoke("client:key-ttl-update", { connection_id: databaseId, database_index: databaseIdx, key_name: keyName, key_ttl: values.ttl })
-      toast.success("Updated!")
+      toast.success(t("updated"))
       setOpen(false)
       form.reset()
       reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   })
@@ -291,7 +294,7 @@ function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Update TTL</DialogTitle>
+          <DialogTitle>{t("update_ttl")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -313,11 +316,11 @@ function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

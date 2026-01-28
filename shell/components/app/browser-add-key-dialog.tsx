@@ -17,8 +17,10 @@ import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { useTranslation } from "react-i18next"
 
 export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { selectedDb, selectedDbIdx } = useAppContext()
   const { addKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
@@ -70,7 +72,7 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
         }}
       >
         <DialogHeader>
-          <DialogTitle>New Key</DialogTitle>
+          <DialogTitle>{t("new_key")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -187,11 +189,11 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

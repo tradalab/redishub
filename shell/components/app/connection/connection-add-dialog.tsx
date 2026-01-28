@@ -12,8 +12,10 @@ import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
 import { useDbStore } from "@/stores/db.store"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionAddDialog({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { load } = useDbStore()
 
@@ -46,12 +48,12 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
     try {
       const sql = `INSERT INTO "connection" (id, name, network, host, port, sock, username, password, group_id) VALUES ("${ulid()}", "${values.name}", "${values.network}", "${values.host}", "${values.port}", "${values.sock}", "${values.username}", "${values.password}", "${values.group_id}")`
       await scorix.invoke("ext:gorm:Query", sql)
-      toast.success("Created!")
+      toast.success(t("created"))
       setOpen(false)
       form.reset()
       await load()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   })
@@ -69,7 +71,7 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
         }}
       >
         <DialogHeader>
-          <DialogTitle>New Connection</DialogTitle>
+          <DialogTitle>{t("new_connection")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -77,11 +79,11 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

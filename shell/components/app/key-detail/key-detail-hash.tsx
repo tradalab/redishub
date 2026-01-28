@@ -15,6 +15,7 @@ import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/component
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { useState } from "react"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 type KeyDetailHashProps = {
   databaseId: string
@@ -25,6 +26,7 @@ type KeyDetailHashProps = {
 }
 
 export function KeyDetailHash(props: KeyDetailHashProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
 
   const columns: ColumnDef<HashType>[] = [
@@ -65,10 +67,10 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
         key_kind: KeyKindEnum.HASH,
         key_value_hash: values.value_hash,
       })
-      toast.success("Updated!")
+      toast.success(t("updated"))
       props.reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -82,14 +84,14 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
               <PlusIcon />
-              Insert Row
+              {t("insert_row")}
             </Button>
           </DrawerTrigger>
           <DrawerContent>
             <Form {...form}>
               <form onSubmit={submit} className="grid gap-4">
                 <DrawerHeader>
-                  <DrawerTitle>New Field</DrawerTitle>
+                  <DrawerTitle>{t("new_field")}</DrawerTitle>
                   <DrawerDescription></DrawerDescription>
                 </DrawerHeader>
                 <FormItem>
@@ -102,11 +104,11 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
                 <DrawerFooter>
                   <div className="flex items-right">
                     <Button size="sm" type="submit" disabled={loading}>
-                      Save
+                      {t("save")}
                     </Button>
                     <DrawerClose>
                       <Button size="sm" variant="outline">
-                        Cancel
+                        {t("cancel")}
                       </Button>
                     </DrawerClose>
                   </div>

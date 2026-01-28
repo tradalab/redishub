@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button"
 import { useUpdater } from "@/hooks/use-updater"
 import { Spinner } from "@/components/ui/spinner"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 export function SettingDialog({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const { theme, setTheme } = useTheme()
   const { checkUpdate, newVersion, loading } = useUpdater(false)
   const [checked, setChecked] = useState(false)
@@ -27,40 +29,40 @@ export function SettingDialog({ children }: { children: ReactNode }) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px] space-y-4">
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>{t("settings")}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="theme-select">Theme</Label>
+            <Label htmlFor="theme-select">{t("theme")}</Label>
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger id="theme-select" className="w-full">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="system">{t("system")}</SelectItem>
+                  <SelectItem value="light">{t("light")}</SelectItem>
+                  <SelectItem value="dark">{t("dark")}</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label>Check Update</Label>
+            <Label>{t("check_update")}</Label>
             <div className="flex items-center gap-2">
               <Button className="w-full" size="sm" variant="outline" onClick={handleCheck}>
                 {loading ? (
                   <>
-                    <Spinner /> Checking...
+                    <Spinner /> {t("checking")}
                   </>
                 ) : checked ? (
                   newVersion ? (
-                    `⬆️ Update available: v${newVersion}`
+                    `⬆️ ${t("update_available", { v: newVersion })}`
                   ) : (
-                    "✅ Up to date"
+                    `✅ ${t("up_to_date")}`
                   )
                 ) : (
-                  "Check Update"
+                  t("check_update")
                 )}
               </Button>
             </div>
@@ -87,7 +89,7 @@ export function SettingDialog({ children }: { children: ReactNode }) {
                 }}
                 className="text-blue-500 underline"
               >
-                Report Issues
+                {t("report_issues")}
               </a>
             </div>
             <span className="font-bold">v{version}</span>

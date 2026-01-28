@@ -6,29 +6,31 @@ import { ConnectionDetailTabGeneral } from "@/components/app/connection-detail/c
 import { ConnectionDetailTabConsole } from "@/components/app/connection-detail/connection-detail-tab-console"
 import { ConnectionDetailTabKeyDetail } from "@/components/app/connection-detail/connection-detail-tab-key-detail"
 import { ConnectionDetailTabSlowQuery } from "@/components/app/connection-detail/connection-detail-tab-slow-query"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionDetail({ connectionId, selectedKey }: { connectionId: string; selectedKey?: string }) {
+  const { t } = useTranslation()
   const { selectedSection, setSelectedSection, selectedDbIdx } = useAppContext()
 
   const tabs = [
     {
       value: "general",
-      name: "General",
+      name: t("general"),
       content: <ConnectionDetailTabGeneral connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
     {
       value: "console",
-      name: "Console",
+      name: t("console"),
       content: <ConnectionDetailTabConsole connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
     {
       value: "key-detail",
-      name: "Key Detail",
+      name: t("key_detail"),
       content: <ConnectionDetailTabKeyDetail connectionId={connectionId} databaseIdx={selectedDbIdx} selectedKey={selectedKey} />,
     },
     {
       value: "slow-query",
-      name: "Slow Query",
+      name: t("slow_query"),
       content: <ConnectionDetailTabSlowQuery connectionId={connectionId} databaseIdx={selectedDbIdx} />,
     },
   ]

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import "@xterm/xterm/css/xterm.css"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 const REDIS_COMMANDS = [
   "GET",
@@ -29,6 +30,7 @@ const REDIS_COMMANDS = [
 ]
 
 export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
+  const { t } = useTranslation()
   const terminalRef = useRef<HTMLDivElement>(null)
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
@@ -99,7 +101,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         termPrompt()
         setStatus("connected")
       } catch (e) {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
         term.writeln(`\x1b[31m(error)\x1b[0m ${msg}`)
         setStatus("error")
         return

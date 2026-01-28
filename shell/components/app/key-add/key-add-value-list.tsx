@@ -5,8 +5,10 @@ import { FormControl, FormField, FormItem } from "@/components/ui/form"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, Trash } from "lucide-react"
 import { GridInput } from "@/components/x/grid-input"
+import { useTranslation } from "react-i18next"
 
 export function KeyAddValueList({ form }: { form: UseFormReturn }) {
+  const { t } = useTranslation()
   const { fields, insert, remove } = useFieldArray({
     control: form.control,
     name: "value_list",
@@ -71,16 +73,16 @@ export function KeyAddValueList({ form }: { form: UseFormReturn }) {
               <DropdownMenuContent>
                 <DropdownMenuItem className="gap-x-2" onClick={() => insertRow(index, "above")}>
                   <ArrowUpIcon className="text-ui-fg-subtle" />
-                  Inert row above
+                  {t("insert_row_above")}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="gap-x-2" onClick={() => insertRow(index, "below")}>
                   <ArrowDownIcon className="text-ui-fg-subtle" />
-                  Inert row below
+                  {t("insert_row_below")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="gap-x-2" onClick={() => deleteRow(index)}>
                   <Trash className="text-ui-fg-subtle" />
-                  Delete row
+                  {t("delete_row")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

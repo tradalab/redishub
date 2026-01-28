@@ -15,8 +15,10 @@ import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { useTranslation } from "react-i18next"
 
 export function SidebarBrowser() {
+  const { t } = useTranslation()
   const [dataset, setDataset] = useState<TreeItem[]>([])
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -91,7 +93,7 @@ export function SidebarBrowser() {
       const res = await scorix.invoke<{ databases: any[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
       setDbs(res.databases || [])
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   }
@@ -104,13 +106,13 @@ export function SidebarBrowser() {
     try {
       const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT * FROM "connection" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
       if (!databases || databases.length < 1) {
-        toast.error("connection does not exist")
+        toast.error(t("conn_not_exist"))
         return
       }
       await connect(databases[0], idx)
       setSelectedDbIdx(idx)
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   }
@@ -124,7 +126,7 @@ export function SidebarBrowser() {
     <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
       <SidebarHeader className="gap-2 border-b p-2">
         <div className="flex w-full items-center justify-between">
-          <div className="text-foreground text-base font-medium">Browser</div>
+          <div className="text-foreground text-base font-medium">{t("browser")}</div>
           <div className="flex gap-3.5">
             <RefreshCcwIcon
               className="h-4 w-4 cursor-pointer"
@@ -144,7 +146,7 @@ export function SidebarBrowser() {
         <div className="flex gap-2 items-center">
           <Select value={selectedDbIdx.toString()} onValueChange={val => onChangeDbIdx(Number(val))}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select DB" />
+              <SelectValue placeholder={t("select_db")} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -156,14 +158,14 @@ export function SidebarBrowser() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button size="icon-sm" variant="outline" title="Load More" disabled={isLoading} onClick={loadMore}>
+          <Button size="icon-sm" variant="outline" title={"load_more"} disabled={isLoading} onClick={loadMore}>
             {isLoading ? <Spinner /> : <ArrowDownToLineIcon />}
           </Button>
-          <Button size="icon-sm" variant="outline" title="Load All" disabled={isLoading} onClick={loadAll}>
+          <Button size="icon-sm" variant="outline" title={"load_all"} disabled={isLoading} onClick={loadAll}>
             {isLoading ? <Spinner /> : <ListEndIcon />}
           </Button>
         </div>
-        <SidebarInput placeholder="Filter" onChange={e => setKeyword(e?.target?.value)} />
+        <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e?.target?.value)} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="p-0">
@@ -225,6 +227,7 @@ function RenderTreeItem({ item, deleteKey }: { item: TreeItem; deleteKey: (key: 
 }
 
 const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (key: string) => Promise<void> }) => {
+  const { t } = useTranslation()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -242,7 +245,7 @@ const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (key: st
           disabled={item.isGroup}
         >
           <Trash2Icon className="h-4 w-4 text-red-600" />
-          Delete
+          {t("delete")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

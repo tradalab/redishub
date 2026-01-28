@@ -12,8 +12,10 @@ import { ulid } from "ulid"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { useDbStore } from "@/stores/db.store"
+import { useTranslation } from "react-i18next"
 
 export function GroupAddDialog({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { load } = useDbStore()
 
@@ -37,7 +39,7 @@ export function GroupAddDialog({ children }: { children: ReactNode }) {
       form.reset()
       await load()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       form.setError("name", { type: "manual", message: msg })
     }
   })
@@ -55,7 +57,7 @@ export function GroupAddDialog({ children }: { children: ReactNode }) {
         }}
       >
         <DialogHeader>
-          <DialogTitle>New Group</DialogTitle>
+          <DialogTitle>{t("new_group")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
@@ -76,11 +78,11 @@ export function GroupAddDialog({ children }: { children: ReactNode }) {
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </DialogClose>
               <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                Save
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>

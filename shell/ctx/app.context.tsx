@@ -1,9 +1,11 @@
 "use client"
 
-import React, {createContext, useContext, useState, ReactNode, useEffect} from "react"
-import {toast} from "sonner"
-import {ConnectionDo} from "@/types/connection.do"
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
+import { toast } from "sonner"
+import { ConnectionDo } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
+import { I18nextProvider } from "react-i18next"
+import i18n from "@/i18n"
 
 interface AppContextType {
   selectedTab: string
@@ -24,7 +26,7 @@ interface AppContextType {
   loading: boolean
   setLoading: (state: boolean) => void
 
-  connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{total_db: number} | undefined>
+  connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
   disconnect: (database?: ConnectionDo) => Promise<void>
 }
 
@@ -33,10 +35,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedTab, setSelectedTab] = useState<string>("/connections")
   const [selectedSection, setSelectedSection] = useState<string>("general")
-  const [selectedDb, setSelectedDb] = useState<string|undefined>()
+  const [selectedDb, setSelectedDb] = useState<string | undefined>()
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
-  const [selectedKey, setSelectedKey] = useState<string|undefined>()
+  const [selectedKey, setSelectedKey] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
+  const [language] = useState("en")
+
+  useEffect(() => {
+    i18n.changeLanguage(language)
+  }, [language])
 
   const connect = async (database: ConnectionDo | undefined, dbIdx: number) => {
     if (!database) {
@@ -44,7 +51,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     setLoading(true)
     try {
-      const res = await scorix.invoke<{total_db: number}>("client:connect", { connection_id: database.id, database_index: dbIdx })
+      const res = await scorix.invoke<{ total_db: number }>("client:connect", {
+        connection_id: database.id,
+        database_index: dbIdx,
+      })
       setSelectedDbIdx(dbIdx)
       setSelectedDb(database.id)
       setSelectedTab("/browser")
@@ -77,26 +87,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AppContext.Provider
-      value={{
-        selectedTab,
-        setSelectedTab,
-        selectedDb,
-        setSelectedDb,
-        selectedDbIdx,
-        setSelectedDbIdx,
-        selectedKey,
-        setSelectedKey,
-        selectedSection,
-        setSelectedSection,
-        loading,
-        setLoading,
-        connect,
-        disconnect,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <I18nextProvider i18n={i18n}>
+      <AppContext.Provider
+        value={{
+          selectedTab,
+          setSelectedTab,
+          selectedDb,
+          setSelectedDb,
+          selectedDbIdx,
+          setSelectedDbIdx,
+          selectedKey,
+          setSelectedKey,
+          selectedSection,
+          setSelectedSection,
+          loading,
+          setLoading,
+          connect,
+          disconnect,
+        }}
+      >
+        {children}
+      </AppContext.Provider>
+    </I18nextProvider>
   )
 }
 

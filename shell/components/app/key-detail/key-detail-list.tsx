@@ -15,6 +15,7 @@ import { KeyKindEnum } from "@/types/key-kind.enum"
 import { toast } from "sonner"
 import { useState } from "react"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 type KeyDetailListProps = {
   databaseId: string
@@ -25,6 +26,7 @@ type KeyDetailListProps = {
 }
 
 export function KeyDetailList(props: KeyDetailListProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
 
   const columns: ColumnDef<ListType>[] = [
@@ -60,10 +62,10 @@ export function KeyDetailList(props: KeyDetailListProps) {
         key_kind: KeyKindEnum.LIST,
         key_value_list: values.value_list,
       })
-      toast.success("Updated!")
+      toast.success(t("updated"))
       props.reload()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     } finally {
       setLoading(false)
@@ -77,14 +79,14 @@ export function KeyDetailList(props: KeyDetailListProps) {
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
               <PlusIcon />
-              Insert Row
+              {t("insert_row")}
             </Button>
           </DrawerTrigger>
           <DrawerContent>
             <Form {...form}>
               <form onSubmit={submit} className="grid gap-4">
                 <DrawerHeader>
-                  <DrawerTitle>New Field</DrawerTitle>
+                  <DrawerTitle>{t("new_field")}</DrawerTitle>
                   <DrawerDescription></DrawerDescription>
                 </DrawerHeader>
                 <FormItem>
@@ -97,11 +99,11 @@ export function KeyDetailList(props: KeyDetailListProps) {
                 <DrawerFooter>
                   <div className="flex items-right">
                     <Button size="sm" type="submit" disabled={loading}>
-                      Save
+                      {t("save")}
                     </Button>
                     <DrawerClose>
                       <Button size="sm" variant="outline">
-                        Cancel
+                        {t("cancel")}
                       </Button>
                     </DrawerClose>
                   </div>

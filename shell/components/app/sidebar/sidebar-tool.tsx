@@ -15,8 +15,10 @@ import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
+import { useTranslation } from "react-i18next"
 
 export function SidebarTool() {
+  const { t } = useTranslation()
   const { selectedTab, setSelectedTab, selectedDb } = useAppContext()
   return (
     <Sidebar collapsible="none" className="overflow-hidden w-[calc(var(--sidebar-width-icon)+1px)]! border-r">
@@ -49,7 +51,7 @@ export function SidebarTool() {
                   className="px-2.5 md:px-2"
                 >
                   <DatabaseIcon />
-                  <span>Connections</span>
+                  <span>{t("connections")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {selectedDb && (
@@ -61,7 +63,7 @@ export function SidebarTool() {
                     className="px-2.5 md:px-2"
                   >
                     <ServerIcon />
-                    <span>Browser</span>
+                    <span>{t("browser")}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -75,7 +77,7 @@ export function SidebarTool() {
             <SettingDialog>
               <SidebarMenuButton tooltip={{ children: "Settings", hidden: false }} className="px-2.5 md:px-2">
                 <SettingsIcon />
-                <span>Settings</span>
+                <span>{t("settings")}</span>
               </SidebarMenuButton>
             </SettingDialog>
           </SidebarMenuItem>

@@ -4,8 +4,10 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import scorix from "@/lib/scorix"
+import { useTranslation } from "react-i18next"
 
 export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
+  const { t } = useTranslation()
   const [logs, setLogs] = useState<any | undefined>()
 
   const get = async (id: string) => {
@@ -16,7 +18,7 @@ export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { co
       const { logs } = await scorix.invoke<{ logs: any[] }>("client:get-slow-query", { connection_id: id, database_index: databaseIdx })
       setLogs(logs)
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
     }
   }
