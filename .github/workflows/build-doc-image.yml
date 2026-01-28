@@ -1,0 +1,53 @@
+name: Build & Push Doc Image
+
+on:
+  push:
+    branches: [ feature/doc-deployment ]
+    paths:
+      - "doc/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./doc
+          file: ./doc/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository }}-doc:latest
+
+      - name: Update GitOps repo (GitLab)
+        run: |
+          git clone https://${GITOPS_GITLAB_USER}:${GITOPS_GITLAB_TOKEN}@${GITOPS_GITLAB_REPO}
+          cd gitops-repo
+
+          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
+          
+          git config user.email "gitops-bot@gitlab.com"
+          git config user.name "gitops-bot"
+
+          git commit -am "doc: update image sha-${{ github.sha }}"
+          git push
+        env:
+          GITOPS_GITLAB_USER: ${{ secrets.GITOPS_GITLAB_USER }}
+          GITOPS_GITLAB_TOKEN: ${{ secrets.GITOPS_GITLAB_TOKEN }}
+          GITOPS_GITLAB_REPO: ${{ secrets.GITOPS_GITLAB_REPO }}
