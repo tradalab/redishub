@@ -46,7 +46,7 @@ export function SidebarConnection() {
             </ConnectionAddDialog>
           </div>
         </div>
-        <SidebarInput placeholder="Filter" onChange={e => setKeyword(e?.target?.value)} />
+        <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e?.target?.value)} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="p-0">

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar"
 import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
-import { SettingDialog } from "@/components/app/setting-dialog"
+import { SettingDialog } from "@/components/app/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
 import { useTranslation } from "react-i18next"
 
@@ -75,7 +75,7 @@ export function SidebarTool() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SettingDialog>
-              <SidebarMenuButton tooltip={{ children: "Settings", hidden: false }} className="px-2.5 md:px-2">
+              <SidebarMenuButton tooltip={{ children: t("settings"), hidden: false }} className="px-2.5 md:px-2">
                 <SettingsIcon />
                 <span>{t("settings")}</span>
               </SidebarMenuButton>
