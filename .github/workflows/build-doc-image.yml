@@ -32,7 +32,7 @@ jobs:
           file: ./doc/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository }}-doc:${GITHUB_SHA::7}
             ghcr.io/${{ github.repository }}-doc:latest
 
       - name: Setup SSH (GitLab)
@@ -47,12 +47,12 @@ jobs:
           git clone ${GITOPS_GITLAB_REPO}
           cd gitops
 
-          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
+          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:${GITHUB_SHA::7}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
           
           git config user.email "gitops-bot@gitlab.com"
           git config user.name "gitops-bot"
 
-          git commit -am "doc: update image sha-${{ github.sha }}"
+          git commit -am "ci(redishub): update image ghcr.io/${{ github.repository }}-doc:${GITHUB_SHA::7}"
           git push
         env:
           GITOPS_GITLAB_SSH_KEY: ${{ secrets.GITOPS_GITLAB_SSH_KEY }}
