@@ -6,6 +6,7 @@ import { ConnectionDo } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
+import { useSetting } from "@/hooks/use-setting"
 
 interface AppContextType {
   selectedTab: string
@@ -39,7 +40,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
   const [selectedKey, setSelectedKey] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [language] = useState("en")
+  const [language] = useSetting("language")
 
   useEffect(() => {
     i18n.changeLanguage(language)

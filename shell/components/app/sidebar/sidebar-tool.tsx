@@ -45,7 +45,7 @@ export function SidebarTool() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  tooltip={{ children: "Connections", hidden: false }}
+                  tooltip={{ children: t("connections"), hidden: false }}
                   onClick={() => setSelectedTab("/connections")}
                   isActive={selectedTab === "/connections"}
                   className="px-2.5 md:px-2"
