@@ -12,8 +12,7 @@ import { Spinner } from "@/components/ui/spinner"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import { Panel } from "@/components/ui/trada-ui/panel"
-import { useSetting } from "@/hooks/use-setting"
-import i18n from "@/i18n"
+import { useAppContext } from "@/ctx/app.context"
 
 export function SettingDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -71,7 +70,7 @@ function PanelGeneral() {
   const { checkUpdate, newVersion, loading } = useUpdater(false)
   const { theme, setTheme } = useTheme()
   const [checked, setChecked] = useState(false)
-  const [language, setLanguage] = useSetting("language")
+  const { language, setLanguage } = useAppContext()
 
   const languages = [
     { value: "en", label: "🇺🇸 English" },
@@ -103,7 +102,7 @@ function PanelGeneral() {
       </div>
       <div className="grid gap-2">
         <Label htmlFor="language-select">{t("language")}</Label>
-        <Select value={language ?? "en"} onValueChange={val => setLanguage(val).then(() => i18n.changeLanguage(val))}>
+        <Select value={language ?? "en"} onValueChange={setLanguage}>
           <SelectTrigger id="language-select" className="w-full">
             <SelectValue placeholder="" />
           </SelectTrigger>

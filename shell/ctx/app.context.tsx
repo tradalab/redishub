@@ -29,6 +29,9 @@ interface AppContextType {
 
   connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
   disconnect: (database?: ConnectionDo) => Promise<void>
+
+  language: string | undefined
+  setLanguage: (val: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -40,7 +43,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
   const [selectedKey, setSelectedKey] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [language] = useSetting("language")
+  const [language, setLanguage] = useSetting("language")
 
   useEffect(() => {
     i18n.changeLanguage(language)
@@ -105,6 +108,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setLoading,
           connect,
           disconnect,
+          language,
+          setLanguage,
         }}
       >
         {children}
