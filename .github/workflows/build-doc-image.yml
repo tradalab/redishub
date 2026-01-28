@@ -2,7 +2,7 @@ name: Build & Push Doc Image
 
 on:
   push:
-    branches: [ feature/doc-deployment ]
+    branches: [ main ]
     paths:
       - "doc/**"
 
