@@ -35,10 +35,17 @@ jobs:
             ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}
             ghcr.io/${{ github.repository }}-doc:latest
 
+      - name: Setup SSH (GitLab)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GITOPS_GITLAB_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+
       - name: Update GitOps repo (GitLab)
         run: |
-          git clone https://${GITOPS_GITLAB_USER}:${GITOPS_GITLAB_TOKEN}@${GITOPS_GITLAB_REPO}
-          cd gitops-repo
+          git clone ${GITOPS_GITLAB_REPO}
+          cd gitops
 
           sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:sha-${{ github.sha }}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
           
@@ -48,6 +55,5 @@ jobs:
           git commit -am "doc: update image sha-${{ github.sha }}"
           git push
         env:
-          GITOPS_GITLAB_USER: ${{ secrets.GITOPS_GITLAB_USER }}
-          GITOPS_GITLAB_TOKEN: ${{ secrets.GITOPS_GITLAB_TOKEN }}
+          GITOPS_GITLAB_SSH_KEY: ${{ secrets.GITOPS_GITLAB_SSH_KEY }}
           GITOPS_GITLAB_REPO: ${{ secrets.GITOPS_GITLAB_REPO }}
