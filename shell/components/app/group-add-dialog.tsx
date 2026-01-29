@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { ulid } from "ulid"
+import { v7 as uuidv7 } from "uuid"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { useDbStore } from "@/stores/db.store"
@@ -32,7 +32,7 @@ export function GroupAddDialog({ children }: { children: ReactNode }) {
 
   const submit = form.handleSubmit(async values => {
     try {
-      const sql = `INSERT INTO "group" (id, name) VALUES ("${ulid()}", "${values.name}")`
+      const sql = `INSERT INTO "group" (id, name) VALUES ("${uuidv7()}", "${values.name}")`
       await scorix.invoke("ext:gorm:Query", sql)
       toast.success("Created!")
       setOpen(false)

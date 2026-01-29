@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { ulid } from "ulid"
+import { v7 as uuidv7 } from "uuid"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
@@ -46,7 +46,7 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
 
   const submit = form.handleSubmit(async values => {
     try {
-      const sql = `INSERT INTO "connection" (id, name, network, host, port, sock, username, password, group_id) VALUES ("${ulid()}", "${values.name}", "${values.network}", "${values.host}", "${values.port}", "${values.sock}", "${values.username}", "${values.password}", "${values.group_id}")`
+      const sql = `INSERT INTO "connection" (id, name, network, host, port, sock, username, password, group_id) VALUES ("${uuidv7()}", "${values.name}", "${values.network}", "${values.host}", "${values.port}", "${values.sock}", "${values.username}", "${values.password}", "${values.group_id}")`
       await scorix.invoke("ext:gorm:Query", sql)
       toast.success(t("created"))
       setOpen(false)
