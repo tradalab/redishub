@@ -191,7 +191,7 @@ export const TreeNode = ({ nodeId: providedNodeId, level = 0, isLast = false, pa
 export type TreeNodeTriggerProps = ComponentProps<typeof motion.div>
 
 export const TreeNodeTrigger = ({ children, className, onClick, ...props }: TreeNodeTriggerProps) => {
-  const { selectedIds, toggleExpanded, handleSelection, indent } = useTree()
+  const { selectedIds, handleSelection, toggleExpanded, indent } = useTree()
   const { nodeId, level } = useTreeNode()
   const isSelected = selectedIds.includes(nodeId)
 
@@ -203,13 +203,15 @@ export const TreeNodeTrigger = ({ children, className, onClick, ...props }: Tree
         isSelected && "bg-accent/80",
         className
       )}
+      style={{ paddingLeft: level * (indent ?? 0) + 8 }}
       onClick={e => {
-        toggleExpanded(nodeId)
         handleSelection(nodeId, e.ctrlKey || e.metaKey)
         onClick?.(e)
       }}
-      style={{ paddingLeft: level * (indent ?? 0) + 8 }}
-      whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+      onDoubleClick={e => {
+        if (e.ctrlKey || e.metaKey) return
+        toggleExpanded(nodeId)
+      }}
       {...props}
     >
       <TreeLines />
