@@ -1,8 +1,7 @@
 "use client"
 
 import { ChevronRight, File, Folder, FolderOpen } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
-import { type ComponentProps, createContext, type HTMLAttributes, type ReactNode, useCallback, useContext, useId, useState } from "react"
+import { createContext, type HTMLAttributes, type ReactNode, useCallback, useContext, useId, useState } from "react"
 import { cn } from "@/lib/utils"
 
 type TreeContextType = {
@@ -128,14 +127,7 @@ export const TreeProvider = ({
         animateExpand,
       }}
     >
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className={cn("w-full", className)}
-        initial={{ opacity: 0, y: 10 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-      >
-        {children}
-      </motion.div>
+      <div className={cn("w-full", className)}>{children}</div>
     </TreeContext.Provider>
   )
 }
@@ -188,7 +180,7 @@ export const TreeNode = ({ nodeId: providedNodeId, level = 0, isLast = false, pa
   )
 }
 
-export type TreeNodeTriggerProps = ComponentProps<typeof motion.div>
+export type TreeNodeTriggerProps = HTMLAttributes<HTMLDivElement>
 
 export const TreeNodeTrigger = ({ children, className, onClick, ...props }: TreeNodeTriggerProps) => {
   const { selectedIds, handleSelection, toggleExpanded, indent } = useTree()
@@ -196,7 +188,7 @@ export const TreeNodeTrigger = ({ children, className, onClick, ...props }: Tree
   const isSelected = selectedIds.includes(nodeId)
 
   return (
-    <motion.div
+    <div
       className={cn(
         "group relative mx-1 flex cursor-pointer items-center rounded-md px-3 py-2 transition-all duration-200",
         "hover:bg-accent/50",
@@ -216,7 +208,7 @@ export const TreeNodeTrigger = ({ children, className, onClick, ...props }: Tree
     >
       <TreeLines />
       {children as ReactNode}
-    </motion.div>
+    </div>
   )
 }
 
@@ -273,38 +265,27 @@ export const TreeLines = () => {
   )
 }
 
-export type TreeNodeContentProps = ComponentProps<typeof motion.div> & {
+export type TreeNodeContentProps = HTMLAttributes<HTMLDivElement> & {
   hasChildren?: boolean
 }
 
 export const TreeNodeContent = ({ children, hasChildren = false, className, ...props }: TreeNodeContentProps) => {
-  const { animateExpand, expandedIds } = useTree()
+  const { expandedIds } = useTree()
   const { nodeId } = useTreeNode()
   const isExpanded = expandedIds.has(nodeId)
 
+  if (!hasChildren || !isExpanded) {
+    return null
+  }
+
   return (
-    <AnimatePresence>
-      {hasChildren && isExpanded && (
-        <motion.div
-          animate={{ height: "auto", opacity: 1 }}
-          className="overflow-hidden"
-          exit={{ height: 0, opacity: 0 }}
-          initial={{ height: 0, opacity: 0 }}
-          transition={{
-            duration: animateExpand ? 0.25 : 0,
-            ease: "easeInOut",
-          }}
-        >
-          <motion.div initial={false} className={className} {...props}>
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className={className} {...props}>
+      {children as ReactNode}
+    </div>
   )
 }
 
-export type TreeExpanderProps = ComponentProps<typeof motion.div> & {
+export type TreeExpanderProps = HTMLAttributes<HTMLDivElement> & {
   hasChildren?: boolean
 }
 
@@ -318,23 +299,21 @@ export const TreeExpander = ({ hasChildren = false, className, onClick, ...props
   }
 
   return (
-    <motion.div
-      animate={{ rotate: isExpanded ? 90 : 0 }}
-      className={cn("mr-1 flex h-4 w-4 cursor-pointer items-center justify-center", className)}
+    <div
+      className={cn("mr-1 flex h-4 w-4 items-center justify-center transition-transform duration-150", isExpanded && "rotate-90", className)}
       onClick={e => {
         e.stopPropagation()
         toggleExpanded(nodeId)
         onClick?.(e)
       }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
       {...props}
     >
       <ChevronRight className="h-3 w-3 text-muted-foreground" />
-    </motion.div>
+    </div>
   )
 }
 
-export type TreeIconProps = ComponentProps<typeof motion.div> & {
+export type TreeIconProps = HTMLAttributes<HTMLDivElement> & {
   icon?: ReactNode
   hasChildren?: boolean
 }
@@ -351,14 +330,9 @@ export const TreeIcon = ({ icon, hasChildren = false, className, ...props }: Tre
   const getDefaultIcon = () => (hasChildren ? isExpanded ? <FolderOpen className="h-4 w-4" /> : <Folder className="h-4 w-4" /> : <File className="h-4 w-4" />)
 
   return (
-    <motion.div
-      className={cn("mr-2 flex h-4 w-4 items-center justify-center text-muted-foreground", className)}
-      transition={{ duration: 0.15 }}
-      whileHover={{ scale: 1.1 }}
-      {...props}
-    >
+    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center text-muted-foreground transition-transform", className)} {...props}>
       {icon || getDefaultIcon()}
-    </motion.div>
+    </div>
   )
 }
 
