@@ -35,7 +35,7 @@ func (l *ClientDisconnectLogic) ClientDisconnectLogic(params DisconnectLogicArgs
 		return nil, fmt.Errorf("connection does not exist")
 	}
 
-	l.svcCtx.Cli.Remove(database.Id, database.LastDb)
+	l.svcCtx.Cli.Remove(database.Id.String(), database.LastDb)
 
 	return database, nil
 }

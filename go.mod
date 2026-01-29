@@ -7,6 +7,7 @@ replace github.com/tradalab/scorix => ../scorix
 require (
 	github.com/energye/systray v1.0.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/google/uuid v1.6.0
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/samber/lo v1.52.0
