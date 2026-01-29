@@ -8,7 +8,7 @@ import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 import { useEffect, useMemo, useState } from "react"
-import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/kibo-ui/tree"
+import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { GroupUpdateDialog } from "@/components/app/group-update-dialog"
@@ -68,9 +68,19 @@ export function SidebarConnection() {
 }
 
 function RenderTreeItem({ item, reload }: { item: TreeItem; reload: () => void }) {
+  const { connect } = useAppContext()
+
   if (!item.isGroup) {
     return (
-      <TreeNode nodeId={item.id} isLast={item.level == 0} level={item.level}>
+      <TreeNode
+        nodeId={item.id}
+        isLast={item.level == 0}
+        level={item.level}
+        onDoubleClick={async e => {
+          e.stopPropagation()
+          await connect(item.connection, item.connection?.last_db || 0)
+        }}
+      >
         <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item">
           <TreeExpander />
           <TreeIcon icon={<ServerIcon />} />

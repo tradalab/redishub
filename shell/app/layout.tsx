@@ -5,12 +5,12 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Toaster } from "@/components/ui/sonner"
-import { ThemeProvider } from "@/components/layout/theme-provider"
 import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/components/app/loading"
 import { Updater } from "@/components/app/updater/updater"
 import { RedisKeysProvider } from "@/ctx/redis-keys.context"
+import { ThemeProvider } from "next-themes"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased overscroll-none touch-none select-none`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AppProvider>
             <RedisKeysProvider>
