@@ -5,12 +5,12 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Toaster } from "@/components/ui/sonner"
-import { ThemeProvider } from "@/components/layout/theme-provider"
 import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/components/app/loading"
 import { Updater } from "@/components/app/updater/updater"
 import { RedisKeysProvider } from "@/ctx/redis-keys.context"
+import { ThemeProvider } from "next-themes"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
