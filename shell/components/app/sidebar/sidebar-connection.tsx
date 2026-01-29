@@ -68,9 +68,19 @@ export function SidebarConnection() {
 }
 
 function RenderTreeItem({ item, reload }: { item: TreeItem; reload: () => void }) {
+  const { connect } = useAppContext()
+
   if (!item.isGroup) {
     return (
-      <TreeNode nodeId={item.id} isLast={item.level == 0} level={item.level}>
+      <TreeNode
+        nodeId={item.id}
+        isLast={item.level == 0}
+        level={item.level}
+        onDoubleClick={async e => {
+          e.stopPropagation()
+          await connect(item.connection, item.connection?.last_db || 0)
+        }}
+      >
         <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item">
           <TreeExpander />
           <TreeIcon icon={<ServerIcon />} />
