@@ -1,6 +1,6 @@
 "use client"
 
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useForm } from "react-hook-form"
 import { Form } from "@/components/ui/form"
@@ -11,6 +11,8 @@ import { ConnectionDo } from "@/types/connection.do"
 import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { useState } from "react"
+import { Spinner } from "@/components/ui/spinner"
 
 type DatabaseUpdateDialogProps = {
   connection: ConnectionDo
@@ -21,6 +23,7 @@ type DatabaseUpdateDialogProps = {
 
 export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: DatabaseUpdateDialogProps) {
   const { t } = useTranslation()
+  const [testing, setTesting] = useState(false)
 
   const form = useForm<any>({
     defaultValues: {
@@ -61,6 +64,19 @@ export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: Da
     }
   })
 
+  const testConn = form.handleSubmit(async values => {
+    setTesting(true)
+    try {
+      await scorix.invoke("conn:test", values)
+      toast.success(t("conn_success"))
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(t("conn_failed"), { description: msg })
+    } finally {
+      setTesting(false)
+    }
+  })
+
   return (
     <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
       <DialogContent className="sm:max-w-[425px]" onInteractOutside={e => e.preventDefault()} onEscapeKeyDown={e => e.preventDefault()}>
@@ -68,20 +84,21 @@ export function ConnectionUpdateDialog({ connection, reload, open, setOpen }: Da
           <DialogTitle>{t("update_connection")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={submit} className="grid gap-4">
+          <form className="grid gap-4">
             <ConnectionFormSection form={form} />
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  {t("cancel")}
-                </Button>
-              </DialogClose>
-              <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                {t("save")}
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
+        <DialogFooter>
+          <Button className="cursor-pointer" size="sm" variant="outline" disabled={form.formState.isSubmitting} onClick={() => testConn()}>
+            {testing && <Spinner />} {t("test_conn")}
+          </Button>
+          <Button className="cursor-pointer" size="sm" variant="outline" disabled={form.formState.isSubmitting} onClick={() => setOpen(!open)}>
+            {t("cancel")}
+          </Button>
+          <Button className="cursor-pointer" size="sm" type="submit" disabled={form.formState.isSubmitting} onClick={() => submit()}>
+            {t("save")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

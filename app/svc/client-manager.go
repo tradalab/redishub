@@ -34,6 +34,30 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 		return nil, fmt.Errorf("client %s already exists", key)
 	}
 
+	// init cli
+	rdb, err := m.init(cfg, dbIdx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Test connection
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		return nil, fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
+	}
+
+	_ = rdb.Do(ctx, "CLIENT", "SETNAME", url.QueryEscape(cfg.Name)).Err()
+
+	cli := NewClient(rdb, cfg, dbIdx)
+
+	m.clients[key] = cli
+
+	return cli, nil
+}
+
+func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, error) {
 	options := &redis.Options{
 		Addr:             cfg.Addr(),
 		Username:         cfg.Username,
@@ -70,21 +94,24 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 
 	rdb := redis.NewClient(options)
 
-	// Test connection
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	return rdb, nil
+}
 
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
+func (m *ClientManager) Test(cfg *do.ConnectionDO, dbIdx int) error {
+	// init cli
+	rdb, err := m.init(cfg, dbIdx)
+	if err != nil {
+		return err
 	}
 
-	_ = rdb.Do(ctx, "CLIENT", "SETNAME", url.QueryEscape(cfg.Name)).Err()
+	// test connection
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		return fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
+	}
 
-	cli := NewClient(rdb, cfg, dbIdx)
-
-	m.clients[key] = cli
-
-	return cli, nil
+	return nil
 }
 
 func (m *ClientManager) Get(id string, dbIdx int) (*Client, error) {

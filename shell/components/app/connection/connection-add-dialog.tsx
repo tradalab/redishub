@@ -13,10 +13,12 @@ import { toast } from "sonner"
 import { ConnectionFormSection } from "@/components/app/connection/connection-form-section"
 import { useDbStore } from "@/stores/db.store"
 import { useTranslation } from "react-i18next"
+import { Spinner } from "@/components/ui/spinner"
 
 export function ConnectionAddDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [testing, setTesting] = useState(false)
   const { load } = useDbStore()
 
   const form = useForm<any>({
@@ -58,6 +60,19 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
     }
   })
 
+  const testConn = form.handleSubmit(async values => {
+    setTesting(true)
+    try {
+      await scorix.invoke("conn:test", values)
+      toast.success(t("conn_success"))
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(t("conn_failed"), { description: msg })
+    } finally {
+      setTesting(false)
+    }
+  })
+
   return (
     <Dialog open={open} onOpenChange={value => !form.formState.isSubmitting && setOpen(value)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -76,18 +91,21 @@ export function ConnectionAddDialog({ children }: { children: ReactNode }) {
         <Form {...form}>
           <form onSubmit={submit} className="grid gap-4">
             <ConnectionFormSection form={form} />
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
-                  {t("cancel")}
-                </Button>
-              </DialogClose>
-              <Button className="cursor-pointer" type="submit" disabled={form.formState.isSubmitting}>
-                {t("save")}
-              </Button>
-            </DialogFooter>
           </form>
         </Form>
+        <DialogFooter>
+          <Button className="cursor-pointer" size="sm" variant="outline" disabled={form.formState.isSubmitting} onClick={() => testConn()}>
+            {testing && <Spinner />} {t("test_conn")}
+          </Button>
+          <DialogClose asChild>
+            <Button className="cursor-pointer" size="sm" variant="outline" disabled={form.formState.isSubmitting} onClick={() => setOpen(!open)}>
+              {t("cancel")}
+            </Button>
+          </DialogClose>
+          <Button className="cursor-pointer" size="sm" type="submit" disabled={form.formState.isSubmitting} onClick={() => submit()}>
+            {t("save")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
