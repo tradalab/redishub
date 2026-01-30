@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import "@xterm/xterm/css/xterm.css"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { useTheme } from "next-themes"
 
 const REDIS_COMMANDS = [
   "GET",
@@ -29,13 +30,48 @@ const REDIS_COMMANDS = [
   "SCAN",
 ]
 
+const XTERM_THEMES = {
+  dark: {
+    background: "#0a0a0a",
+    foreground: "#e5e5e5",
+    cursor: "#22c55e",
+    selection: "#262626",
+
+    black: "#000000",
+    red: "#ef4444",
+    green: "#22c55e",
+    yellow: "#eab308",
+    blue: "#3b82f6",
+    magenta: "#a855f7",
+    cyan: "#06b6d4",
+    white: "#e5e5e5",
+  },
+  light: {
+    background: "#ffffff",
+    foreground: "#171717",
+    cursor: "#16a34a",
+    selection: "#e5e7eb",
+
+    black: "#000000",
+    red: "#dc2626",
+    green: "#16a34a",
+    yellow: "#ca8a04",
+    blue: "#2563eb",
+    magenta: "#9333ea",
+    cyan: "#0891b2",
+    white: "#171717",
+  },
+}
+
 export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
+  const { resolvedTheme } = useTheme()
+
   const terminalRef = useRef<HTMLDivElement>(null)
+  const termRef = useRef<any>(null)
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
   useEffect(() => {
-    let term: any
     let fitAddon: any
 
     const history: string[] = []
@@ -43,18 +79,17 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     let buffer = ""
 
     const prompt = `db${databaseIdx}> `
-
-    const termPrompt = () => term.write(prompt)
+    const termPrompt = () => termRef.current?.write(prompt)
 
     const replaceInput = (text: string) => {
       // erase current buffer from terminal
       while (buffer.length > 0) {
-        term.write("\b \b")
+        termRef.current.write("\b \b")
         buffer = buffer.slice(0, -1)
       }
       // write history text
       buffer = text
-      term.write(text)
+      termRef.current.write(text)
     }
 
     const getSuggestions = (buf: string) => {
@@ -78,17 +113,15 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       const { Terminal } = await import("@xterm/xterm")
       const { FitAddon } = await import("@xterm/addon-fit")
 
-      term = new Terminal({
+      const term = new Terminal({
         cursorBlink: true,
         fontFamily: "JetBrains Mono, monospace",
         fontSize: 13,
-        theme: {
-          background: "#171717",
-          foreground: "#e5e5e5",
-          cursor: "#22c55e",
-        },
+        theme: resolvedTheme === "light" ? XTERM_THEMES.light : XTERM_THEMES.dark,
         scrollOnUserInput: true,
       })
+
+      termRef.current = term
 
       fitAddon = new FitAddon()
       term.loadAddon(fitAddon)
@@ -97,7 +130,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
       try {
         await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
-        term.writeln("\x1b[32mRedis Console Ready\x1b[0m")
+        term?.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         termPrompt()
         setStatus("connected")
       } catch (e) {
@@ -138,7 +171,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
         // ArrowUp
         if (code === 27 && data === "\u001b[A") {
-          if (history.length === 0) return
+          if (!history.length) return
           if (historyIndex > 0) historyIndex--
           replaceInput(history[historyIndex])
           return
@@ -146,7 +179,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
         // ArrowDown
         if (code === 27 && data === "\u001b[B") {
-          if (history.length === 0) return
+          if (!history.length) return
           if (historyIndex < history.length - 1) {
             historyIndex++
             replaceInput(history[historyIndex])
@@ -157,7 +190,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           return
         }
 
-        // TAB autocomplete inline
+        // TAB autocomplete
         if (code === 9) {
           const suggestions = getSuggestions(buffer)
           if (!suggestions.length) return
@@ -177,6 +210,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       // auto-fit
       const handleResize = () => fitAddon.fit()
       window.addEventListener("resize", handleResize)
+
       return () => window.removeEventListener("resize", handleResize)
     }
 
@@ -185,7 +219,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       try {
         await scorix.emit("console:input:" + connectionId, cmd)
       } catch (err: any) {
-        term.writeln(`\x1b[31m(error)\x1b[0m ${err.message}`)
+        termRef.current?.writeln(`\x1b[31m(error)\x1b[0m ${err?.message}`)
         termPrompt()
         setStatus("error")
       }
@@ -194,21 +228,29 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     initTerminal()
 
     scorix.on("console:output:" + connectionId, (payload: string) => {
-      term.write("\r")
-      term.writeln(`\x1b[37m${payload}\x1b[0m`)
+      termRef.current?.write("\r")
+      termRef.current?.writeln(payload)
       termPrompt()
     })
 
     return () => {
-      term?.dispose()
+      termRef.current?.dispose()
     }
   }, [])
 
+  useEffect(() => {
+    if (!termRef.current) return
+    if (!resolvedTheme) return
+
+    termRef.current.options.theme = resolvedTheme === "light" ? XTERM_THEMES.light : XTERM_THEMES.dark
+    termRef.current.refresh(0, termRef.current.rows - 1)
+  }, [resolvedTheme])
+
   return (
-    <Card className="w-full h-full bg-neutral-900 border-neutral-800">
+    <Card className="w-full h-full border bg-background py-2">
       <CardContent className="relative w-full h-full p-0">
         <div ref={terminalRef} className="w-full h-full px-2 pt-2" />
-        <div className="absolute top-2 right-6 text-xs text-neutral-400 font-mono">Redis CLI {status === "connected" ? "🟢" : "🔴"}</div>
+        <div className="absolute top-2 right-6 text-xs font-mono text-muted-foreground">Redis CLI {status === "connected" ? "🟢" : "🔴"}</div>
       </CardContent>
     </Card>
   )
