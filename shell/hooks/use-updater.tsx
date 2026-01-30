@@ -5,11 +5,13 @@ import { toast } from "sonner"
 import { Spinner } from "@/components/ui/kibo-ui/spinner"
 import { cn } from "@/lib/utils"
 import scorix from "@/lib/scorix"
+import { useSetting } from "@/hooks/use-setting"
 
-export function useUpdater(autoCheck = true) {
+export function useUpdater() {
   const [loading, setLoading] = useState(false)
   const [newVersion, setNewVersion] = useState<string | undefined>()
   const [notes, setNotes] = useState<string | undefined>()
+  const [autoupdate] = useSetting("autoupdate")
 
   const checkUpdate = async () => {
     setLoading(true)
@@ -77,8 +79,8 @@ export function useUpdater(autoCheck = true) {
   }
 
   useEffect(() => {
-    if (autoCheck) checkUpdate()
-  }, [])
+    if (autoupdate == "true") checkUpdate()
+  }, [autoupdate])
 
   useEffect(() => {
     popup()

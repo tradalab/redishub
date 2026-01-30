@@ -1,4 +1,6 @@
 {
+  "auto_update": "Automatic Updates",
+  "auto_check": "Enable automatic update checks",
   "browser": "Browser",
   "cancel": "Cancel",
   "check_update": "Check Update",

@@ -1,4 +1,6 @@
 {
+  "auto_update": "自動更新機能",
+  "auto_check": "更新の自動確認を有効にする",
   "browser": "ブラウザ",
   "cancel": "キャンセル",
   "check_update": "アップデートを確認",

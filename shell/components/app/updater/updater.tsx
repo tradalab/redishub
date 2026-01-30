@@ -3,6 +3,6 @@
 import { useUpdater } from "@/hooks/use-updater"
 
 export function Updater() {
-  useUpdater(true)
+  useUpdater()
   return null
 }
