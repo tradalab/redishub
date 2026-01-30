@@ -1,6 +1,6 @@
 app:
   name: RedisHub
-  version: 1.1.0
+  version: 1.2.0
   identifier: com.tradalab.redishub
   description: "RedisHub"
   authors: [ "TradaLab Team" ]
@@ -40,4 +40,4 @@ extensions:
     public_key_base_64:
     platform_key: windows-amd64
     force_elevate: true
-    current_version: 1.1.0
+    current_version: 1.2.0
