@@ -50,6 +50,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)
 		},
+		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {
+			return key.NewKeyHashFieldDelLogic(ctx, svcCtx).KeyHashFieldDelLogic(args)
+		},
 		"key:load": func(ctx context.Context, args key.KeyLoadLogicArgs) (interface{}, error) {
 			return key.NewKeyLoadLogic(ctx, svcCtx).KeyLoadLogic(args)
 		},
