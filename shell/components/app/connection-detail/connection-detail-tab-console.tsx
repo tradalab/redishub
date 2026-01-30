@@ -30,6 +30,8 @@ const REDIS_COMMANDS = [
   "SCAN",
 ]
 
+const DANGEROUS = ["FLUSHALL", "FLUSHDB", "CONFIG", "SHUTDOWN", "SCRIPT"]
+
 const XTERM_THEMES = {
   dark: {
     background: "#0a0a0a",
@@ -70,6 +72,14 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
   const terminalRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<any>(null)
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
+
+  const parseCommand = (cmd: string) => {
+    const parts = cmd.trim().split(/\s+/)
+    return {
+      name: parts[0]?.toUpperCase(),
+      full: cmd.trim(),
+    }
+  }
 
   useEffect(() => {
     let fitAddon: any
@@ -214,10 +224,63 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       return () => window.removeEventListener("resize", handleResize)
     }
 
+    const CONFIRM_TIMEOUT = 30_000
+
+    let pendingDangerous: {
+      name: string
+      hash: string
+      expiresAt: number
+    } | null = null
+
+    const normalizeCommand = (cmd: string) => cmd.trim().replace(/\s+/g, " ")
+
+    const hashCommand = async (cmd: string) => {
+      const enc = new TextEncoder().encode(cmd)
+      const buf = await crypto.subtle.digest("SHA-256", enc)
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("")
+    }
+
     const handleCommand = async (cmd: string) => {
       if (!cmd) return
+
+      const { name } = parseCommand(cmd)
+      const normalized = normalizeCommand(cmd)
+      const hash = await hashCommand(normalized)
+      const now = Date.now()
+
+      if (DANGEROUS.includes(name)) {
+        if (pendingDangerous && pendingDangerous.expiresAt < now) {
+          pendingDangerous = null
+        }
+
+        if (!pendingDangerous) {
+          pendingDangerous = {
+            name,
+            hash,
+            expiresAt: now + CONFIRM_TIMEOUT,
+          }
+
+          termRef.current?.writeln(`\x1b[33m⚠ Dangerous command detected\x1b[0m`)
+          termRef.current?.writeln(`Please re-type the command to confirm: \x1b[31m${normalized}\x1b[0m`)
+          termPrompt()
+          return
+        }
+
+        if (pendingDangerous.hash !== hash) {
+          termRef.current?.writeln(`\x1b[31mCommand mismatch.\x1b[0m Please re-type the same command to confirm.`)
+          termPrompt()
+          return
+        }
+
+        pendingDangerous = null
+      } else {
+        pendingDangerous = null
+      }
+
       try {
-        await scorix.emit("console:input:" + connectionId, cmd)
+        await scorix.emit("console:input:" + connectionId, normalized)
       } catch (err: any) {
         termRef.current?.writeln(`\x1b[31m(error)\x1b[0m ${err?.message}`)
         termPrompt()
