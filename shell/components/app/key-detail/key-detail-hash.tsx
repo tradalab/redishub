@@ -35,7 +35,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
     {
       accessorKey: "id",
       header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id,
+      cell: ({ row }) => row.original.id + 1,
     },
     {
       accessorKey: "key",

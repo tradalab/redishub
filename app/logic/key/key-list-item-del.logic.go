@@ -36,9 +36,7 @@ func NewKeyListItemDelLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ke
 	}
 }
 
-func (l *KeyListItemDelLogic) KeyListItemDelLogic(
-	params KeyListItemDelLogicArgs,
-) (*KeyListItemDelLogicResult, error) {
+func (l *KeyListItemDelLogic) KeyListItemDelLogic(params KeyListItemDelLogicArgs) (*KeyListItemDelLogicResult, error) {
 
 	// 1. Validate input
 	if params.Key == "" {

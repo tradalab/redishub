@@ -33,7 +33,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
     {
       accessorKey: "id",
       header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id,
+      cell: ({ row }) => row.original.id + 1,
     },
     {
       accessorKey: "member",

@@ -211,7 +211,7 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loadin
           databaseIdx={databaseIdx}
           selectedKey={selectedKey}
           reload={reload}
-          data={Object.entries(value)?.map(([k, v], index) => ({ id: index + 1, key: k, value: v }) as HashType)}
+          data={Object.entries(value)?.map(([k, v], index) => ({ id: index, key: k, value: v }) as HashType)}
         />
       )
     case "set":
@@ -224,7 +224,7 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loadin
           databaseIdx={databaseIdx}
           selectedKey={selectedKey}
           reload={reload}
-          data={value?.map((item: string, idx: number) => ({ id: idx + 1, value: item }))}
+          data={value?.map((item: string, idx: number) => ({ id: idx, value: item }))}
         />
       )
     case "zset":
@@ -237,7 +237,7 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loadin
           databaseIdx={databaseIdx}
           selectedKey={selectedKey}
           reload={reload}
-          data={value?.map((item: any, idx: number) => ({ id: idx + 1, member: item?.Member, score: item?.Score }))}
+          data={value?.map((item: any, idx: number) => ({ id: idx, member: item?.Member, score: item?.Score }))}
         />
       )
     case "stream":
