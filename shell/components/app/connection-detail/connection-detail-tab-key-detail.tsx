@@ -198,7 +198,7 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loadin
           databaseIdx={databaseIdx}
           selectedKey={selectedKey}
           reload={reload}
-          data={value?.map((item: string, idx: number) => ({ id: idx + 1, value: item }))}
+          data={value?.map((item: string, idx: number) => ({ id: idx, value: item }))}
         />
       )
     case "hash":

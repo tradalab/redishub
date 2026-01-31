@@ -53,6 +53,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {
 			return key.NewKeyHashFieldDelLogic(ctx, svcCtx).KeyHashFieldDelLogic(args)
 		},
+		"key:list-item-del": func(ctx context.Context, args key.KeyListItemDelLogicArgs) (interface{}, error) {
+			return key.NewKeyListItemDelLogic(ctx, svcCtx).KeyListItemDelLogic(args)
+		},
 		"key:load": func(ctx context.Context, args key.KeyLoadLogicArgs) (interface{}, error) {
 			return key.NewKeyLoadLogic(ctx, svcCtx).KeyLoadLogic(args)
 		},
