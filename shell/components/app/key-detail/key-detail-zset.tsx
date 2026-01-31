@@ -11,11 +11,12 @@ import { KeyKindEnum } from "@/types/key-kind.enum"
 import { toast } from "sonner"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { cn } from "@/lib/utils"
 
 type KeyDetailZsetProps = {
   databaseId: string
@@ -28,6 +29,7 @@ type KeyDetailZsetProps = {
 export function KeyDetailZset(props: KeyDetailZsetProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
+  const [deletingMember, setDeletingMember] = useState<string | null>(null)
 
   const columns: ColumnDef<ZsetType>[] = [
     {
@@ -44,6 +46,38 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
       accessorKey: "score",
       header: ({ column }) => <TableColumnHeader column={column} title="Score" />,
       cell: ({ row }) => row.original.score,
+    },
+    {
+      accessorKey: "action",
+      enableSorting: false,
+      size: 12,
+      header: ({ column }) => <TableColumnHeader column={column} title="" />,
+      cell: ({ row }) => {
+        const memberKey = row.original.member
+        const isDeleting = deletingMember === memberKey
+
+        return (
+          <span
+            role="button"
+            aria-disabled={isDeleting}
+            onClick={() => {
+              if (!isDeleting) memberDel(memberKey)
+            }}
+            className={cn(
+              "inline-flex items-center justify-center",
+              "w-5 h-5 cursor-pointer",
+              "text-red-600 hover:text-red-700",
+              isDeleting && "cursor-not-allowed opacity-50"
+            )}
+          >
+            {isDeleting ? (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+            ) : (
+              <Trash2Icon className="h-4 w-4" />
+            )}
+          </span>
+        )
+      },
     },
   ]
 
@@ -76,6 +110,26 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
       setLoading(false)
     }
   })
+
+  const memberDel = async (member: string) => {
+    if (deletingMember) return
+    setDeletingMember(member)
+    try {
+      await scorix.invoke("key:zset-member-del", {
+        connection_id: props.databaseId,
+        database_index: props.databaseIdx,
+        key: props.selectedKey,
+        member: member,
+      })
+      toast.success(t("deleted"))
+      props.reload()
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(msg)
+    } finally {
+      setDeletingMember(null)
+    }
+  }
 
   return (
     <>

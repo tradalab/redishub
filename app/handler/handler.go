@@ -62,6 +62,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"key:set-member-del": func(ctx context.Context, args key.KeySetMemberDelLogicArgs) (interface{}, error) {
 			return key.NewKeySetMemberDelLogic(ctx, svcCtx).KeySetMemberDelLogic(args)
 		},
+		"key:zset-member-del": func(ctx context.Context, args key.KeyZSetMemberDelLogicArgs) (interface{}, error) {
+			return key.NewKeyZSetMemberDelLogic(ctx, svcCtx).KeyZSetMemberDelLogic(args)
+		},
 	}
 	for name, handler := range handlers {
 		svcCtx.App.Expose(name, handler)
