@@ -7,8 +7,7 @@ export default function Changelog() {
   const [md, setMd] = useState("")
 
   useEffect(() => {
-    // fetch("https://raw.githubusercontent.com/tradalab/redishub/main/CHANGELOG.md")
-    fetch("https://raw.githubusercontent.com/tradalab/redishub/refs/heads/doc/upgrade/CHANGELOG.md")
+    fetch("https://raw.githubusercontent.com/tradalab/redishub/main/CHANGELOG.md")
       .then(res => res.text())
       .then(setMd)
   }, [])
