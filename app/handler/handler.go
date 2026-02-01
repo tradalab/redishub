@@ -62,6 +62,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"key:set-member-del": func(ctx context.Context, args key.KeySetMemberDelLogicArgs) (interface{}, error) {
 			return key.NewKeySetMemberDelLogic(ctx, svcCtx).KeySetMemberDelLogic(args)
 		},
+		"key:stream-entry-del": func(ctx context.Context, args key.KeyStreamEntryDelLogicArgs) (interface{}, error) {
+			return key.NewKeyStreamEntryDelLogic(ctx, svcCtx).KeyStreamEntryDelLogic(args)
+		},
 		"key:zset-member-del": func(ctx context.Context, args key.KeyZSetMemberDelLogicArgs) (interface{}, error) {
 			return key.NewKeyZSetMemberDelLogic(ctx, svcCtx).KeyZSetMemberDelLogic(args)
 		},

@@ -244,7 +244,15 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loadin
       if (!Array.isArray(value)) {
         return null
       }
-      return <KeyDetailStream data={value?.map((item: any) => ({ id: item?.ID, value: JSON.stringify(item?.Values || {}) }))} />
+      return (
+        <KeyDetailStream
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          data={value?.map((item: any) => ({ id: item?.ID, value: JSON.stringify(item?.Values || {}) }))}
+        />
+      )
     case "rejson-rl":
       return <div></div>
     default:
