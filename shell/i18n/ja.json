@@ -5,6 +5,8 @@
   "cancel": "キャンセル",
   "check_update": "アップデートを確認",
   "checking": "確認しています...",
+  "confirm_delete": "この項目を削除しますか",
+  "confirm_delete_desc": "{{obj_name}} {{obj_key}}を削除しますか？この操作は元に戻せません。",
   "connect": "接続",
   "connections": "接続一覧",
   "conn_not_exist": "接続が存在しません",

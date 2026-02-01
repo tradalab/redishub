@@ -16,6 +16,7 @@ import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useTranslation } from "react-i18next"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
@@ -24,6 +25,7 @@ export function SidebarBrowser() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds] = useState<string[]>([])
   const [dbs, setDbs] = useState<any[]>([])
+  const confirm = useConfirm()
 
   const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
   const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
@@ -39,6 +41,19 @@ export function SidebarBrowser() {
   useEffect(() => {
     setDataset([...sortTree(buildTree(keys))])
   }, [keys.length])
+
+  const handleDelete = async (key: string) => {
+    if (isLoading) return
+    const ok = await confirm({
+      title: t("confirm_delete"),
+      description: t("confirm_delete_desc", { obj_name: "key", obj_key: key }),
+      confirmText: t("delete"),
+      danger: true,
+    })
+    if (ok) {
+      await deleteKey(key)
+    }
+  }
 
   const buildTree = (keys: string[], delimiter = ":"): TreeItem[] => {
     const root: TreeItem[] = []
@@ -174,7 +189,7 @@ export function SidebarBrowser() {
               <TreeProvider defaultExpandedIds={expandedIds} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                 <TreeView className="py-2 px-1">
                   {filteredDataset.map((item, index) => (
-                    <RenderTreeItem key={index} item={item} deleteKey={deleteKey} />
+                    <RenderTreeItem key={index} item={item} deleteKey={handleDelete} />
                   ))}
                 </TreeView>
               </TreeProvider>
