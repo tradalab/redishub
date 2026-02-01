@@ -17,6 +17,7 @@ import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 type KeyDetailZsetProps = {
   databaseId: string
@@ -30,6 +31,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
+  const confirm = useConfirm()
 
   const columns: ColumnDef<ZsetType>[] = [
     {
@@ -60,8 +62,17 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
           <span
             role="button"
             aria-disabled={isDeleting}
-            onClick={() => {
-              if (!isDeleting) memberDel(memberKey)
+            onClick={async e => {
+              if (isDeleting) return
+              const ok = await confirm({
+                title: t("confirm_delete"),
+                description: t("confirm_delete_desc", { obj_name: "member", obj_key: memberKey }),
+                confirmText: t("delete"),
+                danger: true,
+              })
+              if (ok) {
+                await memberDel(memberKey)
+              }
             }}
             className={cn(
               "inline-flex items-center justify-center",

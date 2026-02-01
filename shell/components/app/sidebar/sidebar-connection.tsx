@@ -18,6 +18,7 @@ import scorix from "@/lib/scorix"
 import { useDbStore } from "@/stores/db.store"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 type DialogState<T> = {
   open: boolean
@@ -147,10 +148,21 @@ type ActionButtonProps = {
 const ActionButton = memo(function ActionButton({ item, reload, onEditGroup, onEditConnection }: ActionButtonProps) {
   const { t } = useTranslation()
   const { connect, disconnect } = useAppContext()
+  const confirm = useConfirm()
 
   const deleteItem = async () => {
     try {
-      const sql = item.isGroup ? `DELETE FROM "group" WHERE id = "${item.id}"` : `DELETE FROM "database" WHERE id = "${item.id}"`
+      const ok = await confirm({
+        title: t("confirm_delete"),
+        description: t("confirm_delete_desc", { obj_name: item.isGroup ? "group" : "connection", obj_key: item.name }),
+        confirmText: t("delete"),
+        danger: true,
+      })
+      if (!ok) {
+        return
+      }
+
+      const sql = item.isGroup ? `DELETE FROM "group" WHERE id = "${item.id}"` : `DELETE FROM "connection" WHERE id = "${item.id}"`
       await scorix.invoke("ext:gorm:Query", sql)
       toast.success("Deleted!")
       reload()

@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/kibo-ui/table"
 import { ColumnDef } from "@tanstack/react-table"
 import { StreamType } from "@/types/stream.type"
@@ -6,7 +9,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { useState } from "react"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 type Props = {
   databaseId: string
@@ -20,6 +23,7 @@ export function KeyDetailStream(props: Props) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
+  const confirm = useConfirm()
 
   const columns: ColumnDef<StreamType>[] = [
     {
@@ -45,8 +49,17 @@ export function KeyDetailStream(props: Props) {
           <span
             role="button"
             aria-disabled={isDeleting}
-            onClick={() => {
-              if (!isDeleting) entryDel(entryId)
+            onClick={async e => {
+              if (isDeleting) return
+              const ok = await confirm({
+                title: t("confirm_delete"),
+                description: t("confirm_delete_desc", { obj_name: "entry", obj_key: entryId }),
+                confirmText: t("delete"),
+                danger: true,
+              })
+              if (ok) {
+                await entryDel(entryId)
+              }
             }}
             className={cn(
               "inline-flex items-center justify-center",

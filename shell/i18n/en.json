@@ -5,6 +5,8 @@
   "cancel": "Cancel",
   "check_update": "Check Update",
   "checking": "Checking...",
+  "confirm_delete": "Delete this item?",
+  "confirm_delete_desc": "Delete {{obj_name}} {{obj_key}}? This action cannot be undone.",
   "connect": "Connect",
   "connections": "Connections",
   "conn_not_exist": "connection does not exist",

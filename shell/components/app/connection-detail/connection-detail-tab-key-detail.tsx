@@ -26,18 +26,20 @@ import { Spinner } from "@/components/ui/spinner"
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
 import { Label } from "@/components/ui/label"
 import { useTranslation } from "react-i18next"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, selectedKey }: { connectionId: string; databaseIdx: number; selectedKey?: string }) {
   const { t } = useTranslation()
   const [data, setData] = useState<string | undefined>("")
   const [kind, setKind] = useState<string | undefined>()
   const [ttl, setTtl] = useState<number | undefined>()
+  const confirm = useConfirm()
 
   const [newKeyName, setNewKeyName] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
 
   const { setSelectedKey } = useAppContext()
-  const { updateKey, deleteKey } = useRedisKeys(connectionId || "", databaseIdx)
+  const { updateKey, deleteKey, isLoading } = useRedisKeys(connectionId || "", databaseIdx)
 
   const load = async (selectedKey?: string) => {
     if (!selectedKey) {
@@ -110,6 +112,19 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
     load(selectedKey)
   }, [selectedKey])
 
+  const handleDelete = async (key: string) => {
+    if (isLoading) return
+    const ok = await confirm({
+      title: t("confirm_delete"),
+      description: t("confirm_delete_desc", { obj_name: "key", obj_key: selectedKey }),
+      confirmText: t("delete"),
+      danger: true,
+    })
+    if (ok) {
+      await deleteKey(key).then(() => setSelectedKey())
+    }
+  }
+
   if (!connectionId || !selectedKey || !ttl) {
     return null
   }
@@ -150,7 +165,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           <Button size="icon-sm" variant="outline" onClick={() => load(selectedKey)}>
             <RefreshCcwIcon />
           </Button>
-          <Button size="icon-sm" variant="outline" onClick={() => deleteKey(selectedKey).then(() => setSelectedKey())}>
+          <Button size="icon-sm" variant="outline" onClick={() => handleDelete(selectedKey)}>
             <Trash2Icon />
           </Button>
         </div>

@@ -17,6 +17,7 @@ import { useState } from "react"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
+import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 type KeyDetailListProps = {
   databaseId: string
@@ -30,6 +31,7 @@ export function KeyDetailList(props: KeyDetailListProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingIdx, setDeletingIdx] = useState<number | null>(null)
+  const confirm = useConfirm()
 
   const columns: ColumnDef<ListType>[] = [
     {
@@ -55,8 +57,17 @@ export function KeyDetailList(props: KeyDetailListProps) {
           <span
             role="button"
             aria-disabled={isDeleting}
-            onClick={() => {
-              if (!isDeleting) itemDel(idx, row.original.value)
+            onClick={async e => {
+              if (isDeleting) return
+              const ok = await confirm({
+                title: t("confirm_delete"),
+                description: t("confirm_delete_desc", { obj_name: "item", obj_key: idx }),
+                confirmText: t("delete"),
+                danger: true,
+              })
+              if (ok) {
+                await itemDel(idx, row.original.value)
+              }
             }}
             className={cn(
               "inline-flex items-center justify-center",
