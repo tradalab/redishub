@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.0]
+
+### 🚀 Features
+
+- feat(key-stream): Add key creation and entry insertion for Redis Stream (#13)
+- feat(ui): Handle loading states in key detail and general UI (#11)
+- feat(ui): Upgrade slow query screen (#10)
+- feat(console): Handle dangerous commands in console (#7)
+- feat(console): Add theme support for console (#6)
+- feat: Remove elements from data structures (#8)
+- feat: Add delete confirmation provider (#9)
+
+### 📝 Documentation
+
+- doc: Upgrade documentation (#12)
+
 ## [1.2.0]
 
 ### 🚀 Features
