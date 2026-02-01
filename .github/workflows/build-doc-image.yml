@@ -2,9 +2,7 @@ name: Build & Push Doc Image
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - "doc/**"
+    tags: [ 'v*' ]
 
 jobs:
   build:
