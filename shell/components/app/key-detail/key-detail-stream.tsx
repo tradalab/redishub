@@ -7,9 +7,17 @@ import { StreamType } from "@/types/stream.type"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Trash2Icon } from "lucide-react"
+import { PlusIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
+import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { KeyKindEnum } from "@/types/key-kind.enum"
+import { KeyAddValueStream } from "@/components/app/key-add/key-add-value-stream"
 
 type Props = {
   databaseId: string
@@ -19,11 +27,16 @@ type Props = {
   reload: () => void
 }
 
+const schema = z.object({
+  value_stream: z.any().optional(),
+})
+
 export function KeyDetailStream(props: Props) {
   const { t } = useTranslation()
-  const [loading, setLoading] = useState<boolean>(false)
-  const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
   const confirm = useConfirm()
+
+  const [loading, setLoading] = useState(false)
+  const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
 
   const columns: ColumnDef<StreamType>[] = [
     {
@@ -49,7 +62,7 @@ export function KeyDetailStream(props: Props) {
           <span
             role="button"
             aria-disabled={isDeleting}
-            onClick={async e => {
+            onClick={async () => {
               if (isDeleting) return
               const ok = await confirm({
                 title: t("confirm_delete"),
@@ -79,6 +92,38 @@ export function KeyDetailStream(props: Props) {
     },
   ]
 
+  const form = useForm<any>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      value_stream: {},
+    },
+  })
+
+  const submit = form.handleSubmit(async values => {
+    setLoading(true)
+    try {
+      await scorix.invoke("client:key-value-update", {
+        connection_id: props.databaseId,
+        database_index: props.databaseIdx,
+        key_name: props.selectedKey,
+        key_kind: KeyKindEnum.STREAM,
+        key_value_stream: {
+          id: "*",
+          value: Object.fromEntries(values.value_stream?.filter((i: any) => i?.field !== "")?.map((i: any) => [i?.field, i?.value])),
+        },
+      })
+
+      toast.success(t("saved"))
+      form.reset({ value_stream: {} })
+      props.reload()
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(msg)
+    } finally {
+      setLoading(false)
+    }
+  })
+
   const entryDel = async (id: string) => {
     if (deletingEntry) return
     setDeletingEntry(id)
@@ -100,21 +145,60 @@ export function KeyDetailStream(props: Props) {
   }
 
   return (
-    <TableProvider columns={columns} data={props.data}>
-      <TableHeader>
-        {({ headerGroup }) => (
-          <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
-            {({ header }) => <TableHead header={header} key={header.id} />}
-          </TableHeaderGroup>
-        )}
-      </TableHeader>
-      <TableBody>
-        {({ row }) => (
-          <TableRow key={row.id} row={row}>
-            {({ cell }) => <TableCell cell={cell} key={cell.id} />}
-          </TableRow>
-        )}
-      </TableBody>
-    </TableProvider>
+    <>
+      <Drawer direction="right">
+        <DrawerTrigger asChild>
+          <Button size="sm" variant="outline" className="mb-2">
+            <PlusIcon />
+            {t("insert_row")}
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent>
+          <Form {...form}>
+            <form onSubmit={submit} className="grid gap-4">
+              <DrawerHeader>
+                <DrawerTitle>{t("new_field")}</DrawerTitle>
+              </DrawerHeader>
+              <FormItem>
+                <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                <FormControl>
+                  <KeyAddValueStream form={form} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+              <DrawerFooter>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" type="submit" disabled={loading}>
+                    {loading ? t("saving") : t("save")}
+                  </Button>
+                  <DrawerClose asChild>
+                    <Button size="sm" variant="outline">
+                      {t("cancel")}
+                    </Button>
+                  </DrawerClose>
+                </div>
+              </DrawerFooter>
+            </form>
+          </Form>
+        </DrawerContent>
+      </Drawer>
+
+      <TableProvider columns={columns} data={props.data}>
+        <TableHeader>
+          {({ headerGroup }) => (
+            <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
+              {({ header }) => <TableHead header={header} key={header.id} />}
+            </TableHeaderGroup>
+          )}
+        </TableHeader>
+        <TableBody>
+          {({ row }) => (
+            <TableRow key={row.id} row={row}>
+              {({ cell }) => <TableCell cell={cell} key={cell.id} />}
+            </TableRow>
+          )}
+        </TableBody>
+      </TableProvider>
+    </>
   )
 }

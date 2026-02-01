@@ -18,6 +18,7 @@ import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { useTranslation } from "react-i18next"
+import { KeyAddValueStream } from "@/components/app/key-add/key-add-value-stream"
 
 export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -35,6 +36,7 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
       value_hash: [{ key: "", value: "" }],
       value_set: [" "],
       value_zset: [{ member: "", score: 0 }],
+      value_stream: {},
     },
     resolver: zodResolver(
       z.object({
@@ -46,11 +48,18 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
         value_hash: z.any().optional(),
         value_set: z.any().optional(),
         value_zset: z.any().optional(),
+        value_stream: z.any().optional(),
       })
     ),
   })
 
   const submit = form.handleSubmit(async values => {
+    if (values.kind == KeyKindEnum.STREAM) {
+      values.value_stream = {
+        id: "*",
+        value: Object.fromEntries(values.value_stream?.filter((i: any) => i?.field !== "")?.map((i: any) => [i?.field, i?.value])),
+      }
+    }
     addKey(values.key, values).then(() => {
       setOpen(false)
       form.reset()
@@ -119,7 +128,7 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {["string", "list", "hash", "set", "zset"].map(e => (
+                          {["string", "list", "hash", "set", "zset", "stream"].map(e => (
                             <SelectItem key={e} value={e}>
                               {e.toUpperCase()}
                             </SelectItem>
@@ -185,7 +194,15 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
                 <FormMessage />
               </FormItem>
             )}
-            {kindValue == KeyKindEnum.STREAM && <></>}
+            {kindValue == KeyKindEnum.STREAM && (
+              <FormItem>
+                <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                <FormControl>
+                  <KeyAddValueStream form={form} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="cursor-pointer" variant="outline" disabled={form.formState.isSubmitting}>
