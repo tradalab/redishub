@@ -5,10 +5,10 @@ import { SaveIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyKindEnum } from "@/types/key-kind.enum"
-import { Spinner } from "@/components/ui/kibo-ui/spinner"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { Spinner } from "@/components/ui/spinner"
 
 export type KeyDetailStringProps = {
   databaseId: string

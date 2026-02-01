@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { Spinner } from "@/components/ui/kibo-ui/spinner"
 import { cn } from "@/lib/utils"
 import scorix from "@/lib/scorix"
 import { useSetting } from "@/hooks/use-setting"
+import { Spinner } from "@/components/ui/spinner"
 
 export function useUpdater() {
   const [loading, setLoading] = useState(false)
@@ -65,7 +65,7 @@ export function useUpdater() {
             className={cn("", { "!text-muted-foreground !cursor-not-allowed": loading })}
             onClick={() => fullUpdate()}
           >
-            {loading && <Spinner className="w-3.5 h-3.5 mr-1" />} Update
+            {loading && <Spinner />} Update
           </button>
         </div>
       ),
