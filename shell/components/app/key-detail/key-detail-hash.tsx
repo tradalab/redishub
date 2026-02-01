@@ -4,7 +4,7 @@ import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableH
 import { ColumnDef } from "@tanstack/react-table"
 import { HashType } from "@/types/hash.type"
 import { Button } from "@/components/ui/button"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { useForm } from "react-hook-form"
@@ -16,6 +16,7 @@ import { KeyKindEnum } from "@/types/key-kind.enum"
 import { useState } from "react"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { cn } from "@/lib/utils"
 
 type KeyDetailHashProps = {
   databaseId: string
@@ -28,12 +29,13 @@ type KeyDetailHashProps = {
 export function KeyDetailHash(props: KeyDetailHashProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
+  const [deletingField, setDeletingField] = useState<string | null>(null)
 
   const columns: ColumnDef<HashType>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id,
+      cell: ({ row }) => row.original.id + 1,
     },
     {
       accessorKey: "key",
@@ -44,6 +46,38 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
       accessorKey: "value",
       header: ({ column }) => <TableColumnHeader column={column} title="Value" />,
       cell: ({ row }) => row.original.value,
+    },
+    {
+      accessorKey: "action",
+      enableSorting: false,
+      size: 12,
+      header: ({ column }) => <TableColumnHeader column={column} title="" />,
+      cell: ({ row }) => {
+        const fieldKey = row.original.key
+        const isDeleting = deletingField === fieldKey
+
+        return (
+          <span
+            role="button"
+            aria-disabled={isDeleting}
+            onClick={() => {
+              if (!isDeleting) fieldDel(fieldKey)
+            }}
+            className={cn(
+              "inline-flex items-center justify-center",
+              "w-5 h-5 cursor-pointer",
+              "text-red-600 hover:text-red-700",
+              isDeleting && "cursor-not-allowed opacity-50"
+            )}
+          >
+            {isDeleting ? (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+            ) : (
+              <Trash2Icon className="h-4 w-4" />
+            )}
+          </span>
+        )
+      },
     },
   ]
 
@@ -76,6 +110,26 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
       setLoading(false)
     }
   })
+
+  const fieldDel = async (field: string) => {
+    if (deletingField) return
+    setDeletingField(field)
+    try {
+      await scorix.invoke("key:hash-field-del", {
+        connection_id: props.databaseId,
+        database_index: props.databaseIdx,
+        key: props.selectedKey,
+        field: field,
+      })
+      toast.success(t("deleted"))
+      props.reload()
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(msg)
+    } finally {
+      setDeletingField(null)
+    }
+  }
 
   return (
     <>

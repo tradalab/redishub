@@ -50,8 +50,23 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)
 		},
+		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {
+			return key.NewKeyHashFieldDelLogic(ctx, svcCtx).KeyHashFieldDelLogic(args)
+		},
+		"key:list-item-del": func(ctx context.Context, args key.KeyListItemDelLogicArgs) (interface{}, error) {
+			return key.NewKeyListItemDelLogic(ctx, svcCtx).KeyListItemDelLogic(args)
+		},
 		"key:load": func(ctx context.Context, args key.KeyLoadLogicArgs) (interface{}, error) {
 			return key.NewKeyLoadLogic(ctx, svcCtx).KeyLoadLogic(args)
+		},
+		"key:set-member-del": func(ctx context.Context, args key.KeySetMemberDelLogicArgs) (interface{}, error) {
+			return key.NewKeySetMemberDelLogic(ctx, svcCtx).KeySetMemberDelLogic(args)
+		},
+		"key:stream-entry-del": func(ctx context.Context, args key.KeyStreamEntryDelLogicArgs) (interface{}, error) {
+			return key.NewKeyStreamEntryDelLogic(ctx, svcCtx).KeyStreamEntryDelLogic(args)
+		},
+		"key:zset-member-del": func(ctx context.Context, args key.KeyZSetMemberDelLogicArgs) (interface{}, error) {
+			return key.NewKeyZSetMemberDelLogic(ctx, svcCtx).KeyZSetMemberDelLogic(args)
 		},
 	}
 	for name, handler := range handlers {
