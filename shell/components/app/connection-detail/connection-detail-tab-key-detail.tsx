@@ -46,8 +46,8 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
       return
     }
     setNewKeyName(undefined)
+    setLoading(true)
     try {
-      setLoading(true)
       const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
         connection_id: connectionId,
         database_index: databaseIdx,
@@ -125,16 +125,16 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
     }
   }
 
-  if (!connectionId || !selectedKey || !ttl) {
-    return null
-  }
-
   if (loading) {
     return (
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="h-full w-full flex justify-center items-center">
         <Spinner />
       </div>
     )
+  }
+
+  if (!connectionId || !selectedKey || !ttl) {
+    return null
   }
 
   return (
