@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="RedisHub"
-DIST_DIR=".scorix"
+####################################################################################################
+# APP ENV
 
+APP_NAME="RedisHub"
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
+
+####################################################################################################
+# SYSTEM ENV
+
+DIST_DIR=".scorix"
 
 GOOS=${1:-$(go env GOOS)}
 GOARCH=${2:-$(go env GOARCH)}
 
 OUT_DIR="$DIST_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}"
+
+
+
 
 echo "==> Building application $APP_NAME version $VERSION"
 
@@ -75,14 +84,30 @@ case "$GOOS" in
 
   linux)
     GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/$APP_NAME" ./main.go
+    
+    echo "==> Packaging Linux AppImage ..."
 
-    echo "==> Packaging Linux .deb and .rpm..."
-    if command -v fpm >/dev/null; then
-      fpm -s dir -t deb -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
-      fpm -s dir -t rpm -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
-    else
-      echo "!! fpm not found. Skipping Linux packages."
-    fi
+    echo "+ Init AppDir"
+    mkdir -p .scorix/AppDir
+
+    echo "+ Generate AppImage"
+    
+    .scorix/tool/linuxdeploy.AppImage \
+      --appdir .scorix/AppDir \
+      --executable "$OUT_DIR/$APP_NAME" \
+      --desktop-file ./installer/linux/RedisHub.desktop \
+      --icon-file ./installer/linux/RedisHub.png \
+      --output appimage
+
+    mv RedisHub-x86_64.AppImage .scorix
+
+    # echo "==> Packaging Linux .deb and .rpm..."
+    # if command -v fpm >/dev/null; then
+    #   fpm -s dir -t deb -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
+    #   fpm -s dir -t rpm -n "$APP_NAME" -v "$VERSION" --prefix /usr/local/bin -C "$OUT_DIR" $APP_NAME
+    # else
+    #  echo "!! fpm not found. Skipping Linux packages."
+    #fi
     ;;
 
   *)
