@@ -84,15 +84,15 @@ case "$GOOS" in
 
   linux)
     GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUT_DIR/$APP_NAME" ./main.go
-    
+
     echo "==> Packaging Linux AppImage ..."
 
     echo "+ Init AppDir"
     mkdir -p .scorix/AppDir
 
     echo "+ Generate AppImage"
-    
-    .scorix/tool/linuxdeploy.AppImage \
+
+    linuxdeploy \
       --appdir .scorix/AppDir \
       --executable "$OUT_DIR/$APP_NAME" \
       --desktop-file ./installer/linux/RedisHub.desktop \
