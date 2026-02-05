@@ -80,4 +80,4 @@ RUN bash scripts/build.sh
 
 # 5. Final artifact stage
 FROM scratch AS artifacts
-COPY --from=appimage-builder /workspace/.scorix/RedisHub* ./
+COPY --from=appimage-builder /workspace/artifacts/RedisHub* ./
