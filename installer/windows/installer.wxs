@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <!-- Product info -->
-  <Product Id="*"
-           Name="RedisHub"
-           Language="1033"
-           Version="1.3.0"
-           Manufacturer="TradaLab"
-           UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737">
-    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+  <Product
+    Id="*"
+    Name="RedisHub"
+    Language="1033"
+    Version="1.3.0"
+    Manufacturer="TradaLab"
+    UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737">
+
+    <Package
+      InstallerVersion="500"
+      Compressed="yes"
+      InstallScope="perMachine" />
+
+    <!-- Enable Restart Manager -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Enable" />
 
     <!-- Allow upgrade version -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MajorUpgrade
+      Schedule="afterInstallInitialize"
+      AllowSameVersionUpgrades="yes"
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <!-- Embed to one MSI file -->
     <MediaTemplate EmbedCab="yes" />
@@ -25,7 +37,7 @@
     </Feature>
   </Product>
 
-  <!-- Install Folder -->
+  <!-- Directories -->
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
@@ -42,53 +54,97 @@
     </Directory>
   </Fragment>
 
-  <!-- File, Shortcut, Registry -->
+  <!-- Components -->
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
 
-      <!-- File EXE -->
+      <!-- Main EXE -->
       <Component Id="MainExecutable" Guid="b3e05cf1-55c0-4c27-94a3-1a31a7fb2f44">
-        <File Id="RedisHubExe" Source="$(var.BinPath)\RedisHub.exe" KeyPath="yes" />
+        <File
+          Id="RedisHubExe"
+          Source="$(var.BinPath)\RedisHub.exe"
+          KeyPath="yes" />
       </Component>
 
-      <!-- Shortcut Start Menu -->
+      <!-- Start Menu Shortcut -->
       <Component Id="StartMenuShortcut" Guid="a2f88b22-1e5b-47c6-9f8d-69f8a3b8d0d2">
-        <Shortcut Id="ApplicationStartMenuShortcut"
-                  Directory="ApplicationProgramsFolder"
-                  Name="RedisHub"
-                  Description="Redis Desktop Manager Simple"
-                  Target="[INSTALLFOLDER]RedisHub.exe"
-                  WorkingDirectory="INSTALLFOLDER"
-                  Icon="RedisHubIcon"/>
-        <RemoveFolder Id="RemoveApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall"/>
-        <RemoveFolder Id="RemoveTradaLabPrograms" Directory="TradaLabPrograms" On="uninstall"/>
-        <RegistryValue Root="HKCU" Key="Software\RedisHub" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes"/>
+        <Shortcut
+          Id="ApplicationStartMenuShortcut"
+          Directory="ApplicationProgramsFolder"
+          Name="RedisHub"
+          Description="Modern Redis Client - Fast, lightweight, and cross-platform"
+          Target="[INSTALLFOLDER]RedisHub.exe"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="RedisHubIcon"/>
+
+        <RemoveFolder
+          Id="RemoveApplicationProgramsFolder"
+          Directory="ApplicationProgramsFolder"
+          On="uninstall"/>
+
+        <RemoveFolder
+          Id="RemoveTradaLabPrograms"
+          Directory="TradaLabPrograms"
+          On="uninstall"/>
+
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\RedisHub"
+          Name="StartMenuShortcut"
+          Type="integer"
+          Value="1"
+          KeyPath="yes"/>
       </Component>
 
-      <!-- Shortcut Uninstall -->
+      <!-- Uninstall Shortcut -->
       <Component Id="UninstallShortcut" Guid="c43d92f6-20f0-4d16-9e6b-50239cbcd75b">
-        <Shortcut Id="UninstallShortcut"
-                  Directory="ApplicationProgramsFolder"
-                  Name="Uninstall RedisHub"
-                  Description="Uninstall RedisHub"
-                  Target="[SystemFolder]msiexec.exe"
-                  Arguments="/x [ProductCode]"
-                  Icon="RedisHubIcon"/>
-        <RegistryValue Root="HKCU" Key="Software\RedisHub" Name="UninstallShortcut" Type="integer" Value="1" KeyPath="yes"/>
+        <Shortcut
+          Id="UninstallShortcut"
+          Directory="ApplicationProgramsFolder"
+          Name="Uninstall RedisHub"
+          Description="Uninstall RedisHub"
+          Target="[SystemFolder]msiexec.exe"
+          Arguments="/x [ProductCode]"
+          Icon="RedisHubIcon"/>
+
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\RedisHub"
+          Name="UninstallShortcut"
+          Type="integer"
+          Value="1"
+          KeyPath="yes"/>
       </Component>
 
-      <!-- Shortcut Desktop -->
+      <!-- Desktop Shortcut -->
       <Component Id="DesktopShortcut" Guid="7b9c22f9-17f8-4d7c-a91b-15b5f86a4d65">
-        <Shortcut Id="ApplicationDesktopShortcut"
-                  Directory="DesktopFolder"
-                  Name="RedisHub"
-                  Description="Redis Desktop Manager Simple"
-                  Target="[INSTALLFOLDER]RedisHub.exe"
-                  WorkingDirectory="INSTALLFOLDER"
-                  Icon="RedisHubIcon"/>
-        <RegistryValue Root="HKCU" Key="Software\RedisHub" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
+        <Shortcut
+          Id="ApplicationDesktopShortcut"
+          Directory="DesktopFolder"
+          Name="RedisHub"
+          Description="Modern Redis Client - Fast, lightweight, and cross-platform"
+          Target="[INSTALLFOLDER]RedisHub.exe"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="RedisHubIcon"/>
 
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\RedisHub"
+          Name="DesktopShortcut"
+          Type="integer"
+          Value="1"
+          KeyPath="yes"/>
+      </Component>
     </ComponentGroup>
+  </Fragment>
+  <Fragment>
+    <util:CloseApplication
+      Id="CloseRedisHubApp"
+      Target="RedisHub.exe"
+      Description="RedisHub is currently running and needs to be closed to continue the update."
+      CloseMessage="yes"
+      PromptToContinue="yes"
+      RebootPrompt="no"
+      Timeout="5" />
   </Fragment>
 </Wix>

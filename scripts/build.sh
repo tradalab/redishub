@@ -85,9 +85,13 @@ case "$GOOS" in
     mv "$TEMP_DIR/$APP_NAME" "$BIN_PATH"
 
     if command -v candle >/dev/null && command -v light >/dev/null; then
-      candle installer/windows/installer.wxs -dBinPath="$TEMP_DIR"
+      candle installer/windows/installer.wxs \
+        -ext WixUtilExtension \
+        -dBinPath="$TEMP_DIR"
+
       mv installer.wixobj installer/windows/installer.wixobj
       light installer/windows/installer.wixobj \
+        -ext WixUtilExtension \
         -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     else
       echo "!! WiX toolset not found. Skipping MSI."
