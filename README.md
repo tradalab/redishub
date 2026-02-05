@@ -1,5 +1,13 @@
 # RedisHub
 
+## Local Development
+
+You can run RedisHub locally for development.
+
+```shell
+bash scripts/dev.sh
+```
+
 ## Build `scorix-base-linux` Image
 
 This base image is required to build Linux AppImage artifacts.
