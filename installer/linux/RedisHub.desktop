@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=RedisHub
+Exec=RedisHub
+Type=Application
+Icon=RedisHub
+Terminal=false
+Categories=Development;Database;

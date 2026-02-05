@@ -1,0 +1,83 @@
+# 1. Base Node image
+FROM node:22-alpine AS node-base
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# libc6-compat is required by some native deps
+RUN apk add --no-cache libc6-compat
+
+
+# 2. Install frontend deps
+FROM node-base AS next-deps
+
+ARG SHELL_DIR=shell
+
+COPY ${SHELL_DIR}/package.json \
+     ${SHELL_DIR}/yarn.lock* \
+     ${SHELL_DIR}/package-lock.json* \
+     ${SHELL_DIR}/pnpm-lock.yaml* \
+     ${SHELL_DIR}/.npmrc* \
+     ./
+
+RUN set -eux; \
+    if [ -f yarn.lock ]; then \
+        yarn install --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then \
+        npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then \
+        corepack enable pnpm && pnpm install --frozen-lockfile; \
+    else \
+        echo "No lockfile found" && exit 1; \
+    fi
+
+
+# 3. Build frontend
+FROM node-base AS next-builder
+WORKDIR /app
+
+ARG SHELL_DIR=shell
+ARG BUILD_ENV=production
+ARG ENV_FILE=${SHELL_DIR}/.env.${BUILD_ENV}
+
+COPY --from=next-deps /app/node_modules ./node_modules
+COPY ${SHELL_DIR}/ ./
+
+# Explicit env copy
+COPY ${ENV_FILE} .env.production
+
+RUN set -eux; \
+    if [ -f yarn.lock ]; then \
+        yarn build; \
+    elif [ -f package-lock.json ]; then \
+        npm run build; \
+    elif [ -f pnpm-lock.yaml ]; then \
+        corepack enable pnpm && pnpm run build; \
+    else \
+        echo "No lockfile found" && exit 1; \
+    fi
+
+
+# 4. Go + AppImage builder
+FROM ghcr.io/tradalab/scorix-base-linux:latest AS appimage-builder
+
+WORKDIR /workspace
+
+# Cache Go modules
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source
+COPY . .
+
+# Inject frontend artifacts
+COPY --from=next-builder /app/dist /workspace/.scorix/dist
+
+# Build AppImage
+RUN bash scripts/build.sh
+
+
+# 5. Final artifact stage
+FROM scratch AS artifacts
+COPY --from=appimage-builder /workspace/artifacts/RedisHub* ./
