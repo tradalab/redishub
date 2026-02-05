@@ -14,3 +14,5 @@ dist/
 
 gen-signer.sh
 release.sh
+
+artifacts

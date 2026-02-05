@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "export",
   productionBrowserSourceMaps: true,
-  distDir: "../.scorix/dist",
+  distDir: "/dist",
 }
 
 export default nextConfig
