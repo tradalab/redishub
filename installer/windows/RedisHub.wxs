@@ -8,20 +8,20 @@
     UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
     Scope="perMachine">
 
-    <!-- Upgrade -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <!-- UPGRADE -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
 
-    <!-- Embedded CAB -->
-    <MediaTemplate EmbedCab="yes" />
+    <!-- MEDIA -->
+    <MediaTemplate EmbedCab="yes"/>
 
-    <!-- ARP metadata -->
-    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon" />
-    <Property Id="ARPHELPLINK" Value="https://github.com/tradalab/redishub" />
-    <Property Id="ARPURLINFOABOUT" Value="https://redishub.tradalab.com" />
-    <Property Id="ARPNOREPAIR" Value="1" />
+    <!-- ARP METADATA -->
+    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon"/>
+    <Property Id="ARPHELPLINK" Value="https://github.com/tradalab/redishub"/>
+    <Property Id="ARPURLINFOABOUT" Value="https://redishub.tradalab.com"/>
+    <Property Id="ARPNOREPAIR" Value="1"/>
 
-    <!-- Icon -->
-    <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico" />
+    <!-- ICON -->
+    <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico"/>
 
     <!-- INSTALL DIRECTORIES -->
     <StandardDirectory Id="ProgramFilesFolder">
@@ -32,7 +32,7 @@
             <File
               Id="RedisHubExe"
               Source="$(var.BinPath)\RedisHub.exe"
-              KeyPath="yes" />
+              KeyPath="yes"/>
           </Component>
 
         </Directory>
@@ -53,7 +53,7 @@
               Description="$(var.ProductDesc)"
               Target="[INSTALLFOLDER]RedisHub.exe"
               WorkingDirectory="INSTALLFOLDER"
-              Icon="RedisHubIcon" />
+              Icon="RedisHubIcon"/>
 
             <Shortcut
               Id="UninstallShortcut"
@@ -62,25 +62,25 @@
               Description="Uninstall $(var.ProductName)"
               Target="[SystemFolder]msiexec.exe"
               Arguments="/x [ProductCode] /qb"
-              Icon="RedisHubIcon" />
+              Icon="RedisHubIcon"/>
 
             <RemoveFolder
               Id="RemoveApplicationProgramsFolder"
               Directory="ApplicationProgramsFolder"
-              On="uninstall" />
+              On="uninstall"/>
 
             <RemoveFolder
               Id="RemoveTradaLabPrograms"
               Directory="TradaLabPrograms"
-              On="uninstall" />
+              On="uninstall"/>
 
             <RegistryValue
               Root="HKCU"
-              Key="Software\RedisHub"
+              Key="Software\$(var.ProductName)"
               Name="StartMenuInstalled"
               Type="integer"
               Value="1"
-              KeyPath="yes" />
+              KeyPath="yes"/>
 
           </Component>
 
@@ -98,31 +98,30 @@
           Description="$(var.ProductDesc)"
           Target="[INSTALLFOLDER]RedisHub.exe"
           WorkingDirectory="INSTALLFOLDER"
-          Icon="RedisHubIcon" />
+          Icon="RedisHubIcon"/>
 
         <RegistryValue
           Root="HKCU"
-          Key="Software\RedisHub"
+          Key="Software\$(var.ProductName)"
           Name="DesktopShortcut"
           Type="integer"
           Value="1"
-          KeyPath="yes" />
+          KeyPath="yes"/>
 
       </Component>
     </StandardDirectory>
 
     <!-- COMPONENT GROUP -->
     <ComponentGroup Id="ProductComponents">
-      <ComponentRef Id="MainExecutable" />
-      <ComponentRef Id="StartMenuShortcut" />
-      <ComponentRef Id="DesktopShortcut" />
+      <ComponentRef Id="MainExecutable"/>
+      <ComponentRef Id="StartMenuShortcut"/>
+      <ComponentRef Id="DesktopShortcut"/>
     </ComponentGroup>
 
     <!-- FEATURE -->
     <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ProductComponents"/>
     </Feature>
-
   </Package>
 
 </Wix>

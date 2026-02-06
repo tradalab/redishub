@@ -80,22 +80,23 @@ case "$GOOS" in
     GOOS=$GOOS GOARCH=$GOARCH \
       go build -ldflags "-H=windowsgui" -o "$TEMP_DIR/$APP_NAME" ./main.go
 
-    echo "==> Packaging MSI..."
-
     BIN_PATH="$TEMP_DIR/$APP_NAME.exe"
     mv "$TEMP_DIR/$APP_NAME" "$BIN_PATH"
 
-    if command -v wix >/dev/null; then
-      wix build installer/windows/$APP_NAME.wxs \
-        -d BinPath="$TEMP_DIR" \
-        -d Manufacturer="$APP_MANUFACTURER" \
-        -d ProductName="$APP_NAME" \
-        -d ProductDesc="$APP_DESC" \
-        -d ProductVersion="$VERSION" \
-        -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
-    else
-      echo "!! WiX toolset not found. Skipping MSI."
+    echo "==> Packaging MSI..."
+
+    if ! command -v wix >/dev/null 2>&1; then
+      echo "!! wix CLI not found in PATH"
+      exit 1
     fi
+
+    wix build installer/windows/$APP_NAME.wxs \
+      -d BinPath="$TEMP_DIR" \
+      -d Manufacturer="$APP_MANUFACTURER" \
+      -d ProductName="$APP_NAME" \
+      -d ProductDesc="$APP_DESC" \
+      -d ProductVersion="$VERSION" \
+      -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     ;;
 
   darwin)
@@ -140,7 +141,7 @@ case "$GOOS" in
     ;;
 
   *)
-    echo "Unsupported OS: $GOOS"
+    echo "!! unsupported OS: $GOOS"
     exit 1
     ;;
 esac
