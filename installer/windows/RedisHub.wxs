@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+    Name="RedisHub"
+    Manufacturer="TradaLab"
+    Version="1.3.0"
+    UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
+    Scope="perMachine">
+
+    <!-- Upgrade -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of RedisHub is already installed." />
+
+    <!-- Single embedded MSI -->
+    <MediaTemplate  EmbedCab="yes" />
+
+    <!-- Icon -->
+    <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico" />
+    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon" />
+
+    <!-- ===================== -->
+    <!-- INSTALL DIRECTORIES   -->
+    <!-- ===================== -->
+
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="INSTALLFOLDERROOT" Name="TradaLab">
+        <Directory Id="INSTALLFOLDER" Name="RedisHub">
+
+          <!-- Main executable -->
+          <Component Id="MainExecutable" Guid="b3e05cf1-55c0-4c27-94a3-1a31a7fb2f44">
+            <File
+              Id="RedisHubExe"
+              Source="$(var.BinPath)\RedisHub.exe"
+              KeyPath="yes" />
+          </Component>
+
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="TradaLabPrograms" Name="TradaLab">
+        <Directory Id="ApplicationProgramsFolder" Name="RedisHub">
+
+          <!-- Start Menu shortcuts -->
+          <Component Id="StartMenuShortcut" Guid="a2f88b22-1e5b-47c6-9f8d-69f8a3b8d0d2">
+
+            <Shortcut
+              Id="StartMenuShortcutExe"
+              Directory="ApplicationProgramsFolder"
+              Name="RedisHub"
+              Description="Redis Desktop Manager Simple"
+              Target="[INSTALLFOLDER]RedisHub.exe"
+              WorkingDirectory="INSTALLFOLDER"
+              Icon="RedisHubIcon" />
+
+            <Shortcut
+              Id="UninstallShortcut"
+              Directory="ApplicationProgramsFolder"
+              Name="Uninstall RedisHub"
+              Description="Uninstall RedisHub"
+              Target="[SystemFolder]msiexec.exe"
+              Arguments="/x [ProductCode]"
+              Icon="RedisHubIcon" />
+
+            <RemoveFolder
+              Id="RemoveApplicationProgramsFolder"
+              Directory="ApplicationProgramsFolder"
+              On="uninstall" />
+
+            <RemoveFolder
+              Id="RemoveTradaLabPrograms"
+              Directory="TradaLabPrograms"
+              On="uninstall" />
+
+            <RegistryValue
+              Root="HKCU"
+              Key="Software\RedisHub"
+              Name="StartMenuInstalled"
+              Type="integer"
+              Value="1"
+              KeyPath="yes" />
+
+          </Component>
+
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcut" Guid="7b9c22f9-17f8-4d7c-a91b-15b5f86a4d65">
+
+        <Shortcut
+          Id="DesktopShortcutExe"
+          Directory="DesktopFolder"
+          Name="RedisHub"
+          Description="Redis Desktop Manager Simple"
+          Target="[INSTALLFOLDER]RedisHub.exe"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="RedisHubIcon" />
+
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\RedisHub"
+          Name="DesktopShortcut"
+          Type="integer"
+          Value="1"
+          KeyPath="yes" />
+
+      </Component>
+    </StandardDirectory>
+
+    <!-- ===================== -->
+    <!-- FEATURE               -->
+    <!-- ===================== -->
+
+    <Feature Id="MainFeature" Title="RedisHub" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+  </Package>
+
+</Wix>

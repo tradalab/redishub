@@ -39,7 +39,7 @@ mkdir -p "$TEMP_DIR"
 echo "==> Generate config"
 
 echo "+ Write version"
-sed -i -E "s/(Version=\")[0-9]+\.[0-9]+\.[0-9]+/\1$VERSION/" installer/windows/installer.wxs
+sed -i -E "s/(Version=\")[0-9]+\.[0-9]+\.[0-9]+/\1$VERSION/" installer/windows/$APP_NAME.wxs
 sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
 
 echo "+ Copy icon"
@@ -74,7 +74,7 @@ case "$GOOS" in
     mkdir -p "$SHELL_DIST_DEST"
     cp -R "$SHELL_DIST_SRC"/. "$SHELL_DIST_DEST"/
 
-    # Build Go app
+    echo "==> Build go app"
 
     GOOS=$GOOS GOARCH=$GOARCH \
       go build -ldflags "-H=windowsgui" -o "$TEMP_DIR/$APP_NAME" ./main.go
@@ -84,10 +84,9 @@ case "$GOOS" in
     BIN_PATH="$TEMP_DIR/$APP_NAME.exe"
     mv "$TEMP_DIR/$APP_NAME" "$BIN_PATH"
 
-    if command -v candle >/dev/null && command -v light >/dev/null; then
-      candle installer/windows/installer.wxs -dBinPath="$TEMP_DIR"
-      mv installer.wixobj installer/windows/installer.wixobj
-      light installer/windows/installer.wixobj \
+    if command -v wix >/dev/null; then
+      wix build installer/windows/$APP_NAME.wxs \
+        -d BinPath="$TEMP_DIR" \
         -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     else
       echo "!! WiX toolset not found. Skipping MSI."
