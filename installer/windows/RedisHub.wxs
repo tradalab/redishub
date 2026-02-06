@@ -23,10 +23,7 @@
     <!-- Icon -->
     <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico" />
 
-    <!-- ===================== -->
-    <!-- INSTALL DIRECTORIES   -->
-    <!-- ===================== -->
-
+    <!-- INSTALL DIRECTORIES -->
     <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="INSTALLFOLDERROOT" Name="$(var.Manufacturer)">
         <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
@@ -53,7 +50,7 @@
               Id="StartMenuShortcutExe"
               Directory="ApplicationProgramsFolder"
               Name="$(var.ProductName)"
-              Description="${var.ProductDesc}"
+              Description="$(var.ProductDesc)"
               Target="[INSTALLFOLDER]RedisHub.exe"
               WorkingDirectory="INSTALLFOLDER"
               Icon="RedisHubIcon" />
@@ -98,7 +95,7 @@
           Id="DesktopShortcutExe"
           Directory="DesktopFolder"
           Name="$(var.ProductName)"
-          Description="${var.ProductDesc}"
+          Description="$(var.ProductDesc)"
           Target="[INSTALLFOLDER]RedisHub.exe"
           WorkingDirectory="INSTALLFOLDER"
           Icon="RedisHubIcon" />
@@ -114,20 +111,14 @@
       </Component>
     </StandardDirectory>
 
-    <!-- ===================== -->
-    <!-- COMPONENT GROUP       -->
-    <!-- ===================== -->
-
+    <!-- COMPONENT GROUP -->
     <ComponentGroup Id="ProductComponents">
       <ComponentRef Id="MainExecutable" />
       <ComponentRef Id="StartMenuShortcut" />
       <ComponentRef Id="DesktopShortcut" />
     </ComponentGroup>
 
-    <!-- ===================== -->
-    <!-- FEATURE               -->
-    <!-- ===================== -->
-
+    <!-- FEATURE -->
     <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
     </Feature>
