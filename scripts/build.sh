@@ -53,28 +53,6 @@ echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
 
 case "$GOOS" in
   windows)
-    echo "==> Building shell"
-
-    sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" shell/package.json
-
-    (
-      cd shell
-      pnpm install
-      pnpm lint
-      pnpm build
-    )
-
-    echo "==> Copy shell dist to .scorix/dist"
-
-    [ -d "$SHELL_DIST_SRC" ] || {
-      echo "!! shell/dist not found – shell build failed?"
-      exit 1
-    }
-
-    rm -rf "$SHELL_DIST_DEST"
-    mkdir -p "$SHELL_DIST_DEST"
-    cp -R "$SHELL_DIST_SRC"/. "$SHELL_DIST_DEST"/
-
     echo "==> Build go app"
 
     GOOS=$GOOS GOARCH=$GOARCH \
