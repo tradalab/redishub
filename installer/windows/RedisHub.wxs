@@ -2,31 +2,35 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 
   <Package
-    Name="RedisHub"
-    Manufacturer="TradaLab"
-    Version="1.3.0"
+    Name="$(var.ProductName)"
+    Manufacturer="$(var.Manufacturer)"
+    Version="$(var.ProductVersion)"
     UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
     Scope="perMachine">
 
     <!-- Upgrade -->
-    <MajorUpgrade DowngradeErrorMessage="A newer version of RedisHub is already installed." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
-    <!-- Single embedded MSI -->
-    <MediaTemplate  EmbedCab="yes" />
+    <!-- Embedded CAB -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- ARP metadata -->
+    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/tradalab/redishub" />
+    <Property Id="ARPURLINFOABOUT" Value="https://redishub.tradalab.com" />
+    <Property Id="ARPNOREPAIR" Value="1" />
 
     <!-- Icon -->
     <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico" />
-    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon" />
 
     <!-- ===================== -->
     <!-- INSTALL DIRECTORIES   -->
     <!-- ===================== -->
 
     <StandardDirectory Id="ProgramFilesFolder">
-      <Directory Id="INSTALLFOLDERROOT" Name="TradaLab">
-        <Directory Id="INSTALLFOLDER" Name="RedisHub">
+      <Directory Id="INSTALLFOLDERROOT" Name="$(var.Manufacturer)">
+        <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)">
 
-          <!-- Main executable -->
           <Component Id="MainExecutable" Guid="b3e05cf1-55c0-4c27-94a3-1a31a7fb2f44">
             <File
               Id="RedisHubExe"
@@ -39,8 +43,8 @@
     </StandardDirectory>
 
     <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="TradaLabPrograms" Name="TradaLab">
-        <Directory Id="ApplicationProgramsFolder" Name="RedisHub">
+      <Directory Id="TradaLabPrograms" Name="$(var.Manufacturer)">
+        <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
 
           <!-- Start Menu shortcuts -->
           <Component Id="StartMenuShortcut" Guid="a2f88b22-1e5b-47c6-9f8d-69f8a3b8d0d2">
@@ -48,8 +52,8 @@
             <Shortcut
               Id="StartMenuShortcutExe"
               Directory="ApplicationProgramsFolder"
-              Name="RedisHub"
-              Description="Redis Desktop Manager Simple"
+              Name="$(var.ProductName)"
+              Description="${var.ProductDesc}"
               Target="[INSTALLFOLDER]RedisHub.exe"
               WorkingDirectory="INSTALLFOLDER"
               Icon="RedisHubIcon" />
@@ -57,10 +61,10 @@
             <Shortcut
               Id="UninstallShortcut"
               Directory="ApplicationProgramsFolder"
-              Name="Uninstall RedisHub"
-              Description="Uninstall RedisHub"
+              Name="Uninstall $(var.ProductName)"
+              Description="Uninstall $(var.ProductName)"
               Target="[SystemFolder]msiexec.exe"
-              Arguments="/x [ProductCode]"
+              Arguments="/x [ProductCode] /qb"
               Icon="RedisHubIcon" />
 
             <RemoveFolder
@@ -93,8 +97,8 @@
         <Shortcut
           Id="DesktopShortcutExe"
           Directory="DesktopFolder"
-          Name="RedisHub"
-          Description="Redis Desktop Manager Simple"
+          Name="$(var.ProductName)"
+          Description="${var.ProductDesc}"
           Target="[INSTALLFOLDER]RedisHub.exe"
           WorkingDirectory="INSTALLFOLDER"
           Icon="RedisHubIcon" />
@@ -111,13 +115,21 @@
     </StandardDirectory>
 
     <!-- ===================== -->
-    <!-- FEATURE               -->
+    <!-- COMPONENT GROUP       -->
     <!-- ===================== -->
 
-    <Feature Id="MainFeature" Title="RedisHub" Level="1">
+    <ComponentGroup Id="ProductComponents">
       <ComponentRef Id="MainExecutable" />
       <ComponentRef Id="StartMenuShortcut" />
       <ComponentRef Id="DesktopShortcut" />
+    </ComponentGroup>
+
+    <!-- ===================== -->
+    <!-- FEATURE               -->
+    <!-- ===================== -->
+
+    <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
     </Feature>
 
   </Package>

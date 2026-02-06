@@ -13,6 +13,8 @@ cd "$PROJECT_ROOT"
 # APP ENV
 
 APP_NAME="RedisHub"
+APP_MANUFACTURER="TradaLab"
+APP_DESC="Modern Redis Client - Fast, lightweight, and cross-platform"
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
 
 ####################################################################################################
@@ -39,7 +41,6 @@ mkdir -p "$TEMP_DIR"
 echo "==> Generate config"
 
 echo "+ Write version"
-sed -i -E "s/(Version=\")[0-9]+\.[0-9]+\.[0-9]+/\1$VERSION/" installer/windows/$APP_NAME.wxs
 sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
 
 echo "+ Copy icon"
@@ -87,6 +88,10 @@ case "$GOOS" in
     if command -v wix >/dev/null; then
       wix build installer/windows/$APP_NAME.wxs \
         -d BinPath="$TEMP_DIR" \
+        -d Manufacturer="$APP_MANUFACTURER" \
+        -d ProductName="$APP_NAME" \
+        -d ProductDesc="$APP_DESC" \
+        -d ProductVersion="$VERSION" \
         -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     else
       echo "!! WiX toolset not found. Skipping MSI."
