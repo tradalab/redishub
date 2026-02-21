@@ -1,7 +1,7 @@
 # 2. Frontend deps stage
 FROM ghcr.io/tradalab/scorix-base-windows:latest AS next-deps
 
-WORKDIR C:/workspace
+WORKDIR C:/frontend
 
 COPY shell/package.json shell/pnpm-lock.yaml* shell/yarn.lock* shell/package-lock.json* ./
 
@@ -10,7 +10,7 @@ RUN if (Test-Path pnpm-lock.yaml) { \
     } elseif (Test-Path yarn.lock) { \
         yarn install --frozen-lockfile \
     } elseif (Test-Path package-lock.json) { \
-        npm run install \
+        npm install \
     } else { \
         Write-Error 'No lockfile found' \
     }
@@ -23,13 +23,12 @@ FROM next-deps AS next-builder
 
 USER ContainerAdministrator
 
-WORKDIR C:/workspace
+WORKDIR C:/frontend
 
 ARG SHELL_DIR=shell
 ARG BUILD_ENV=production
 ARG ENV_FILE=${SHELL_DIR}/.env.${BUILD_ENV}
 
-COPY --from=next-deps C:/workspace/node_modules ./node_modules
 COPY ${SHELL_DIR}/ ./
 
 # Explicit env copy
@@ -53,6 +52,8 @@ FROM ghcr.io/tradalab/scorix-base-windows:latest AS msi-builder
 
 WORKDIR C:/workspace
 
+RUN go env
+
 # Cache Go modules
 COPY go.mod go.sum ./
 RUN go mod download
@@ -61,10 +62,7 @@ RUN go mod download
 COPY . .
 
 # Inject frontend artifacts
-COPY --from=next-builder C:/workspace/dist ./.scorix/dist
-
-# Build AppImage
-#RUN #& "C:\Program Files\Git\bin\bash.exe" scripts/build.sh
+COPY --from=next-builder C:/frontend/dist ./.scorix/dist
 
 RUN ["C:\\Program Files\\Git\\bin\\bash.exe", "-c", "scripts/build.sh"]
 
@@ -72,6 +70,7 @@ RUN ["C:\\Program Files\\Git\\bin\\bash.exe", "-c", "scripts/build.sh"]
 
 
 # 5. Final artifacts stage
-FROM scratch AS artifacts
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS artifacts
 
-COPY --from=msi-builder C:/workspace/artifacts/RedisHub-*.msi ./
+WORKDIR C:/artifacts
+COPY --from=msi-builder C:/workspace/artifacts/ ./

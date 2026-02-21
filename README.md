@@ -68,13 +68,13 @@ REQUIREMENTS:
 
 ```shell
 DOCKER_BUILDKIT=0 docker build \
-    -f docker/Dockerfile_windows \
-    --target artifacts \
-    --output type=local,dest=./artifacts \
-    .
+  --platform windows/amd64 \
+  -f docker/Dockerfile_windows \
+  . -t redishub:windows
 ```
 
 ```shell
-DOCKER_BUILDKIT=0 docker build --platform windows/amd64 -f docker/Dockerfile_windows .
+docker create --name tmp redishub:windows \
+  && docker cp tmp:C:/artifacts ./ \
+  && docker rm tmp
 ```
-
