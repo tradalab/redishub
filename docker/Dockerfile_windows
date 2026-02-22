@@ -1,0 +1,76 @@
+# 2. Frontend deps stage
+FROM ghcr.io/tradalab/scorix-base-windows:latest AS next-deps
+
+WORKDIR C:/frontend
+
+COPY shell/package.json shell/pnpm-lock.yaml* shell/yarn.lock* shell/package-lock.json* ./
+
+RUN if (Test-Path pnpm-lock.yaml) { \
+        pnpm install --frozen-lockfile \
+    } elseif (Test-Path yarn.lock) { \
+        yarn install --frozen-lockfile \
+    } elseif (Test-Path package-lock.json) { \
+        npm install \
+    } else { \
+        Write-Error 'No lockfile found' \
+    }
+
+
+
+
+# 3. Frontend build stage
+FROM next-deps AS next-builder
+
+USER ContainerAdministrator
+
+WORKDIR C:/frontend
+
+ARG SHELL_DIR=shell
+ARG BUILD_ENV=production
+ARG ENV_FILE=${SHELL_DIR}/.env.${BUILD_ENV}
+
+COPY ${SHELL_DIR}/ ./
+
+# Explicit env copy
+COPY ${ENV_FILE} .env.production
+
+RUN if (Test-Path pnpm-lock.yaml) { \
+        corepack enable pnpm; pnpm run build; \
+    } elseif (Test-Path yarn.lock) { \
+        yarn build; \
+    } elseif (Test-Path package-lock.json) { \
+        npm run build; \
+    } else { \
+        Write-Error 'No lockfile found' \
+    }
+
+
+
+
+# 4. Go + MSI builder
+FROM ghcr.io/tradalab/scorix-base-windows:latest AS msi-builder
+
+WORKDIR C:/workspace
+
+RUN go env
+
+# Cache Go modules
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source
+COPY . .
+
+# Inject frontend artifacts
+COPY --from=next-builder C:/frontend/dist ./.scorix/dist
+
+RUN ["C:\\Program Files\\Git\\bin\\bash.exe", "-c", "scripts/build.sh"]
+
+
+
+
+# 5. Final artifacts stage
+FROM mcr.microsoft.com/windows/nanoserver:ltsc2022 AS artifacts
+
+WORKDIR C:/artifacts
+COPY --from=msi-builder C:/workspace/artifacts/ ./

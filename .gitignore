@@ -1,18 +1,14 @@
 .idea
 .scorix
+.wix
 
-app.dat
-store.json
+artifacts
+
+dist/
 
 /pkg/genicon
 /pkg/png2ico
 /pkg/svg2png
 /cmd
-
-dist/
 .goreleaser.yaml
-
 gen-signer.sh
-release.sh
-
-artifacts

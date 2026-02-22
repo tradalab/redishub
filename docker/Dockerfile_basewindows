@@ -1,0 +1,42 @@
+# 1. Base image: Windows Server Core + PowerShell + Wix + Go + Node
+FROM mcr.microsoft.com/dotnet/sdk:8.0-windowsservercore-ltsc2022 AS base
+
+SHELL ["powershell", "-NoProfile", "-Command", "$ErrorActionPreference='Stop';"]
+
+WORKDIR C:/workspace
+
+# Install wix v6
+RUN dotnet tool install --global wix --version 6.0.2
+RUN wix --version
+
+# Install Chocolatey
+RUN Set-ExecutionPolicy Bypass -Scope Process -Force; \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; \
+    iex ((New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install MinGW (:contentReference[oaicite:1]{index=1})
+RUN choco install -y mingw --no-progress
+
+# Install git
+RUN choco install -y git
+RUN git -v
+
+# Install go
+RUN choco install -y golang --version 1.26.0
+RUN go version
+
+# Enable CGO
+ENV CGO_ENABLED=1
+ENV GOOS=windows
+ENV GOARCH=amd64
+
+# Verify
+RUN go version
+RUN gcc --version
+RUN go env CGO_ENABLED
+
+# Install node
+RUN choco install -y nodejs-lts --version 24.13.0
+RUN node -v
+
+RUN corepack enable

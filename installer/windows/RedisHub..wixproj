@@ -1,0 +1,10 @@
+<Project Sdk="WixToolset.Sdk/6.0.0">
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WixSource Include="RedisHub.wxs" />
+  </ItemGroup>
+</Project>

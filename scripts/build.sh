@@ -13,6 +13,8 @@ cd "$PROJECT_ROOT"
 # APP ENV
 
 APP_NAME="RedisHub"
+APP_MANUFACTURER="TradaLab"
+APP_DESC="Modern Redis Client - Fast, lightweight, and cross-platform"
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
 
 ####################################################################################################
@@ -39,7 +41,6 @@ mkdir -p "$TEMP_DIR"
 echo "==> Generate config"
 
 echo "+ Write version"
-sed -i -E "s/(Version=\")[0-9]+\.[0-9]+\.[0-9]+/\1$VERSION/" installer/windows/installer.wxs
 sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
 
 echo "+ Copy icon"
@@ -52,46 +53,28 @@ echo "==> Building $APP_NAME $VERSION for $GOOS/$GOARCH"
 
 case "$GOOS" in
   windows)
-    echo "==> Building shell"
-
-    sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" shell/package.json
-
-    (
-      cd shell
-      pnpm install
-      pnpm lint
-      pnpm build
-    )
-
-    echo "==> Copy shell dist to .scorix/dist"
-
-    [ -d "$SHELL_DIST_SRC" ] || {
-      echo "!! shell/dist not found – shell build failed?"
-      exit 1
-    }
-
-    rm -rf "$SHELL_DIST_DEST"
-    mkdir -p "$SHELL_DIST_DEST"
-    cp -R "$SHELL_DIST_SRC"/. "$SHELL_DIST_DEST"/
-
-    # Build Go app
+    echo "==> Build go app"
 
     GOOS=$GOOS GOARCH=$GOARCH \
       go build -ldflags "-H=windowsgui" -o "$TEMP_DIR/$APP_NAME" ./main.go
 
-    echo "==> Packaging MSI..."
-
     BIN_PATH="$TEMP_DIR/$APP_NAME.exe"
     mv "$TEMP_DIR/$APP_NAME" "$BIN_PATH"
 
-    if command -v candle >/dev/null && command -v light >/dev/null; then
-      candle installer/windows/installer.wxs -dBinPath="$TEMP_DIR"
-      mv installer.wixobj installer/windows/installer.wixobj
-      light installer/windows/installer.wixobj \
-        -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
-    else
-      echo "!! WiX toolset not found. Skipping MSI."
+    echo "==> Packaging MSI..."
+
+    if ! command -v wix >/dev/null 2>&1; then
+      echo "!! wix CLI not found in PATH"
+      exit 1
     fi
+
+    wix build installer/windows/$APP_NAME.wxs \
+      -d BinPath="$TEMP_DIR" \
+      -d Manufacturer="$APP_MANUFACTURER" \
+      -d ProductName="$APP_NAME" \
+      -d ProductDesc="$APP_DESC" \
+      -d ProductVersion="$VERSION" \
+      -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     ;;
 
   darwin)
@@ -136,7 +119,7 @@ case "$GOOS" in
     ;;
 
   *)
-    echo "Unsupported OS: $GOOS"
+    echo "!! unsupported OS: $GOOS"
     exit 1
     ;;
 esac
