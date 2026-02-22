@@ -73,6 +73,13 @@ DOCKER_BUILDKIT=0 docker build \
   . -t redishub:windows
 ```
 
+After a successful build, the output will be available at:
+
+```text
+C:/artifacts/
+└── RedisHub-x.y.z-windows-amd64.msi
+```
+
 ```shell
 docker create --name tmp redishub:windows \
   && docker cp tmp:C:/artifacts ./ \
