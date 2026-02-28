@@ -70,6 +70,6 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		},
 	}
 	for name, handler := range handlers {
-		svcCtx.App.Expose(name, handler)
+		svcCtx.App.Cmd().Handle(name, handler)
 	}
 }

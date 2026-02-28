@@ -280,7 +280,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       }
 
       try {
-        await scorix.emit("console:input:" + connectionId, normalized)
+        await scorix.emit("console:input:" + connectionId, { command: normalized })
       } catch (err: any) {
         termRef.current?.writeln(`\x1b[31m(error)\x1b[0m ${err?.message}`)
         termPrompt()
@@ -290,13 +290,22 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
     initTerminal()
 
-    scorix.on("console:output:" + connectionId, (payload: string) => {
-      termRef.current?.write("\r")
-      termRef.current?.writeln(payload)
+    const off = scorix.on("console:output:" + connectionId, async (payload: any, error: string) => {
+      await termRef.current?.write("\r")
+      if (payload?.stdout) {
+        await termRef.current?.writeln(payload?.stdout)
+      }
+      if (payload?.stderr) {
+        await termRef.current?.writeln(`\x1b[31m${payload?.stderr}\x1b[0m`)
+      }
+      if (error) {
+        await termRef.current?.writeln(`\x1b[31m(error)\x1b[0m ${error}`)
+      }
       termPrompt()
     })
 
     return () => {
+      off?.()
       termRef.current?.dispose()
     }
   }, [])

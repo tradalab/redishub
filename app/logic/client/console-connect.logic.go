@@ -24,6 +24,15 @@ type ConsoleConnectLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
+type CmdArgs struct {
+	Command string `json:"command"`
+}
+
+type CmdResult struct {
+	Stdout string `json:"stdout"`
+	Stderr string `json:"stderr"`
+}
+
 func NewConsoleConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ConsoleConnectLogic {
 	return &ConsoleConnectLogic{ctx: ctx, svcCtx: svcCtx}
 }
@@ -37,15 +46,8 @@ func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs
 	eventIn := "console:input:" + params.ConnectionId
 	eventOut := "console:output:" + params.ConnectionId
 
-	l.svcCtx.App.On(eventIn, func(payload any) {
-		raw := payload.(json.RawMessage)
-		var str string
-		if err := json.Unmarshal(raw, &str); err != nil {
-			l.svcCtx.App.Emit(eventOut, err.Error())
-			return
-		}
-
-		cmds := SplitCmd(str)
+	l.svcCtx.App.Evt().On(eventIn, func(ctx context.Context, cmdArgs CmdArgs) {
+		cmds := SplitCmd(cmdArgs.Command)
 		if len(cmds) == 0 || cmds[0] == "" {
 			return
 		}
@@ -53,7 +55,7 @@ func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs
 		args := lo.ToAnySlice(cmds)
 		result, err := cli.Rdb.Do(context.Background(), args...).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
-			l.svcCtx.App.Emit(eventOut, err.Error())
+			l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Stderr: err.Error()})
 			return
 		}
 
@@ -68,7 +70,7 @@ func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs
 
 		// TODO: handler monitor command
 
-		l.svcCtx.App.Emit(eventOut, AnyToString(result))
+		l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Stdout: AnyToString(result)})
 	})
 
 	return nil, nil

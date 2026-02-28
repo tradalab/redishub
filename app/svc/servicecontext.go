@@ -2,10 +2,10 @@ package svc
 
 import (
 	"github.com/tradalab/rdms/app/dal/do"
-	"github.com/tradalab/scorix"
-	"github.com/tradalab/scorix/core/config"
-	"github.com/tradalab/scorix/core/extension"
-	gormext "github.com/tradalab/scorix/core/extensions/gorm"
+	scorix "github.com/tradalab/scorix/kernel"
+	"github.com/tradalab/scorix/kernel/core/config"
+	"github.com/tradalab/scorix/kernel/core/extension"
+	gormext "github.com/tradalab/scorix/kernel/core/extensions/gorm"
 	"gorm.io/gorm"
 )
 

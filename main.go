@@ -6,7 +6,7 @@ import (
 	"github.com/energye/systray"
 	"github.com/tradalab/rdms/app/handler"
 	"github.com/tradalab/rdms/app/svc"
-	"github.com/tradalab/scorix"
+	scorix "github.com/tradalab/scorix/kernel"
 )
 
 //go:embed .scorix/dist/*
