@@ -1,0 +1,51 @@
+name: Build & Release MSI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-msi:
+    runs-on: windows-2022
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Docker
+        run: docker version
+
+      - name: Build Docker image
+        run: |
+          docker build `
+            -f docker/Dockerfile_windows `
+            -t ghcr.io/tradalab/redishub:latest `
+            --target artifacts `
+            .
+
+      - name: Create container
+        run: |
+          docker create --name extract ghcr.io/tradalab/redishub:latest
+
+      - name: Copy artifacts from container
+        run: |
+          docker cp extract:C:\artifacts .\release
+
+      - name: Remove container
+        run: |
+          docker rm extract
+
+      - name: List artifacts
+        run: dir release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/**/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
