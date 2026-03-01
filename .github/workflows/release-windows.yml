@@ -25,14 +25,14 @@ jobs:
       - name: Build Docker image
         run: |
           docker build `
-            -f Dockerfile_windows `
-            -t redisapp-msi:latest `
+            -f docker/Dockerfile_windows `
+            -t ghcr.io/tradalab/redishub:latest `
             --target artifacts `
             .
 
       - name: Create container
         run: |
-          docker create --name extract redisapp-msi:latest
+          docker create --name extract ghcr.io/tradalab/redishub:latest
 
       - name: Copy artifacts from container
         run: |
