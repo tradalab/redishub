@@ -50,6 +50,16 @@ export function SettingDialog({ children }: { children: ReactNode }) {
               >
                 {t("report_issues")}
               </a>
+              <a
+                href="#"
+                onClick={e => {
+                  e.preventDefault()
+                  scorix.invoke("ext:browser:OpenUrl", "https://redishub.tradalab.com/")
+                }}
+                className="text-blue-500 underline"
+              >
+                {t("documentation")}
+              </a>
             </div>
             <span className="font-bold">v{version}</span>
           </div>

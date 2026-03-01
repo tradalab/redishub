@@ -11,11 +11,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
+import { BookOpenIcon, BugIcon, DatabaseIcon, GithubIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
 import { useTranslation } from "react-i18next"
+import scorix from "@/lib/scorix"
 
 export function SidebarTool() {
   const { t } = useTranslation()
@@ -73,6 +74,45 @@ export function SidebarTool() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="px-2.5 md:px-2"
+              tooltip={{ children: "GitHub", hidden: false }}
+              onClick={e => {
+                e.preventDefault()
+                scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub")
+              }}
+            >
+              <GithubIcon />
+              <span>GitHub</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="px-2.5 md:px-2"
+              tooltip={{ children: t("report_issues"), hidden: false }}
+              onClick={e => {
+                e.preventDefault()
+                scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub/issues")
+              }}
+            >
+              <BugIcon />
+              <span>{t("report_issues")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="px-2.5 md:px-2"
+              tooltip={{ children: t("documentation"), hidden: false }}
+              onClick={e => {
+                e.preventDefault()
+                scorix.invoke("ext:browser:OpenUrl", "https://redishub.tradalab.com/")
+              }}
+            >
+              <BookOpenIcon />
+              <span>{t("documentation")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SettingDialog>
               <SidebarMenuButton tooltip={{ children: t("settings"), hidden: false }} className="px-2.5 md:px-2">
