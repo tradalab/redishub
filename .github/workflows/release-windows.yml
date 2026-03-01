@@ -2,8 +2,6 @@ name: Build & Release MSI
 
 on:
   push:
-    branches:
-      - "**"
     tags:
       - "v*"
   workflow_dispatch:
