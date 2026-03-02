@@ -3,29 +3,26 @@
 import { useMemo, useState } from "react"
 import { Download } from "lucide-react"
 
-const CDN_BASE = "https://cdn.tradalab.com/redishub"
-const LATEST_VERSION = "latest"
+const LATEST_VERSION = process.env.NEXT_PUBLIC_LATEST_VERSION
 
 // type OS = "windows" | "macos" | "linux"
 type OS = "windows"
-type Arch = "x64"
+type Arch = "amd64"
 
 const MATRIX: Record<OS, { label: string; ext: string; archs: Arch[] }> = {
-  windows: { label: "Windows", ext: "msi", archs: ["x64"] },
+  windows: { label: "Windows", ext: "msi", archs: ["amd64"] },
   // macos: { label: "macOS", ext: "dmg", archs: ["x64", "arm64"] },
   // linux: { label: "Linux", ext: "AppImage", archs: ["x64", "arm64"] },
 }
 
 export default function Page() {
   const [os, setOs] = useState<OS>("windows")
-  const [arch, setArch] = useState<Arch>("x64")
+  const [arch, setArch] = useState<Arch>("amd64")
 
-  const fileName = useMemo(() => {
+  const downloadUrl = useMemo(() => {
     const ext = MATRIX[os].ext
-    return `RedisHub-${LATEST_VERSION}-${os}-${arch}.${ext}`
+    return `https://github.com/tradalab/redishub/releases/download/v${LATEST_VERSION}/RedisHub-${LATEST_VERSION}-${os}-${arch}.${ext}`
   }, [os, arch])
-
-  const downloadUrl = `${CDN_BASE}/${fileName}`
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-24">
