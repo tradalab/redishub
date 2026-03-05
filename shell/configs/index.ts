@@ -1,6 +1,6 @@
 export const configs = {
   app: {
-    name: "RDM Simple",
-    desc: "Simple Redis Desktop Manager",
+    name: "RedisHub",
+    desc: "Modern Redis Client - Fast, lightweight, and cross-platform",
   },
 }

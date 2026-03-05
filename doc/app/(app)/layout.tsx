@@ -1,13 +1,23 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useTheme } from "next-themes"
+import {useTheme} from "next-themes"
+import {useEffect, useState} from "react"
+import {usePathname} from "next/navigation"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { SunIcon, MoonIcon, GithubIcon } from "lucide-react"
 import Image from "next/image"
+import {GithubIcon, MoonIcon, SunIcon} from "lucide-react"
+import {DiscordIcon} from "nextra/icons"
 
-export default function Header() {
+export default function Layout({children}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <>
+      <Header/>
+      {children}
+    </>
+  )
+}
+
+function Header() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
@@ -17,7 +27,7 @@ export default function Header() {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "Changelog", href: "/changelog" },
+    { label: "Documentation", href: "/docs" },
   ]
 
   return (
@@ -56,6 +66,13 @@ export default function Header() {
             className="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
           >
             <GithubIcon className="h-5 w-5" />
+          </Link>
+          <Link
+            href="https://discord.gg/tradalab"
+            target="_blank"
+            className="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          >
+            <DiscordIcon className="h-5 w-5" />
           </Link>
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
