@@ -7,6 +7,7 @@ import scorix from "@/lib/scorix"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
 import { useSetting } from "@/hooks/use-setting"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 interface AppContextType {
   selectedTab: string
@@ -34,9 +35,20 @@ interface AppContextType {
   setLanguage: (val: string) => void
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      gcTime: Infinity,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({children}: { children: ReactNode }) => {
   const [selectedTab, setSelectedTab] = useState<string>("/connections")
   const [selectedSection, setSelectedSection] = useState<string>("general")
   const [selectedDb, setSelectedDb] = useState<string | undefined>()
@@ -92,28 +104,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <AppContext.Provider
-        value={{
-          selectedTab,
-          setSelectedTab,
-          selectedDb,
-          setSelectedDb,
-          selectedDbIdx,
-          setSelectedDbIdx,
-          selectedKey,
-          setSelectedKey,
-          selectedSection,
-          setSelectedSection,
-          loading,
-          setLoading,
-          connect,
-          disconnect,
-          language,
-          setLanguage,
-        }}
-      >
-        {children}
-      </AppContext.Provider>
+      <QueryClientProvider client={queryClient}>
+        <AppContext.Provider
+          value={{
+            selectedTab,
+            setSelectedTab,
+            selectedDb,
+            setSelectedDb,
+            selectedDbIdx,
+            setSelectedDbIdx,
+            selectedKey,
+            setSelectedKey,
+            selectedSection,
+            setSelectedSection,
+            loading,
+            setLoading,
+            connect,
+            disconnect,
+            language,
+            setLanguage,
+          }}
+        >
+          {children}
+        </AppContext.Provider>
+      </QueryClientProvider>
     </I18nextProvider>
   )
 }
