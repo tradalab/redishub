@@ -23,7 +23,6 @@ const eslintConfig = [
       prettier: prettierPlugin,
     },
     rules: {
-      // Chỉ để Prettier xử lý style
       "prettier/prettier": ["error", prettierConfig],
       "@typescript-eslint/no-explicit-any": "off",
       "react/display-name": "off",

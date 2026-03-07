@@ -1,15 +1,16 @@
-import type { NextConfig } from "next"
-import createMDX from "@next/mdx"
+import nextra from "nextra"
 
-const nextConfig: NextConfig = {
-  serverExternalPackages: [],
+const withNextra = nextra({
+  search: {codeblocks: false},
+})
+
+export default withNextra({
   output: "standalone",
   productionBrowserSourceMaps: false,
   pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-}
-
-const withMDX = createMDX({
-  extension: /\.(md|mdx)$/,
+  turbopack: {
+    resolveAlias: {
+      "next-mdx-import-source-file": "./mdx-components.js"
+    }
+  }
 })
-
-export default withMDX(nextConfig)

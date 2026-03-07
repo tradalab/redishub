@@ -41,4 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# nextra
+_pagefind/ 
+
+# IDEs and editors
 .idea
