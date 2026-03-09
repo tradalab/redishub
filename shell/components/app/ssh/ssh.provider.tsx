@@ -15,7 +15,6 @@ export function SshProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-
       <SshDialog open={open} onOpenChange={setOpen} />
     </SshContext.Provider>
   )

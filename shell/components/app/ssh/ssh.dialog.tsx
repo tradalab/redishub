@@ -87,10 +87,10 @@ export function SshDialog({ open, onOpenChange }: Props) {
             <Button size="sm" variant="outline" disabled={formRef.current?.isPending?.test} onClick={() => formRef.current?.testConn()}>
               {t("test_conn")}
             </Button>
-            <Button size="sm" disabled={formRef.current?.isPending?.save} onClick={() => formRef.current?.submit()}>
+            <Button size="sm" variant="outline" disabled={formRef.current?.isPending?.save} onClick={() => formRef.current?.submit()}>
               {t("save")}
             </Button>
-            <Button size="sm" variant="destructive" disabled={formRef.current?.isPending?.delete} onClick={() => formRef.current?.handleDelete()}>
+            <Button size="sm" variant="default" disabled={formRef.current?.isPending?.delete} onClick={() => formRef.current?.handleDelete()}>
               {t("delete")}
             </Button>
           </DialogFooter>

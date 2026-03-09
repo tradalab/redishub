@@ -111,7 +111,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
           render={({ field }) => {
             return (
               <FormItem>
-                <FormLabel className="flex items-center justify-between">Username</FormLabel>
+                <FormLabel className="flex items-center justify-between">{t("username")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -133,7 +133,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={SshKindEnum.PASSWORD}>Password</SelectItem>
+                      <SelectItem value={SshKindEnum.PASSWORD}>{t("password")}</SelectItem>
                       <SelectItem value={SshKindEnum.KEYPAIR}>Keypair</SelectItem>
                       <SelectItem value={SshKindEnum.AGENT}>SSH Agent</SelectItem>
                     </SelectContent>
@@ -153,7 +153,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
               <FormItem>
                 <FormLabel>{t("password")}</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" placeholder="••••••••" />
+                  <Input {...field} type="password" placeholder="" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

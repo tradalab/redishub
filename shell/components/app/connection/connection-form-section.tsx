@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm, UseFormReturn } from "react-hook-form"
+import { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -152,7 +152,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Username</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("username")}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -167,7 +167,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Password</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("password")}</FormLabel>
               <FormControl>
                 <Input {...field} type="password" />
               </FormControl>
