@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, memo } from "react"
+import { useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
@@ -12,12 +12,13 @@ import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeT
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { buildDbTree } from "@/lib/utils"
 import scorix from "@/lib/scorix"
-import { useDbStore } from "@/stores/db.store"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 import { useConnection } from "@/components/app/connection/connection.context"
 import { ConnectionDo } from "@/types/connection.do"
+import { useGroupList } from "@/hooks/api/group.api"
+import { useConnectionList } from "@/hooks/api/connection.api"
 
 type DialogState<T> = {
   open: boolean
@@ -28,19 +29,21 @@ export function SidebarConnection() {
   const { t } = useTranslation()
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const { groups, databases, load } = useDbStore()
   const { create: connectionCreate } = useConnection()
 
+  const { data: groups = [], refetch: groupsRefetch } = useGroupList()
+  const { data: databases = [], refetch: databasesRefetch } = useConnectionList()
+
   const [editGroup, setEditGroup] = useState<DialogState<any>>({ open: false })
-  const [editConnection, setEditConnection] = useState<DialogState<any>>({ open: false })
 
   const dataset = useMemo(() => sortTree(buildDbTree(groups, databases)), [groups, databases])
 
   const filteredDataset = useMemo(() => filterTree(dataset, keyword), [dataset, keyword])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  const refetch = () => {
+    groupsRefetch()
+    databasesRefetch()
+  }
 
   return (
     <>
@@ -49,7 +52,7 @@ export function SidebarConnection() {
           <div className="flex items-center justify-between">
             <div className="text-base font-medium">{t("connections")}</div>
             <div className="flex gap-2">
-              <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={load} />
+              <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={refetch} />
               <GroupAddDialog>
                 <FolderPlusIcon className="h-4 w-4 cursor-pointer" />
               </GroupAddDialog>
@@ -66,7 +69,7 @@ export function SidebarConnection() {
                 <TreeProvider defaultExpandedIds={[]} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                   <TreeView className="px-1 py-2">
                     {filteredDataset.map(item => (
-                      <RenderTreeItem key={item.id} item={item} reload={load} onEditGroup={group => setEditGroup({ open: true, data: group })} />
+                      <RenderTreeItem key={item.id} item={item} reload={refetch} onEditGroup={group => setEditGroup({ open: true, data: group })} />
                     ))}
                   </TreeView>
                 </TreeProvider>
@@ -77,7 +80,7 @@ export function SidebarConnection() {
       </Sidebar>
 
       {editGroup.open && editGroup.data && (
-        <GroupUpdateDialog open={editGroup.open} group={editGroup.data} reload={load} setOpen={open => setEditGroup({ open })} />
+        <GroupUpdateDialog open={editGroup.open} group={editGroup.data} reload={refetch} setOpen={open => setEditGroup({ open })} />
       )}
     </>
   )

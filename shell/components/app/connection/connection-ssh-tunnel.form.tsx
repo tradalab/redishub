@@ -36,7 +36,7 @@ export function ConnectionSshTunnelForm({ form }: { form: UseFormReturn }) {
         )}
       />
 
-      {enabled && (
+      {!!enabled && (
         <FormField
           control={form.control}
           name="ssh_id"
