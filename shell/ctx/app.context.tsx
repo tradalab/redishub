@@ -2,13 +2,15 @@
 
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { ConnectionDo } from "@/types/connection.do"
-import scorix from "@/lib/scorix"
 import { I18nextProvider } from "react-i18next"
+
 import i18n from "@/i18n"
+import scorix from "@/lib/scorix"
+import { ConnectionDo } from "@/types/connection.do"
 import { useSetting } from "@/hooks/use-setting"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/components/app/ssh/ssh.provider"
+import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 
 interface AppContextType {
   selectedTab: string
@@ -127,7 +129,9 @@ export const AppProvider = ({children}: { children: ReactNode }) => {
           }}
         >
           <SshProvider>
-            {children}
+            <ConnectionProvider>
+              {children}
+            </ConnectionProvider>
           </SshProvider>
         </AppContext.Provider>
       </QueryClientProvider>

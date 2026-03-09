@@ -48,6 +48,7 @@
   "slow_query": "スロークエリ",
   "system": "システム",
   "ssh_configurations": "SSH設定",
+  "ssh_configuration": "SSH Configuration",
   "ssh_tunnel": "SSHトンネル",
   "theme": "テーマ",
   "test_conn": "接続テスト",

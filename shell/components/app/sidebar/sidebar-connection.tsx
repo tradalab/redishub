@@ -1,17 +1,14 @@
 "use client"
 
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, ServerIcon, Trash2Icon, UnplugIcon } from "lucide-react"
-import { useEffect, useMemo, useState, memo, useCallback } from "react"
-import { toast } from "sonner"
+import { useEffect, useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
+
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
+import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
+import { toast } from "sonner"
 import { GroupAddDialog } from "@/components/app/group-add-dialog"
 import { GroupUpdateDialog } from "@/components/app/group-update-dialog"
-import { ConnectionAddDialog } from "@/components/app/connection/connection-add-dialog"
-import { ConnectionUpdateDialog } from "@/components/app/connection/connection-update-dialog"
-
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
-
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { buildDbTree } from "@/lib/utils"
 import scorix from "@/lib/scorix"
@@ -19,6 +16,8 @@ import { useDbStore } from "@/stores/db.store"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { useConnection } from "@/components/app/connection/connection.context"
+import { ConnectionDo } from "@/types/connection.do"
 
 type DialogState<T> = {
   open: boolean
@@ -30,6 +29,7 @@ export function SidebarConnection() {
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { groups, databases, load } = useDbStore()
+  const { create: connectionCreate } = useConnection()
 
   const [editGroup, setEditGroup] = useState<DialogState<any>>({ open: false })
   const [editConnection, setEditConnection] = useState<DialogState<any>>({ open: false })
@@ -53,9 +53,7 @@ export function SidebarConnection() {
               <GroupAddDialog>
                 <FolderPlusIcon className="h-4 w-4 cursor-pointer" />
               </GroupAddDialog>
-              <ConnectionAddDialog>
-                <PlusIcon className="h-4 w-4 cursor-pointer" />
-              </ConnectionAddDialog>
+              <PlusIcon className="h-4 w-4 cursor-pointer" onClick={connectionCreate} />
             </div>
           </div>
           <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e.target.value)} />
@@ -68,13 +66,7 @@ export function SidebarConnection() {
                 <TreeProvider defaultExpandedIds={[]} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                   <TreeView className="px-1 py-2">
                     {filteredDataset.map(item => (
-                      <RenderTreeItem
-                        key={item.id}
-                        item={item}
-                        reload={load}
-                        onEditGroup={group => setEditGroup({ open: true, data: group })}
-                        onEditConnection={connection => setEditConnection({ open: true, data: connection })}
-                      />
+                      <RenderTreeItem key={item.id} item={item} reload={load} onEditGroup={group => setEditGroup({ open: true, data: group })} />
                     ))}
                   </TreeView>
                 </TreeProvider>
@@ -87,9 +79,6 @@ export function SidebarConnection() {
       {editGroup.open && editGroup.data && (
         <GroupUpdateDialog open={editGroup.open} group={editGroup.data} reload={load} setOpen={open => setEditGroup({ open })} />
       )}
-      {editConnection.open && editConnection.data && (
-        <ConnectionUpdateDialog open={editConnection.open} connection={editConnection.data} reload={load} setOpen={open => setEditConnection({ open })} />
-      )}
     </>
   )
 }
@@ -98,10 +87,9 @@ type RenderTreeItemProps = {
   item: TreeItem
   reload: () => void
   onEditGroup: (group: any) => void
-  onEditConnection: (connection: any) => void
 }
 
-function RenderTreeItem({ item, reload, onEditGroup, onEditConnection }: RenderTreeItemProps) {
+function RenderTreeItem({ item, reload, onEditGroup }: RenderTreeItemProps) {
   const { connect } = useAppContext()
 
   return (
@@ -124,13 +112,13 @@ function RenderTreeItem({ item, reload, onEditGroup, onEditConnection }: RenderT
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel>{item.name}</TreeLabel>
-        <ActionButton item={item} reload={reload} onEditGroup={onEditGroup} onEditConnection={onEditConnection} />
+        <ActionButton item={item} reload={reload} onEditGroup={onEditGroup} />
       </TreeNodeTrigger>
 
       {item.isGroup && item.children && (
         <TreeNodeContent hasChildren>
           {item.children.map(child => (
-            <RenderTreeItem key={child.id} item={child} reload={reload} onEditGroup={onEditGroup} onEditConnection={onEditConnection} />
+            <RenderTreeItem key={child.id} item={child} reload={reload} onEditGroup={onEditGroup} />
           ))}
         </TreeNodeContent>
       )}
@@ -142,13 +130,13 @@ type ActionButtonProps = {
   item: TreeItem
   reload: () => void
   onEditGroup: (group: any) => void
-  onEditConnection: (connection: any) => void
 }
 
-const ActionButton = memo(function ActionButton({ item, reload, onEditGroup, onEditConnection }: ActionButtonProps) {
+const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: ActionButtonProps) {
   const { t } = useTranslation()
   const { connect, disconnect } = useAppContext()
   const confirm = useConfirm()
+  const { edit: editConnection } = useConnection()
 
   const deleteItem = async () => {
     try {
@@ -203,7 +191,7 @@ const ActionButton = memo(function ActionButton({ item, reload, onEditGroup, onE
             <DropdownMenuItem
               onClick={e => {
                 e.stopPropagation()
-                onEditConnection(item.connection)
+                editConnection(item.connection as ConnectionDo)
               }}
             >
               <EditIcon className="h-4 w-4" />

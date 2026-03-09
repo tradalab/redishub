@@ -48,6 +48,7 @@
   "slow_query": "Slow Query",
   "system": "System",
   "ssh_configurations": "SSH Configurations",
+  "ssh_configuration": "SSH Configuration",
   "ssh_tunnel": "SSH Tunnel",
   "theme": "Theme",
   "test_conn": "Test Connection",
