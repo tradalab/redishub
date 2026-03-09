@@ -47,8 +47,8 @@ export function SshDialog({ open, onOpenChange }: Props) {
         onInteractOutside={e => e.preventDefault()}
         onEscapeKeyDown={e => e.preventDefault()}
       >
-        <DialogHeader className="px-6 pt-6">
-          <DialogTitle>{t("ssh_configurations")}</DialogTitle>
+        <DialogHeader className="px-4 pt-4">
+          <DialogTitle className="text-sm">{t("ssh_configurations")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-1 overflow-hidden">
           <div className="w-[260px] border-r flex flex-col">
@@ -83,7 +83,7 @@ export function SshDialog({ open, onOpenChange }: Props) {
           <div className="flex-1 p-4 overflow-auto">{selected && <SshForm ref={formRef} ssh={selected} />}</div>
         </div>
         {selected && (
-          <DialogFooter className="px-6 py-4 border-t flex gap-2">
+          <DialogFooter className="p-2 border-t flex gap-2">
             <Button size="sm" variant="outline" disabled={formRef.current?.isPending?.test} onClick={() => formRef.current?.testConn()}>
               {t("test_conn")}
             </Button>
