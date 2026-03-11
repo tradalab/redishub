@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, forwardRef, useImperativeHandle, useState } from "react"
+import { useEffect, forwardRef, useImperativeHandle } from "react"
 import { useForm } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,66 +11,92 @@ import { useDeleteSsh, useTestSsh, useUpsertSsh } from "@/hooks/api/ssh.api"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useTranslation } from "react-i18next"
 
+export interface PendingState {
+  save: boolean
+  test: boolean
+  delete: boolean
+}
+
 export interface SshFormRef {
-  submit: () => void
-  testConn: () => void
-  handleDelete: () => void
-  isPending: any
+  submit: () => Promise<void>
+  testConn: () => Promise<void>
+  handleDelete: () => Promise<void>
 }
 
 interface Props {
   ssh: Partial<SshDO>
+  onPendingChange?: (pending: PendingState) => void
+  onSaved?: () => void
+  onDeleted?: () => void
 }
 
-export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
+export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, onSaved, onDeleted }, ref) => {
   const { t } = useTranslation()
-  const form = useForm<Partial<SshDO>>({ defaultValues: ssh })
-  const [isPending, setIsPending] = useState({ save: false, test: false, delete: false })
+
+  const form = useForm<Partial<SshDO>>({
+    defaultValues: ssh,
+  })
+
   const upsertSsh = useUpsertSsh()
   const deleteSsh = useDeleteSsh()
   const testSsh = useTestSsh()
 
-  useEffect(() => form.reset(ssh), [ssh])
+  useEffect(() => {
+    form.reset(ssh)
+  }, [ssh, form])
 
   const kind = form.watch("kind")
 
+  const pending: PendingState = {
+    save: upsertSsh.isPending,
+    test: testSsh.isPending,
+    delete: deleteSsh.isPending,
+  }
+
+  useEffect(() => {
+    onPendingChange?.(pending)
+  }, [pending.save, pending.test, pending.delete])
+
   const submit = form.handleSubmit(async values => {
     try {
-      setIsPending(p => ({ ...p, save: true }))
       await upsertSsh.mutateAsync(values)
       toast.success(t("saved"))
+      onSaved?.()
     } catch (e: any) {
       toast.error(e?.message ?? t("unknown_error"))
-    } finally {
-      setIsPending(p => ({ ...p, save: false }))
     }
   })
 
   const testConn = form.handleSubmit(async values => {
     try {
-      setIsPending(p => ({ ...p, test: true }))
       await testSsh.mutateAsync(values)
       toast.success(t("conn_success"))
-    } catch {
-      toast.error(t("conn_failed"))
-    } finally {
-      setIsPending(p => ({ ...p, test: false }))
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
+      toast.error(t("conn_failed"), { description: msg })
     }
   })
 
   const handleDelete = async () => {
+    if (!ssh?.id) return
     try {
-      setIsPending(p => ({ ...p, delete: true }))
-      await deleteSsh.mutateAsync(ssh?.id || "")
+      await deleteSsh.mutateAsync(ssh.id)
       toast.success(t("deleted"))
+      onDeleted?.()
     } catch (e: any) {
       toast.error(e?.message ?? t("unknown_error"))
-    } finally {
-      setIsPending(p => ({ ...p, delete: false }))
     }
   }
 
-  useImperativeHandle(ref, () => ({ submit, testConn, handleDelete, isPending }))
+  useImperativeHandle(
+    ref,
+    () => ({
+      submit,
+      testConn,
+      handleDelete,
+    }),
+    [submit, testConn]
+  )
 
   return (
     <Form {...form}>
@@ -78,71 +104,63 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
         <FormField
           control={form.control}
           name="host"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Host</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Host</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         <FormField
           control={form.control}
           name="port"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Port</FormLabel>
-                <FormControl>
-                  <Input {...field} type="number" onChange={e => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Port</FormLabel>
+              <FormControl>
+                <Input type="number" value={field.value ?? ""} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         <FormField
           control={form.control}
           name="username"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">{t("username")}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("username")}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         <FormField
           control={form.control}
           name="kind"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">{t("auth_type")}</FormLabel>
-                <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={SshKindEnum.PASSWORD}>{t("password")}</SelectItem>
-                      <SelectItem value={SshKindEnum.KEYPAIR}>Keypair</SelectItem>
-                      <SelectItem value={SshKindEnum.AGENT}>SSH Agent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )
-          }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("auth_type")}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SshKindEnum.PASSWORD}>{t("password")}</SelectItem>
+                    <SelectItem value={SshKindEnum.KEYPAIR}>Keypair</SelectItem>
+                    <SelectItem value={SshKindEnum.AGENT}>SSH Agent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         {kind === SshKindEnum.PASSWORD && (
@@ -153,7 +171,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
               <FormItem>
                 <FormLabel>{t("password")}</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" placeholder="" />
+                  <Input {...field} type="password" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -166,17 +184,15 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
             <FormField
               control={form.control}
               name="private_key_file"
-              render={({ field }) => {
-                return (
-                  <FormItem>
-                    <FormLabel className="flex items-center justify-between">{t("private_key_file")}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("private_key_file")}</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
             <FormField
               control={form.control}
@@ -185,7 +201,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh }, ref) => {
                 <FormItem>
                   <FormLabel>Passphrase</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" placeholder="" />
+                    <Input {...field} type="password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

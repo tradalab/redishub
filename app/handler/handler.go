@@ -6,6 +6,7 @@ import (
 	"github.com/tradalab/rdms/app/logic/client"
 	"github.com/tradalab/rdms/app/logic/conn"
 	"github.com/tradalab/rdms/app/logic/key"
+	"github.com/tradalab/rdms/app/logic/ssh"
 	"github.com/tradalab/rdms/app/svc"
 )
 
@@ -67,6 +68,10 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		},
 		"key:zset-member-del": func(ctx context.Context, args key.KeyZSetMemberDelLogicArgs) (interface{}, error) {
 			return key.NewKeyZSetMemberDelLogic(ctx, svcCtx).KeyZSetMemberDelLogic(args)
+		},
+		// ssh
+		"ssh:test": func(ctx context.Context, args ssh.SshTestLogicArgs) (interface{}, error) {
+			return ssh.NewSshTestLogic(ctx, svcCtx).SshTestLogic(args)
 		},
 	}
 	for name, handler := range handlers {
