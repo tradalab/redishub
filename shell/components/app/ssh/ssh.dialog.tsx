@@ -82,6 +82,10 @@ export function SshDialog({ open, onOpenChange }: Props) {
 
         {selected && (
           <DialogFooter className="p-2 border-t flex gap-2">
+            <Button size="sm" variant="destructive" disabled={pending.delete} onClick={() => formRef.current?.handleDelete()}>
+              {pending.delete ? <Spinner /> : <Trash2Icon />}
+              {t("delete")}
+            </Button>
             <Button size="sm" variant="outline" disabled={pending.test} onClick={() => formRef.current?.testConn()}>
               {pending.test ? <Spinner /> : <PlugIcon />}
               {t("test_conn")}
@@ -89,10 +93,6 @@ export function SshDialog({ open, onOpenChange }: Props) {
             <Button size="sm" variant="default" disabled={pending.save} onClick={() => formRef.current?.submit()}>
               {pending.save ? <Spinner /> : <SaveIcon />}
               {t("save")}
-            </Button>
-            <Button size="sm" variant="destructive" disabled={pending.delete} onClick={() => formRef.current?.handleDelete()}>
-              {pending.delete ? <Spinner /> : <Trash2Icon />}
-              {t("delete")}
             </Button>
           </DialogFooter>
         )}
