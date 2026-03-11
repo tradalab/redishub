@@ -1,71 +1,91 @@
 "use client"
 
-import { useEffect, forwardRef, useImperativeHandle, useState } from "react"
+import { useEffect, forwardRef, useImperativeHandle } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { SshDO } from "@/types/ssh.do"
 import { Form } from "@/components/ui/form"
 import { useTranslation } from "react-i18next"
-import { ConnectionDo } from "@/types/connection.do"
+
 import { Panel } from "@/components/ui/trada-ui/panel"
 import { ConnectionGeneralForm } from "@/components/app/connection/connection-general.form"
 import { ConnectionSshTunnelForm } from "@/components/app/connection/connection-ssh-tunnel.form"
+
+import { ConnectionDo } from "@/types/connection.do"
+
 import { useTestConnection, useUpsertConnection } from "@/hooks/api/connection.api"
+
+export interface PendingState {
+  save: boolean
+  test: boolean
+}
 
 export interface ConnectionFormRef {
   submit: () => Promise<boolean>
-  testConn: () => void
-  isPending: any
+  testConn: () => Promise<void>
 }
 
 interface Props {
   connection?: Partial<ConnectionDo>
+  onPendingChange?: (p: PendingState) => void
 }
 
-export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection }, ref) => {
+export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection, onPendingChange }, ref) => {
   const { t } = useTranslation()
-  const form = useForm<Partial<SshDO>>({ defaultValues: connection })
-  const [isPending, setIsPending] = useState({ save: false, test: false })
+
+  const form = useForm<Partial<ConnectionDo>>({
+    defaultValues: connection,
+  })
+
   const upsertConnection = useUpsertConnection()
   const testConnection = useTestConnection()
 
-  useEffect(() => form.reset(connection), [connection])
+  useEffect(() => {
+    form.reset(connection)
+  }, [connection, form])
+
+  const pending: PendingState = {
+    save: upsertConnection.isPending,
+    test: testConnection.isPending,
+  }
+
+  useEffect(() => {
+    onPendingChange?.(pending)
+  }, [pending.save, pending.test])
 
   const submit = () =>
     new Promise<boolean>(resolve => {
       form.handleSubmit(
         async values => {
           try {
-            setIsPending(p => ({ ...p, save: true }))
             await upsertConnection.mutateAsync(values)
             toast.success(t("saved"))
             resolve(true)
           } catch (e: any) {
             toast.error(e?.message ?? t("unknown_error"))
             resolve(false)
-          } finally {
-            setIsPending(p => ({ ...p, save: false }))
           }
         },
-        () => {
-          resolve(false)
-        }
+        () => resolve(false)
       )()
     })
 
   const testConn = form.handleSubmit(async values => {
     try {
-      setIsPending(p => ({ ...p, test: true }))
       await testConnection.mutateAsync(values)
       toast.success(t("conn_success"))
     } catch {
       toast.error(t("conn_failed"))
-    } finally {
-      setIsPending(p => ({ ...p, test: false }))
     }
   })
 
-  useImperativeHandle(ref, () => ({ submit, testConn, isPending }))
+  useImperativeHandle(
+    ref,
+    () => ({
+      submit,
+      testConn,
+    }),
+    [submit, testConn]
+  )
 
   return (
     <Form {...form}>

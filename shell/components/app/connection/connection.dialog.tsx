@@ -1,13 +1,16 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 import { ConnectionDo } from "@/types/connection.do"
-import { ConnectionForm, ConnectionFormRef } from "./connection.form"
+
+import { ConnectionForm, ConnectionFormRef, PendingState } from "./connection.form"
+import { Spinner } from "@/components/ui/spinner"
+import { PlugIcon, SaveIcon } from "lucide-react"
 
 export type Props = {
   open: boolean
@@ -19,6 +22,11 @@ export function ConnectionDialog({ open, onOpenChange, connection }: Props) {
   const { t } = useTranslation()
 
   const formRef = useRef<ConnectionFormRef>(null)
+
+  const [pending, setPending] = useState<PendingState>({
+    save: false,
+    test: false,
+  })
 
   if (!connection) return null
 
@@ -35,28 +43,28 @@ export function ConnectionDialog({ open, onOpenChange, connection }: Props) {
           <DialogTitle className="text-sm">{isEdit ? t("update_connection") : t("new_connection")}</DialogTitle>
         </DialogHeader>
 
-        <ConnectionForm ref={formRef} connection={connection} />
+        <ConnectionForm ref={formRef} connection={connection} onPendingChange={setPending} />
 
         <DialogFooter className="p-2 border-t flex gap-2">
-          <Button size="sm" variant="outline" disabled={formRef.current?.isPending?.test} onClick={() => formRef.current?.testConn()}>
+          <Button size="sm" variant="outline" disabled={pending.test} onClick={() => formRef.current?.testConn()}>
+            {pending.test ? <Spinner /> : <PlugIcon />}
             {t("test_conn")}
           </Button>
           <DialogClose asChild>
-            <Button size="sm" variant="outline" disabled={formRef.current?.isPending?.save || formRef.current?.isPending?.test}>
+            <Button size="sm" variant="outline" disabled={pending.save || pending.test}>
               {t("cancel")}
             </Button>
           </DialogClose>
           <Button
             size="sm"
-            variant="outline"
-            disabled={formRef.current?.isPending?.save}
+            variant="default"
+            disabled={pending.save}
             onClick={async () => {
               const ok = await formRef.current?.submit()
-              if (ok) {
-                onOpenChange(false)
-              }
+              if (ok) onOpenChange(false)
             }}
           >
+            {pending.save ? <Spinner /> : <SaveIcon />}
             {isEdit ? t("update") : t("save")}
           </Button>
         </DialogFooter>
