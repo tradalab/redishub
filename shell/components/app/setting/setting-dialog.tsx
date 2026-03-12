@@ -14,9 +14,9 @@ export function SettingDialog({ children }: { children: ReactNode }) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] space-y-4">
-        <DialogHeader>
-          <DialogTitle>{t("settings")}</DialogTitle>
+      <DialogContent className="sm:max-w-[700px] p-0 flex flex-col h-[85vh]">
+        <DialogHeader className="px-4 pt-4">
+          <DialogTitle className="text-sm">{t("settings")}</DialogTitle>
         </DialogHeader>
         <Panel
           items={[
@@ -27,39 +27,26 @@ export function SettingDialog({ children }: { children: ReactNode }) {
             },
           ]}
         />
-        <DialogFooter>
+        <DialogFooter className="p-2 border-t flex gap-2">
           <div className="flex items-center justify-between w-full text-sm">
             <div className="flex gap-4">
-              <a
-                href="#"
-                onClick={e => {
-                  e.preventDefault()
-                  scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub")
-                }}
-                className="text-blue-500 underline"
-              >
-                GitHub
-              </a>
-              <a
-                href="#"
-                onClick={e => {
-                  e.preventDefault()
-                  scorix.invoke("ext:browser:OpenUrl", "https://github.com/tradalab/redishub/issues")
-                }}
-                className="text-blue-500 underline"
-              >
-                {t("report_issues")}
-              </a>
-              <a
-                href="#"
-                onClick={e => {
-                  e.preventDefault()
-                  scorix.invoke("ext:browser:OpenUrl", "https://redishub.tradalab.com/")
-                }}
-                className="text-blue-500 underline"
-              >
-                {t("documentation")}
-              </a>
+              {[
+                { title: "Github", url: "https://github.com/tradalab/redishub" },
+                { title: t("report_issues"), url: "https://github.com/tradalab/redishub/issues" },
+                { title: t("documentation"), url: "https://redishub.tradalab.com/" },
+              ].map((item, i) => (
+                <a
+                  key={i}
+                  href="#"
+                  onClick={e => {
+                    e.preventDefault()
+                    scorix.invoke("ext:browser:OpenUrl", item.url)
+                  }}
+                  className="text-blue-500 underline"
+                >
+                  {item.title}
+                </a>
+              ))}
             </div>
             <span className="font-bold">v{version}</span>
           </div>
