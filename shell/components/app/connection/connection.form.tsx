@@ -10,7 +10,7 @@ import { Panel } from "@/components/ui/trada-ui/panel"
 import { ConnectionGeneralForm } from "@/components/app/connection/connection-general.form"
 import { ConnectionSshTunnelForm } from "@/components/app/connection/connection-ssh-tunnel.form"
 
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 import { useTestConnection, useUpsertConnection } from "@/hooks/api/connection.api"
 
@@ -25,14 +25,14 @@ export interface ConnectionFormRef {
 }
 
 interface Props {
-  connection?: Partial<ConnectionDo>
+  connection?: Partial<ConnectionDO>
   onPendingChange?: (p: PendingState) => void
 }
 
 export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection, onPendingChange }, ref) => {
   const { t } = useTranslation()
 
-  const form = useForm<Partial<ConnectionDo>>({
+  const form = useForm<Partial<ConnectionDO>>({
     defaultValues: connection,
   })
 
@@ -73,8 +73,9 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
     try {
       await testConnection.mutateAsync(values)
       toast.success(t("conn_success"))
-    } catch {
-      toast.error(t("conn_failed"))
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
+      toast.error(t("conn_failed"), { description: msg })
     }
   })
 

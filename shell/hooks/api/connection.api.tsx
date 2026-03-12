@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
 import { v7 as uuidv7 } from "uuid"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 const QUERY_KEY = ["conn-list"]
 
@@ -11,7 +11,7 @@ export function useConnectionList() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const data = await scorix.invoke<ConnectionDo[]>(
+      const data = await scorix.invoke<ConnectionDO[]>(
         "ext:gorm:Query",
         'SELECT * FROM "connection" WHERE deleted_at IS NULL'
       )
@@ -23,7 +23,7 @@ export function useConnectionList() {
 export function useUpsertConnection() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (values: Partial<ConnectionDo>) => {
+    mutationFn: async (values: Partial<ConnectionDO>) => {
       const id = values.id ?? uuidv7()
       const sql = `
         INSERT
@@ -68,7 +68,7 @@ export function useDeleteConnection() {
 
 export function useTestConnection() {
   return useMutation({
-    mutationFn: async (values: Partial<ConnectionDo>) => {
+    mutationFn: async (values: Partial<ConnectionDO>) => {
       return scorix.invoke("conn:test", values)
     },
   })

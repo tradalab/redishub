@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 import { ConnectionForm, ConnectionFormRef, PendingState } from "./connection.form"
 import { Spinner } from "@/components/ui/spinner"
@@ -15,7 +15,7 @@ import { PlugIcon, SaveIcon } from "lucide-react"
 export type Props = {
   open: boolean
   onOpenChange: (v: boolean) => void
-  connection: Partial<ConnectionDo> | null
+  connection: Partial<ConnectionDO> | null
 }
 
 export function ConnectionDialog({ open, onOpenChange, connection }: Props) {

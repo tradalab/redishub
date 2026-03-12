@@ -16,7 +16,7 @@ import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 import { useConnection } from "@/components/app/connection/connection.context"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 import { useGroupList } from "@/hooks/api/group.api"
 import { useConnectionList } from "@/hooks/api/connection.api"
 
@@ -194,7 +194,7 @@ const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: A
             <DropdownMenuItem
               onClick={e => {
                 e.stopPropagation()
-                editConnection(item.connection as ConnectionDo)
+                editConnection(item.connection as ConnectionDO)
               }}
             >
               <EditIcon className="h-4 w-4" />

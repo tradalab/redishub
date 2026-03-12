@@ -6,7 +6,7 @@ import { I18nextProvider } from "react-i18next"
 
 import i18n from "@/i18n"
 import scorix from "@/lib/scorix"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 import { useSetting } from "@/hooks/use-setting"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/components/app/ssh/ssh.provider"
@@ -31,8 +31,8 @@ interface AppContextType {
   loading: boolean
   setLoading: (state: boolean) => void
 
-  connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
-  disconnect: (database?: ConnectionDo) => Promise<void>
+  connect: (database: ConnectionDO | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
+  disconnect: (database?: ConnectionDO) => Promise<void>
 
   language: string | undefined
   setLanguage: (val: string) => void
@@ -64,7 +64,7 @@ export const AppProvider = ({children}: { children: ReactNode }) => {
     i18n.changeLanguage(language)
   }, [language])
 
-  const connect = async (database: ConnectionDo | undefined, dbIdx: number) => {
+  const connect = async (database: ConnectionDO | undefined, dbIdx: number) => {
     if (!database) {
       return
     }
@@ -90,7 +90,7 @@ export const AppProvider = ({children}: { children: ReactNode }) => {
     }
   }
 
-  const disconnect = async (database: ConnectionDo | undefined) => {
+  const disconnect = async (database: ConnectionDO | undefined) => {
     if (!database) {
       return
     }

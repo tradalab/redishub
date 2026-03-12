@@ -1,7 +1,7 @@
 import {GroupDO} from "@/types/group.do"
 import {SshDO} from "@/types/ssh.do"
 
-export type ConnectionDo = {
+export type ConnectionDO = {
   id: string
   created_at: string
   updated_at: string

@@ -3,11 +3,11 @@
 import { ReactNode, useState } from "react"
 import { ConnectionContext } from "./connection.context"
 import { ConnectionDialog } from "./connection.dialog"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
-  const [connection, setConnection] = useState<Partial<ConnectionDo> | null>(null)
+  const [connection, setConnection] = useState<Partial<ConnectionDO> | null>(null)
 
   const handleCreate = () => {
     setConnection({
@@ -25,8 +25,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     setOpen(true)
   }
 
-  const handleEdit = (conn: ConnectionDo) => {
-    setConnection(conn)
+  const handleEdit = (conn: ConnectionDO) => {
+    setConnection({ ...conn, ssh_enable: Boolean(conn.ssh_enable) })
     setOpen(true)
   }
 

@@ -1,4 +1,4 @@
-import {ConnectionDo} from "@/types/connection.do"
+import {ConnectionDO} from "@/types/connection.do"
 import {SshKindEnum} from "@/types/ssh-kind.enum"
 
 export type SshDO = {
@@ -13,5 +13,5 @@ export type SshDO = {
   password: string
   private_key_file: string
   passphrase: string
-  connections: ConnectionDo[]
+  connections: ConnectionDO[]
 }

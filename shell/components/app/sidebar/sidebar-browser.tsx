@@ -10,7 +10,7 @@ import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeT
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Button } from "@/components/ui/button"
@@ -119,7 +119,7 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const databases = await scorix.invoke<ConnectionDo[]>("ext:gorm:Query", `SELECT * FROM "connection" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
+      const databases = await scorix.invoke<ConnectionDO[]>("ext:gorm:Query", `SELECT * FROM "connection" WHERE id = "${selectedDb}" AND deleted_at IS NULL`)
       if (!databases || databases.length < 1) {
         toast.error(t("conn_not_exist"))
         return
