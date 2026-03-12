@@ -16,10 +16,10 @@ type ConnectionDO struct {
 	Password  string   `json:"password" gorm:"column:password;"`
 	LastDb    int      `json:"last_db" gorm:"column:last_db;default:0;"`
 	GroupId   *string  `json:"group_id" gorm:"column:group_id;size:36;"`
-	Group     *GroupDO `json:"group,omitempty" gorm:"-"`
+	Group     *GroupDO `json:"group,omitempty" gorm:"foreignKey:GroupId;references:Id"`
 	SshEnable bool     `json:"ssh_enable" gorm:"column:ssh_enable;"`
 	SshId     *string  `json:"ssh_id" gorm:"column:ssh_id;size:36;"`
-	SshDO     *SshDO   `json:"ssh,omitempty" gorm:"-"`
+	Ssh       *SshDO   `json:"ssh,omitempty" gorm:"foreignKey:SshId;references:Id"`
 }
 
 func (d *ConnectionDO) TableName() string {

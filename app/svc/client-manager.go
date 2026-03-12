@@ -11,6 +11,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/app/dal/do"
+	"github.com/tradalab/rdms/pkg/netx"
+	"golang.org/x/crypto/ssh"
 )
 
 type ClientManager struct {
@@ -34,13 +36,11 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 		return nil, fmt.Errorf("client %s already exists", key)
 	}
 
-	// init cli
 	rdb, err := m.init(cfg, dbIdx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Test connection
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -59,13 +59,13 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 
 func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, error) {
 	options := &redis.Options{
-		Addr:             cfg.Addr(),
-		Username:         cfg.Username,
-		Password:         cfg.Password,
-		DB:               dbIdx,
-		DialTimeout:      5 * time.Second,
-		DisableIndentity: true,
-		IdentitySuffix:   "rdms_",
+		Addr:            cfg.Addr(),
+		Username:        cfg.Username,
+		Password:        cfg.Password,
+		DB:              dbIdx,
+		DialTimeout:     5 * time.Second,
+		DisableIdentity: true,
+		IdentitySuffix:  "redishub_",
 	}
 
 	// set network
@@ -90,6 +90,28 @@ func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, er
 		options.Addr = net.JoinHostPort(host, strconv.Itoa(port))
 	default:
 		return nil, fmt.Errorf("unknown network type: %s", cfg.Network)
+	}
+
+	// set SSH tunnel
+	if cfg.SshEnable {
+		sshConfig, err := cfg.Ssh.BuildClientCfg()
+		if err != nil {
+			return nil, err
+		}
+
+		sshAddr := cfg.Ssh.Addr()
+
+		sshClient, err := ssh.Dial("tcp", sshAddr, sshConfig)
+		if err != nil {
+			return nil, fmt.Errorf("ssh dial failed: %w", err)
+		}
+
+		localAddr, err := netx.StartSSHTunnel(sshClient, options.Network, options.Addr)
+		if err != nil {
+			return nil, err
+		}
+
+		options.Addr = localAddr
 	}
 
 	rdb := redis.NewClient(options)
@@ -123,6 +145,7 @@ func (m *ClientManager) Get(id string, dbIdx int) (*Client, error) {
 	if c, ok := m.clients[key]; ok {
 		return c, nil
 	}
+
 	return nil, fmt.Errorf("client %s not found", key)
 }
 
