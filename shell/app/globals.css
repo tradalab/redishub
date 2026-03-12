@@ -130,3 +130,9 @@
     @apply overscroll-none;
   }
 }
+
+@layer base {
+  * {
+    scrollbar-width: thin !important;
+  }
+}

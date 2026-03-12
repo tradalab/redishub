@@ -1,30 +1,17 @@
 "use client"
 
-import { useForm, UseFormReturn } from "react-hook-form"
+import { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useEffect, useState } from "react"
-import { GroupDO } from "@/types/group.do"
-import { toast } from "sonner"
-import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
+import { useGroupList } from "@/hooks/api/group.api"
 
-export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
+export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
   const { t } = useTranslation()
-  const [groups, setGroups] = useState<GroupDO[]>([])
+  const { data: groups = [] } = useGroupList()
 
   const network: string = form.watch("network")
-
-  useEffect(() => {
-    scorix
-      .invoke<GroupDO[]>("ext:gorm:Query", 'SELECT * FROM "group" WHERE deleted_at IS NULL')
-      .then(data => setGroups(data || []))
-      .catch(e => {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-        toast.error(msg)
-      })
-  }, [])
 
   return (
     <>
@@ -152,7 +139,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Username</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("username")}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -167,7 +154,7 @@ export function ConnectionFormSection({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Password</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("password")}</FormLabel>
               <FormControl>
                 <Input {...field} type="password" />
               </FormControl>

@@ -27,7 +27,7 @@ func NewClientConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cli
 
 func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interface{}, error) {
 	var connection *do.ConnectionDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&connection)
+	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Preload("Ssh").Where("id = ?", params.ConnectionId).Find(&connection)
 	if result.Error != nil {
 		return nil, result.Error
 	}

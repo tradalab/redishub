@@ -1,6 +1,7 @@
 import {GroupDO} from "@/types/group.do"
+import {SshDO} from "@/types/ssh.do"
 
-export type ConnectionDo = {
+export type ConnectionDO = {
   id: string
   created_at: string
   updated_at: string
@@ -15,4 +16,7 @@ export type ConnectionDo = {
   username: string
   password: string
   last_db: number
+  ssh_enable: boolean
+  ssh_id: string
+  ssh: SshDO
 }

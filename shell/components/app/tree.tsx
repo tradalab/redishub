@@ -1,5 +1,5 @@
 import { GroupDO } from "@/types/group.do"
-import { ConnectionDo } from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 export type TreeItem = {
   id: string
@@ -8,7 +8,7 @@ export type TreeItem = {
   isGroup?: boolean
   isLeaf?: boolean
   group?: GroupDO
-  connection?: ConnectionDo
+  connection?: ConnectionDO
   children?: TreeItem[]
 }
 

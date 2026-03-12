@@ -48,7 +48,7 @@ export function useSettings() {
         if (!updated) return
 
         setSettings(prev => {
-          const idx = prev.findIndex(s => s.key === key)
+          const idx = prev.findIndex(s => s?.key === key)
           if (idx === -1) return [...prev, updated]
           const next = [...prev]
           next[idx] = updated

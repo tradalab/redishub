@@ -2,11 +2,15 @@
 
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { ConnectionDo } from "@/types/connection.do"
-import scorix from "@/lib/scorix"
 import { I18nextProvider } from "react-i18next"
+
 import i18n from "@/i18n"
+import scorix from "@/lib/scorix"
+import { ConnectionDO } from "@/types/connection.do"
 import { useSetting } from "@/hooks/use-setting"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { SshProvider } from "@/components/app/ssh/ssh.provider"
+import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 
 interface AppContextType {
   selectedTab: string
@@ -27,16 +31,27 @@ interface AppContextType {
   loading: boolean
   setLoading: (state: boolean) => void
 
-  connect: (database: ConnectionDo | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
-  disconnect: (database?: ConnectionDo) => Promise<void>
+  connect: (database: ConnectionDO | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
+  disconnect: (database?: ConnectionDO) => Promise<void>
 
   language: string | undefined
   setLanguage: (val: string) => void
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      gcTime: Infinity,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({children}: { children: ReactNode }) => {
   const [selectedTab, setSelectedTab] = useState<string>("/connections")
   const [selectedSection, setSelectedSection] = useState<string>("general")
   const [selectedDb, setSelectedDb] = useState<string | undefined>()
@@ -49,7 +64,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     i18n.changeLanguage(language)
   }, [language])
 
-  const connect = async (database: ConnectionDo | undefined, dbIdx: number) => {
+  const connect = async (database: ConnectionDO | undefined, dbIdx: number) => {
     if (!database) {
       return
     }
@@ -75,7 +90,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const disconnect = async (database: ConnectionDo | undefined) => {
+  const disconnect = async (database: ConnectionDO | undefined) => {
     if (!database) {
       return
     }
@@ -92,28 +107,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <AppContext.Provider
-        value={{
-          selectedTab,
-          setSelectedTab,
-          selectedDb,
-          setSelectedDb,
-          selectedDbIdx,
-          setSelectedDbIdx,
-          selectedKey,
-          setSelectedKey,
-          selectedSection,
-          setSelectedSection,
-          loading,
-          setLoading,
-          connect,
-          disconnect,
-          language,
-          setLanguage,
-        }}
-      >
-        {children}
-      </AppContext.Provider>
+      <QueryClientProvider client={queryClient}>
+        <AppContext.Provider
+          value={{
+            selectedTab,
+            setSelectedTab,
+            selectedDb,
+            setSelectedDb,
+            selectedDbIdx,
+            setSelectedDbIdx,
+            selectedKey,
+            setSelectedKey,
+            selectedSection,
+            setSelectedSection,
+            loading,
+            setLoading,
+            connect,
+            disconnect,
+            language,
+            setLanguage,
+          }}
+        >
+          <SshProvider>
+            <ConnectionProvider>
+              {children}
+            </ConnectionProvider>
+          </SshProvider>
+        </AppContext.Provider>
+      </QueryClientProvider>
     </I18nextProvider>
   )
 }

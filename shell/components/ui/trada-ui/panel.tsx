@@ -12,17 +12,19 @@ type PanelItemType = {
   content: ReactNode
 }
 
-export function Panel({ items, enable_url }: { items: PanelItemType[]; enable_url?: boolean }) {
+export function Panel({ name, items, enable_url }: { name?: string; items: PanelItemType[]; enable_url?: boolean }) {
   const router = useRouter()
   const params = useSearchParams()
 
   const defaultKey = items[0].key
 
+  const panelKey = useMemo(() => `panel${name ? "-" + name : ""}`, [name])
+
   // get panel from url
   const panelFromUrl = useMemo(() => {
     if (!enable_url) return defaultKey
-    return params.get("panel") ?? defaultKey
-  }, [enable_url, params, defaultKey])
+    return params.get(panelKey) ?? defaultKey
+  }, [enable_url, params, defaultKey, panelKey])
 
   // set active
   const [active, setActive] = useState(panelFromUrl)
@@ -39,15 +41,15 @@ export function Panel({ items, enable_url }: { items: PanelItemType[]; enable_ur
     if (key === active) return
     setActive(key)
     if (!enable_url) return
-    router.replace(`?panel=${key}`, { scroll: false })
+    router.replace(`?${panelKey}=${key}`, { scroll: false })
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full min-h-0 flex flex-col">
       {/* Mobi */}
       <div className="lg:hidden">
         <div className="inline-flex rounded-lg bg-muted p-1">
-          {items.map(s => (
+          {items?.map(s => (
             <button
               key={s.key}
               onClick={() => navigate(s.key)}
@@ -63,17 +65,17 @@ export function Panel({ items, enable_url }: { items: PanelItemType[]; enable_ur
       </div>
 
       {/* Desktop */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr] flex-1 min-h-0">
         {/* Sidebar */}
-        <aside className="hidden space-y-1 lg:block">
-          {items.map(s => (
+        <aside className="hidden space-y-1 lg:block overflow-y-auto min-h-0 pr-1 [overflow:overlay]">
+          {items?.map(s => (
             <PanelItem key={s.key} active={active === s.key} danger={s.danger} onClick={() => navigate(s.key)}>
               {s.label}
             </PanelItem>
           ))}
         </aside>
         {/* Content */}
-        <div className="space-y-6">{current.content}</div>
+        <div className="space-y-6 overflow-y-auto min-h-0 pr-1 [overflow:overlay]">{current.content}</div>
       </div>
     </div>
   )
