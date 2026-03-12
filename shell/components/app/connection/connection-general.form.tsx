@@ -21,7 +21,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
         render={({ field }) => {
           return (
             <FormItem>
-              <FormLabel className="flex items-center justify-between">Name</FormLabel>
+              <FormLabel className="flex items-center justify-between">{t("name")}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>

@@ -6,35 +6,28 @@ import { useTranslation } from "react-i18next"
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
 import { toast } from "sonner"
-import { GroupAddDialog } from "@/components/app/group-add-dialog"
-import { GroupUpdateDialog } from "@/components/app/group-update-dialog"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { buildDbTree } from "@/lib/utils"
-import scorix from "@/lib/scorix"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 import { useConnection } from "@/components/app/connection/connection.context"
 import { ConnectionDO } from "@/types/connection.do"
-import { useGroupList } from "@/hooks/api/group.api"
-import { useConnectionList } from "@/hooks/api/connection.api"
-
-type DialogState<T> = {
-  open: boolean
-  data?: T
-}
+import { useDeleteGroup, useGroupList } from "@/hooks/api/group.api"
+import { useConnectionList, useDeleteConnection } from "@/hooks/api/connection.api"
+import { useGroup } from "@/components/app/group/group.context"
+import { GroupDO } from "@/types/group.do"
 
 export function SidebarConnection() {
   const { t } = useTranslation()
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { create: connectionCreate } = useConnection()
+  const { create: groupCreate } = useGroup()
 
   const { data: groups = [], refetch: groupsRefetch } = useGroupList()
   const { data: databases = [], refetch: databasesRefetch } = useConnectionList()
-
-  const [editGroup, setEditGroup] = useState<DialogState<any>>({ open: false })
 
   const dataset = useMemo(() => sortTree(buildDbTree(groups, databases)), [groups, databases])
 
@@ -53,9 +46,7 @@ export function SidebarConnection() {
             <div className="text-base font-medium">{t("connections")}</div>
             <div className="flex gap-2">
               <RefreshCcwIcon className="h-4 w-4 cursor-pointer" onClick={refetch} />
-              <GroupAddDialog>
-                <FolderPlusIcon className="h-4 w-4 cursor-pointer" />
-              </GroupAddDialog>
+              <FolderPlusIcon className="h-4 w-4 cursor-pointer" onClick={groupCreate} />
               <PlusIcon className="h-4 w-4 cursor-pointer" onClick={connectionCreate} />
             </div>
           </div>
@@ -69,7 +60,7 @@ export function SidebarConnection() {
                 <TreeProvider defaultExpandedIds={[]} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                   <TreeView className="px-1 py-2">
                     {filteredDataset.map(item => (
-                      <RenderTreeItem key={item.id} item={item} reload={refetch} onEditGroup={group => setEditGroup({ open: true, data: group })} />
+                      <RenderTreeItem key={item.id} item={item} reload={refetch} />
                     ))}
                   </TreeView>
                 </TreeProvider>
@@ -78,10 +69,6 @@ export function SidebarConnection() {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-
-      {editGroup.open && editGroup.data && (
-        <GroupUpdateDialog open={editGroup.open} group={editGroup.data} reload={refetch} setOpen={open => setEditGroup({ open })} />
-      )}
     </>
   )
 }
@@ -89,10 +76,9 @@ export function SidebarConnection() {
 type RenderTreeItemProps = {
   item: TreeItem
   reload: () => void
-  onEditGroup: (group: any) => void
 }
 
-function RenderTreeItem({ item, reload, onEditGroup }: RenderTreeItemProps) {
+function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
   const { connect } = useAppContext()
 
   return (
@@ -115,13 +101,13 @@ function RenderTreeItem({ item, reload, onEditGroup }: RenderTreeItemProps) {
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel>{item.name}</TreeLabel>
-        <ActionButton item={item} reload={reload} onEditGroup={onEditGroup} />
+        <ActionButton item={item} reload={reload} />
       </TreeNodeTrigger>
 
       {item.isGroup && item.children && (
         <TreeNodeContent hasChildren>
           {item.children.map(child => (
-            <RenderTreeItem key={child.id} item={child} reload={reload} onEditGroup={onEditGroup} />
+            <RenderTreeItem key={child.id} item={child} reload={reload} />
           ))}
         </TreeNodeContent>
       )}
@@ -132,14 +118,16 @@ function RenderTreeItem({ item, reload, onEditGroup }: RenderTreeItemProps) {
 type ActionButtonProps = {
   item: TreeItem
   reload: () => void
-  onEditGroup: (group: any) => void
 }
 
-const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: ActionButtonProps) {
+const ActionButton = memo(function ActionButton({ item, reload }: ActionButtonProps) {
   const { t } = useTranslation()
   const { connect, disconnect } = useAppContext()
   const confirm = useConfirm()
-  const { edit: editConnection } = useConnection()
+  const { edit: connectionEdit } = useConnection()
+  const { edit: groupEdit } = useGroup()
+  const deleteConnection = useDeleteConnection()
+  const deleteGroup = useDeleteGroup()
 
   const deleteItem = async () => {
     try {
@@ -152,9 +140,11 @@ const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: A
       if (!ok) {
         return
       }
-
-      const sql = item.isGroup ? `DELETE FROM "group" WHERE id = "${item.id}"` : `DELETE FROM "connection" WHERE id = "${item.id}"`
-      await scorix.invoke("ext:gorm:Query", sql)
+      if (item.isGroup) {
+        await deleteGroup.mutateAsync(item.id)
+      } else {
+        await deleteConnection.mutateAsync(item.id)
+      }
       toast.success("Deleted!")
       reload()
     } catch (e: any) {
@@ -194,7 +184,7 @@ const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: A
             <DropdownMenuItem
               onClick={e => {
                 e.stopPropagation()
-                editConnection(item.connection as ConnectionDO)
+                connectionEdit(item.connection as ConnectionDO)
               }}
             >
               <EditIcon className="h-4 w-4" />
@@ -206,7 +196,7 @@ const ActionButton = memo(function ActionButton({ item, reload, onEditGroup }: A
           <DropdownMenuItem
             onClick={e => {
               e.stopPropagation()
-              onEditGroup(item.group)
+              groupEdit(item.group as GroupDO)
             }}
           >
             <EditIcon className="h-4 w-4" />

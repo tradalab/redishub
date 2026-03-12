@@ -25,7 +25,7 @@ export function useUpsertGroup() {
   return useMutation({
     mutationFn: async (values: Partial<GroupDO>) => {
       const id = values.id ?? uuidv7()
-      const sql = `INSERT OR REPLACE INTO group (id, name) VALUES ('${id}', '${values.name ?? ""}')`
+      const sql = `INSERT OR REPLACE INTO "group" (id, name) VALUES ('${id}', '${values.name ?? ""}')`
       await scorix.invoke("ext:gorm:Query", sql)
       return id
     },
@@ -39,7 +39,7 @@ export function useDeleteGroup() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const sql = `DELETE FROM group WHERE id = '${id}'`
+      const sql = `DELETE FROM "group" WHERE id = '${id}'`
       await scorix.invoke("ext:gorm:Query", sql)
     },
     onSuccess: () => {
