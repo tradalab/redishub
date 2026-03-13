@@ -4,14 +4,30 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Fragment>
-    <UI>
+    <UI Id="RedisHubUI">
+
       <ui:WixUI Id="WixUI_InstallDir"/>
+
+      <Publish
+        Dialog="ExitDialog"
+        Control="Finish"
+        Event="DoAction"
+        Value="LaunchApplication"
+        Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed"/>
+
     </UI>
 
-    <!-- Launch after install checkbox -->
+    <Property
+      Id="WIXUI_INSTALLDIR"
+      Value="INSTALLFOLDER"/>
+
     <Property
       Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
       Value="Launch $(var.ProductName)"/>
+
+    <Property
+      Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX"
+      Value="1"/>
 
   </Fragment>
 

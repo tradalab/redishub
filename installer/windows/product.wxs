@@ -10,6 +10,14 @@
     UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
     Scope="perMachine">
 
+    <!-- USE UI -->
+    <UIRef Id="RedisHubUI"/>
+
+    <!-- LICENSE -->
+    <WixVariable
+      Id="WixUILicenseRtf"
+      Value="installer/windows/license.rtf"/>
+
     <!-- UPGRADE -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
 
@@ -24,6 +32,15 @@
 
     <!-- ICON -->
     <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico"/>
+
+    <!-- Launch app -->
+    <CustomAction
+      Id="LaunchApplication"
+      FileRef="RedisHubExe"
+      ExeCommand=""
+      Execute="immediate"
+      Return="asyncNoWait"
+      Impersonate="yes"/>
 
     <!-- Close running app -->
     <util:CloseApplication
