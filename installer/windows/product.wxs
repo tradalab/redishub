@@ -32,6 +32,9 @@
       CloseMessage="yes"
       RebootPrompt="no"/>
 
+    <!-- Refresh Explorer -->
+    <util:BroadcastEnvironmentChange/>
+
     <!-- Directories -->
     <StandardDirectory Id="ProgramFilesFolder">
       <Directory Id="COMPANYFOLDER" Name="$(var.Manufacturer)">
@@ -78,14 +81,6 @@
         WorkingDirectory="INSTALLFOLDER"
         Icon="RedisHubIcon"/>
 
-      <Shortcut
-        Id="UninstallShortcut"
-        Name="Uninstall $(var.ProductName)"
-        Description="Uninstall $(var.ProductName)"
-        Target="[SystemFolder]msiexec.exe"
-        Arguments="/x [ProductCode]"
-        Icon="RedisHubIcon"/>
-
       <RemoveFolder
         Id="RemoveProgramsFolder"
         Directory="AppProgramsFolder"
@@ -101,13 +96,13 @@
     </Component>
 
     <!-- DESKTOP SHORTCUT -->
-    <Component Id="DesktopShortcut"
-               Directory="DesktopFolder"
-               Guid="*">
+    <Component
+      Id="DesktopShortcut"
+      Directory="DesktopFolder"
+      Guid="*">
 
       <Shortcut
         Id="DesktopShortcutExe"
-        Directory="DesktopFolder"
         Name="$(var.ProductName)"
         Description="$(var.ProductDesc)"
         Target="[INSTALLFOLDER]RedisHub.exe"
