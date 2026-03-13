@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Fragment>
+    <UI>
+      <ui:WixUI Id="WixUI_InstallDir"/>
+    </UI>
+
+    <!-- Launch after install checkbox -->
+    <Property
+      Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+      Value="Launch $(var.ProductName)"/>
+
+  </Fragment>
+
+</Wix>

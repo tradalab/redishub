@@ -61,20 +61,28 @@ case "$GOOS" in
     BIN_PATH="$TEMP_DIR/$APP_NAME.exe"
     mv "$TEMP_DIR/$APP_NAME" "$BIN_PATH"
 
-    echo "==> Packaging MSI..."
+    echo "==> Install wix extensions"
 
     if ! command -v wix >/dev/null 2>&1; then
       echo "!! wix CLI not found in PATH"
       exit 1
     fi
 
-    wix build installer/windows/$APP_NAME.wxs \
+    wix extension add WixToolset.Util.wixext/6.0.2
+    wix extension add WixToolset.UI.wixext/6.0.2
+    wix extension list
+
+    echo "==> Packaging MSI..."
+
+    wix build installer/windows/product.wxs installer/windows/ui.wxs \
+      -ext WixToolset.UI.wixext \
+      -ext WixToolset.Util.wixext \
       -d BinPath="$TEMP_DIR" \
       -d Manufacturer="$APP_MANUFACTURER" \
       -d ProductName="$APP_NAME" \
       -d ProductDesc="$APP_DESC" \
       -d ProductVersion="$VERSION" \
-      -o "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
+      -o "${ARTIFACT_DIR}/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.msi"
     ;;
 
   darwin)

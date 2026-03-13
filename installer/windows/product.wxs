@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package
+    Name="$(var.ProductName)"
+    Manufacturer="$(var.Manufacturer)"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
+    Scope="perMachine">
+
+    <!-- UPGRADE -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+
+    <!-- MEDIA -->
+    <MediaTemplate EmbedCab="yes"/>
+
+    <!-- ARP METADATA -->
+    <Property Id="ARPPRODUCTICON" Value="RedisHubIcon"/>
+    <Property Id="ARPHELPLINK" Value="https://github.com/tradalab/redishub"/>
+    <Property Id="ARPURLINFOABOUT" Value="https://redishub.tradalab.com"/>
+    <Property Id="ARPNOREPAIR" Value="1"/>
+
+    <!-- ICON -->
+    <Icon Id="RedisHubIcon" SourceFile="$(var.BinPath)\RedisHub.ico"/>
+
+    <!-- Close running app -->
+    <util:CloseApplication
+      Id="CloseRedisHub"
+      Target="RedisHub.exe"
+      CloseMessage="yes"
+      RebootPrompt="no"/>
+
+    <!-- Directories -->
+    <StandardDirectory Id="ProgramFilesFolder">
+      <Directory Id="COMPANYFOLDER" Name="$(var.Manufacturer)">
+        <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)"/>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="CompanyProgramsFolder" Name="$(var.Manufacturer)">
+        <Directory Id="AppProgramsFolder" Name="$(var.ProductName)"/>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder"/>
+
+    <!-- MAIN APP -->
+    <Component
+      Id="MainExecutable"
+      Directory="INSTALLFOLDER"
+      Guid="*">
+
+      <File
+        Id="RedisHubExe"
+        Source="$(var.BinPath)\RedisHub.exe"
+        KeyPath="yes"/>
+
+      <RemoveFolder
+        Id="RemoveInstallFolder"
+        Directory="INSTALLFOLDER"
+        On="uninstall"/>
+    </Component>
+
+    <!-- START MENU -->
+    <Component
+      Id="StartMenuShortcut"
+      Directory="AppProgramsFolder"
+      Guid="*">
+
+      <Shortcut
+        Id="StartMenuShortcutExe"
+        Name="$(var.ProductName)"
+        Description="$(var.ProductDesc)"
+        Target="[INSTALLFOLDER]RedisHub.exe"
+        WorkingDirectory="INSTALLFOLDER"
+        Icon="RedisHubIcon"/>
+
+      <Shortcut
+        Id="UninstallShortcut"
+        Name="Uninstall $(var.ProductName)"
+        Description="Uninstall $(var.ProductName)"
+        Target="[SystemFolder]msiexec.exe"
+        Arguments="/x [ProductCode]"
+        Icon="RedisHubIcon"/>
+
+      <RemoveFolder
+        Id="RemoveProgramsFolder"
+        Directory="AppProgramsFolder"
+        On="uninstall"/>
+
+      <RegistryValue
+        Root="HKCU"
+        Key="Software\$(var.Manufacturer)\$(var.ProductName)"
+        Name="StartMenuInstalled"
+        Type="integer"
+        Value="1"
+        KeyPath="yes"/>
+    </Component>
+
+    <!-- DESKTOP SHORTCUT -->
+    <Component Id="DesktopShortcut"
+               Directory="DesktopFolder"
+               Guid="*">
+
+      <Shortcut
+        Id="DesktopShortcutExe"
+        Directory="DesktopFolder"
+        Name="$(var.ProductName)"
+        Description="$(var.ProductDesc)"
+        Target="[INSTALLFOLDER]RedisHub.exe"
+        WorkingDirectory="INSTALLFOLDER"
+        Icon="RedisHubIcon"/>
+
+      <RegistryValue
+        Root="HKCU"
+        Key="Software\$(var.Manufacturer)\$(var.ProductName)"
+        Name="DesktopShortcut"
+        Type="integer"
+        Value="1"
+        KeyPath="yes"/>
+    </Component>
+
+    <!-- COMPONENT GROUP -->
+    <ComponentGroup Id="ProductComponents">
+      <ComponentRef Id="MainExecutable"/>
+      <ComponentRef Id="StartMenuShortcut"/>
+      <ComponentRef Id="DesktopShortcut"/>
+    </ComponentGroup>
+
+    <!-- FEATURE -->
+    <Feature Id="MainFeature" Title="$(var.ProductName)" Level="1">
+      <ComponentGroupRef Id="ProductComponents"/>
+    </Feature>
+  </Package>
+
+</Wix>
