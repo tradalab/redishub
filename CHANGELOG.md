@@ -2,6 +2,36 @@
 
 ---
 
+## [1.5.0]
+
+### 🚀 Features
+
+- **ssh:** Support SSH tunnel connections (#19)
+- **settings:** Update settings dialog UI (#21)
+- **group:** Use context and API hooks for group management (#20)
+- **connection:** Use context and API hooks for connection management
+- **windows:** Upgrade Windows packer configuration (#22)
+- **config:** Add connection timeout configuration
+
+### 🐛 Fixes
+
+- Fix bridge logic injection
+
+### 📝 Documentation
+
+- Use Git-based download links
+- Add documentation site using Nextra (#18)
+
+### ♻️ Improvements & Refactors
+
+- Update CSS styles and coding conventions
+
+### 🔧 Chores
+
+- Bump Go dependencies
+
+---
+
 ## [1.4.0]
 
 ### 🚀 Features
