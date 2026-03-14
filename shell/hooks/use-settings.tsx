@@ -15,7 +15,8 @@ export function useSettings() {
   const fetchSettings = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await scorix.invoke<SettingDO[]>("ext:gorm:Query", 'SELECT * FROM "setting" WHERE deleted_at IS NULL ORDER BY key')
+      const sql = 'SELECT * FROM "setting" WHERE deleted_at IS NULL ORDER BY key'
+      const data = await scorix.invoke<SettingDO[]>("mod:gorm:Query", { sql })
       setSettings(data || [])
     } catch (e) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
@@ -33,7 +34,8 @@ export function useSettings() {
         const v = sqlEscape(val)
 
         const result = await scorix.invoke<SettingDO[]>(
-          "ext:gorm:Query",
+          "mod:gorm:Query",
+          {sql:
           `
             INSERT INTO "setting" (key, val)
             VALUES ('${k}', '${v}') ON CONFLICT (key)
@@ -41,7 +43,7 @@ export function useSettings() {
             UPDATE SET
               val = EXCLUDED.val
               RETURNING *
-          `
+          `}
         )
 
         const updated = result?.[0]

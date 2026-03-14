@@ -11,10 +11,8 @@ export function useSshList() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const data = await scorix.invoke<SshDO[]>(
-        "ext:gorm:Query",
-        'SELECT * FROM "ssh" WHERE deleted_at IS NULL'
-      )
+      const sql =  'SELECT * FROM "ssh" WHERE deleted_at IS NULL'
+      const data = await scorix.invoke<SshDO[]>("mod:gorm:Query", { sql })
       return data || []
     },
   })
@@ -40,7 +38,7 @@ export function useUpsertSsh() {
           '${values.passphrase ?? ""}'
         )
       `
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
       return id
     },
 
@@ -55,7 +53,7 @@ export function useDeleteSsh() {
   return useMutation({
     mutationFn: async (id: string) => {
       const sql = `DELETE FROM ssh WHERE id = '${id}'`
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: QUERY_KEY})

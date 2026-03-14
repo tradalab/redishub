@@ -27,7 +27,7 @@ func NewClientConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cli
 
 func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interface{}, error) {
 	var connection *do.ConnectionDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Preload("Ssh").Where("id = ?", params.ConnectionId).Find(&connection)
+	result := l.svcCtx.GormMod.DB().WithContext(l.ctx).Model(&do.ConnectionDO{}).Preload("Ssh").Where("id = ?", params.ConnectionId).Find(&connection)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -36,7 +36,7 @@ func (l *ClientConnectLogic) ClientConnectLogic(params ConnectLogicArgs) (interf
 	}
 
 	if connection.LastDb != params.DatabaseIndex {
-		l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Updates(map[string]interface{}{"last_db": params.DatabaseIndex})
+		l.svcCtx.GormMod.DB().WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Updates(map[string]interface{}{"last_db": params.DatabaseIndex})
 	}
 
 	_, err := l.svcCtx.Cli.Add(connection, params.DatabaseIndex)

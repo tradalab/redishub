@@ -20,8 +20,8 @@ export const useDbStore = create<DbState>(set => ({
     set({ loading: true })
     try {
       const [groups, databases] = await Promise.all([
-        scorix.invoke<GroupDO[]>("ext:gorm:Query", 'SELECT * FROM "group" WHERE deleted_at IS NULL'),
-        scorix.invoke<ConnectionDO[]>("ext:gorm:Query", 'SELECT * FROM "connection" WHERE deleted_at IS NULL'),
+        scorix.invoke<GroupDO[]>("mod:gorm:Query", { sql: 'SELECT * FROM "group" WHERE deleted_at IS NULL' }),
+        scorix.invoke<ConnectionDO[]>("mod:gorm:Query", { sql: 'SELECT * FROM "connection" WHERE deleted_at IS NULL' }),
       ])
 
       set({ groups, databases })

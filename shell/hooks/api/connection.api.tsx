@@ -11,10 +11,8 @@ export function useConnectionList() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const data = await scorix.invoke<ConnectionDO[]>(
-        "ext:gorm:Query",
-        'SELECT * FROM "connection" WHERE deleted_at IS NULL'
-      )
+      const sql = 'SELECT * FROM "connection" WHERE deleted_at IS NULL'
+      const data = await scorix.invoke<ConnectionDO[]>("mod:gorm:Query", { sql })
       return data || []
     },
   })
@@ -43,7 +41,7 @@ export function useUpsertConnection() {
           ${values.ssh_enable ?? false}
         )
       `
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
       return id
     },
 
@@ -58,7 +56,7 @@ export function useDeleteConnection() {
   return useMutation({
     mutationFn: async (id: string) => {
       const sql = `DELETE FROM "connection" WHERE id = '${id}'`
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: QUERY_KEY})

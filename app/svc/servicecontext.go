@@ -4,35 +4,25 @@ import (
 	"github.com/tradalab/rdms/app/dal/do"
 	scorix "github.com/tradalab/scorix/kernel"
 	"github.com/tradalab/scorix/kernel/core/config"
-	"github.com/tradalab/scorix/kernel/core/extension"
-	gormext "github.com/tradalab/scorix/kernel/core/extensions/gorm"
-	"gorm.io/gorm"
+	gormmod "github.com/tradalab/scorix/module/gorm"
 )
 
 type ServiceContext struct {
-	Cfg *config.Config
-	App scorix.App
-	Db  *gorm.DB
-	Cli *ClientManager
+	Cfg     *config.Config
+	App     scorix.App
+	GormMod *gormmod.GormModule
+	Cli     *ClientManager
 }
 
 func NewServiceContext(cfg *config.Config, app scorix.App) *ServiceContext {
-	gext, ok := extension.GetExt[*gormext.GormExt]("gorm")
-	if !ok {
-		panic("gorm extension not found")
-	}
-
-	err := gext.DB().Transaction(func(tx *gorm.DB) error {
-		return tx.Migrator().AutoMigrate(do.MigrationDst...)
-	})
-	if err != nil {
-		panic(err)
-	}
+	_gormmod := gormmod.New()
+	_gormmod.RegisterModel(do.MigrationDst...)
+	app.Modules().Register(_gormmod)
 
 	return &ServiceContext{
-		Cfg: cfg,
-		App: app,
-		Db:  gext.DB(),
-		Cli: NewManager(),
+		Cfg:     cfg,
+		App:     app,
+		Cli:     NewManager(),
+		GormMod: _gormmod,
 	}
 }

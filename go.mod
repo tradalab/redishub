@@ -2,8 +2,6 @@ module github.com/tradalab/rdms
 
 go 1.26.0
 
-//replace github.com/tradalab/scorix/kernel => ../scorix/kernel
-
 require (
 	github.com/energye/systray v1.0.3
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -12,7 +10,7 @@ require (
 	github.com/samber/lo v1.53.0
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef
-	github.com/tradalab/scorix/kernel v0.0.0-20260303073109-b1847da0d4a1
+	github.com/tradalab/scorix v0.1.0
 	golang.org/x/crypto v0.49.0
 	golang.org/x/image v0.37.0
 	gorm.io/gorm v1.31.1

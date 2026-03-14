@@ -7,6 +7,8 @@ import (
 	"github.com/tradalab/rdms/app/handler"
 	"github.com/tradalab/rdms/app/svc"
 	scorix "github.com/tradalab/scorix/kernel"
+	browsermod "github.com/tradalab/scorix/module/browser"
+	updatermod "github.com/tradalab/scorix/module/updater"
 )
 
 //go:embed .scorix/dist/*
@@ -50,6 +52,9 @@ func main() {
 
 	//logger.Info("init svcCtx")
 	svcCtx := svc.NewServiceContext(app.Cfg(), app)
+
+	app.Modules().Register(browsermod.New())
+	app.Modules().Register(updatermod.New())
 
 	//logger.Info("inject logic")
 	handler.RegisterHandlers(svcCtx)

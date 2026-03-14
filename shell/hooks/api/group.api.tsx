@@ -11,10 +11,8 @@ export function useGroupList() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const data = await scorix.invoke<GroupDO[]>(
-        "ext:gorm:Query",
-        'SELECT * FROM "group" WHERE deleted_at IS NULL'
-      )
+      const sql = 'SELECT * FROM "group" WHERE deleted_at IS NULL'
+      const data = await scorix.invoke<GroupDO[]>("mod:gorm:Query", { sql })
       return data || []
     },
   })
@@ -26,7 +24,7 @@ export function useUpsertGroup() {
     mutationFn: async (values: Partial<GroupDO>) => {
       const id = values.id ?? uuidv7()
       const sql = `INSERT OR REPLACE INTO "group" (id, name) VALUES ('${id}', '${values.name ?? ""}')`
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
       return id
     },
     onSuccess: () => {
@@ -40,7 +38,7 @@ export function useDeleteGroup() {
   return useMutation({
     mutationFn: async (id: string) => {
       const sql = `DELETE FROM "group" WHERE id = '${id}'`
-      await scorix.invoke("ext:gorm:Query", sql)
+      await scorix.invoke("mod:gorm:Query", {sql})
     },
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: QUERY_KEY})

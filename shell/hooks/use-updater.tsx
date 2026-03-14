@@ -16,7 +16,7 @@ export function useUpdater() {
   const checkUpdate = async () => {
     setLoading(true)
     try {
-      const res: { new_version: string; notes: string } = await scorix.invoke("ext:updater:CheckForUpdate", {})
+      const res: { new_version: string; notes: string } = await scorix.invoke("mod:updater:CheckForUpdate", {})
       setNewVersion(res.new_version)
       setNotes(res.notes)
     } catch (e: any) {
@@ -32,7 +32,7 @@ export function useUpdater() {
   const fullUpdate = async () => {
     setLoading(true)
     try {
-      await scorix.invoke("ext:updater:FullUpdate", {})
+      await scorix.invoke("mod:updater:FullUpdate", {})
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)

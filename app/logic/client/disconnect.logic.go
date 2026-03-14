@@ -27,7 +27,7 @@ func NewClientDisconnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 
 func (l *ClientDisconnectLogic) ClientDisconnectLogic(params DisconnectLogicArgs) (interface{}, error) {
 	var database *do.ConnectionDO
-	result := l.svcCtx.Db.WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&database)
+	result := l.svcCtx.GormMod.DB().WithContext(l.ctx).Model(&do.ConnectionDO{}).Where("id = ?", params.ConnectionId).Find(&database)
 	if result.Error != nil {
 		return nil, result.Error
 	}

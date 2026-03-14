@@ -85,7 +85,7 @@ export function SidebarTool() {
                 tooltip={{ children: item.title, hidden: false }}
                 onClick={e => {
                   e.preventDefault()
-                  scorix.invoke("ext:browser:OpenUrl", item.url)
+                  scorix.invoke("mod:browser:OpenUrl", { url: item.url })
                 }}
               >
                 {item.icon}

@@ -40,7 +40,7 @@ export function SettingDialog({ children }: { children: ReactNode }) {
                   href="#"
                   onClick={e => {
                     e.preventDefault()
-                    scorix.invoke("ext:browser:OpenUrl", item.url)
+                    scorix.invoke("mod:browser:OpenUrl", { url: item.url })
                   }}
                   className="text-blue-500 underline"
                 >
