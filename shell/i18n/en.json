@@ -81,5 +81,9 @@
   "client_cert": "Client Certificate",
   "client_cert_placeholder": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
   "client_key": "Client Key",
-  "client_key_placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+  "client_key_placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+  "optional": "Optional",
+  "exec_timeout": "Execute Timeout (s)",
+  "dial_timeout": "Dial Timeout (s)",
+  "key_size": "Key Load Size"
 }

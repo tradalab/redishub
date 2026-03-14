@@ -163,32 +163,6 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
           )
         }}
       />
-      <FormField
-        control={form.control}
-        name="exec_timeout"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Execute Timeout (s)</FormLabel>
-            <FormControl>
-              <Input type="number" value={field.value ?? ""} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="dial_timeout"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Dial Timeout (s)</FormLabel>
-            <FormControl>
-              <Input type="number" value={field.value ?? ""} onChange={e => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </>
   )
 }

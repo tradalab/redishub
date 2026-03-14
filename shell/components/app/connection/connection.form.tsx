@@ -10,6 +10,7 @@ import { Panel } from "@/components/ui/trada-ui/panel"
 import { ConnectionGeneralForm } from "@/components/app/connection/connection-general.form"
 import { ConnectionSshTunnelForm } from "@/components/app/connection/connection-ssh-tunnel.form"
 import { ConnectionTlsForm } from "@/components/app/connection/connection-tls.form"
+import { ConnectionOptionalForm } from "@/components/app/connection/connection-optional.form"
 
 import { ConnectionDO } from "@/types/connection.do"
 
@@ -99,6 +100,11 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
                 key: "conn-general-form",
                 label: t("general"),
                 content: <ConnectionGeneralForm form={form} />,
+              },
+              {
+                key: "conn-optional-form",
+                label: t("optional"),
+                content: <ConnectionOptionalForm form={form} />,
               },
               {
                 key: "conn-tls-form",

@@ -21,6 +21,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       password: "",
       exec_timeout: 60,
       dial_timeout: 60,
+      key_size: 10000,
       ssh_id: "",
       ssh_enable: false,
       tls_id: "",

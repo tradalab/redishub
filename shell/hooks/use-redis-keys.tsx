@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 const DEFAULT_COUNT = 10000
 
-export function useRedisKeys(redisId: string, dbId: number = 0) {
+export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number = DEFAULT_COUNT) {
   const { state, dispatch } = useRedisKeysContext()
   const dbState = state[redisId]?.[dbId] || { keys: [], cursor: null, isLoading: false, pattern: "" }
 
@@ -58,18 +58,18 @@ export function useRedisKeys(redisId: string, dbId: number = 0) {
 
   const reload = useCallback(() => {
     dispatch({ type: "RESET_KEYS_BEFORE_LOAD", redisId, dbId, pattern: "*" })
-    return loadKeys(DEFAULT_COUNT, false)
-  }, [redisId, dbId, loadKeys, dispatch])
+    return loadKeys(keySize, false)
+  }, [redisId, dbId, keySize, loadKeys, dispatch])
 
   const loadMore = useCallback(() => {
     if (!dbState.cursor) return
-    return loadKeys(DEFAULT_COUNT, false)
-  }, [dbState.cursor, loadKeys])
+    return loadKeys(keySize, false)
+  }, [dbState.cursor, keySize, loadKeys])
 
   const loadAll = useCallback(() => {
     if (!dbState.cursor) return
-    return loadKeys(DEFAULT_COUNT, true)
-  }, [loadKeys])
+    return loadKeys(keySize, true)
+  }, [keySize, loadKeys])
 
   // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
   // update

@@ -81,5 +81,9 @@
   "client_cert": "クライアント証明書",
   "client_cert_placeholder": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
   "client_key": "クライアントキー",
-  "client_key_placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+  "client_key_placeholder": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+  "optional": "オプション",
+  "exec_timeout": "実行タイムアウト (秒)",
+  "dial_timeout": "接続タイムアウト (秒)",
+  "key_size": "キーロードサイズ"
 }

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ConnectionDO } from "@/types/connection.do"
 import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { useConnectionList } from "@/hooks/api/connection.api"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useTranslation } from "react-i18next"
@@ -28,7 +29,9 @@ export function SidebarBrowser() {
   const confirm = useConfirm()
 
   const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
-  const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
+  const { data: connectionList = [] } = useConnectionList()
+  const currentConnection = connectionList.find(c => c.id === selectedDb)
+  const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
 
   useEffect(() => {
     loadInfo()
