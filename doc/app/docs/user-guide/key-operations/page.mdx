@@ -1,0 +1,39 @@
+# Key Operations
+
+Explore and manage your data with ease using RedisHub's intuitive data browser.
+
+## Key Browser
+
+The key browser allows you to search and filter keys using glob patterns (e.g., `user:*`).
+
+### Browsing Keys
+- Select a database index from the dropdown (0-15 by default).
+- Use the search bar to filter keys by name.
+- Click a key to view its details and value.
+
+## Editing Data
+
+RedisHub supports all major Redis data types:
+
+### Strings
+View and edit plain string values. Supports different view modes (Text, JSON, Hex).
+
+### Hashes
+Manage field-value pairs in a tabular format. Add, edit, or delete individual fields.
+
+### Lists
+View list elements in order. Supports adding elements to the head or tail.
+
+### Sets
+Manage unique members of a set.
+
+### Sorted Sets (ZSet)
+Manage members with their associated scores.
+
+### Streams
+Browse stream entries with their IDs and field-value pairs.
+
+## Common Actions
+- **Delete Key**: Remove a key from the database.
+- **Rename Key**: Safely rename keys.
+- **Set TTL**: Set or update the expiration time (Time To Live) for a key.
