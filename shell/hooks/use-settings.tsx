@@ -6,7 +6,7 @@ import { SettingDO } from "@/types/setting.do"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
 
-export function useSettings() {
+export function useSettings(options?: { silent?: boolean }) {
   const { t } = useTranslation()
 
   const [settings, setSettings] = useState<SettingDO[]>([])
@@ -57,7 +57,9 @@ export function useSettings() {
           return next
         })
 
-        toast.success(t("updated"))
+        if (!options?.silent) {
+          toast.success(t("updated"))
+        }
         return updated.val
       } catch (e) {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")

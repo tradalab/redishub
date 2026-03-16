@@ -15,7 +15,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   const [newVersion, setNewVersion] = useState<string | undefined>()
   const [notes, setNotes] = useState<string | undefined>()
   const [autoupdate] = useSetting("autoupdate")
-  const [lastCheck, setLastCheck] = useSetting("last_update_check")
+  const [lastCheck, setLastCheck] = useSetting("last_update_check", { silent: true })
 
   const checkUpdate = async (options?: { silent?: boolean }) => {
     setLoading(true)
