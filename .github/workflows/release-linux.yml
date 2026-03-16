@@ -1,0 +1,50 @@
+name: Build & Release AppImage
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile_linux \
+            -t ghcr.io/tradalab/redishub-linux:latest \
+            --target artifacts \
+            .
+
+      - name: Create container
+        run: |
+          docker create --name extract ghcr.io/tradalab/redishub-linux:latest
+
+      - name: Copy artifacts from container
+        run: |
+          mkdir -p release
+          docker cp extract:/artifacts .
+          mv artifacts/* ./release/
+
+      - name: Remove container
+        run: |
+          docker rm extract
+
+      - name: List artifacts
+        run: ls -R release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/**/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
