@@ -10,6 +10,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 ####################################################################################################
+# SYSTEM ENV
+
+GOOS=${1:-$(go env GOOS)}
+GOARCH=${2:-$(go env GOARCH)}
+
+####################################################################################################
 # Shell
 
 echo "==> Lint & build shell"
@@ -37,4 +43,21 @@ cp -R "$DIST_SRC"/. "$DIST_DEST"/
 
 echo "==> Run application"
 
-go run -ldflags="-H=windowsgui" main.go
+case "$GOOS" in
+  windows)
+    go run -ldflags="-H=windowsgui" main.go
+    ;;
+
+  darwin)
+    go run main.go
+    ;;
+
+  linux)
+    go run main.go
+    ;;
+
+  *)
+    echo "!! unsupported OS: $GOOS"
+    exit 1
+    ;;
+esac
