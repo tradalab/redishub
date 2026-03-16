@@ -3,6 +3,8 @@ package handler
 import (
 	"context"
 
+	"runtime"
+
 	"github.com/tradalab/rdms/app/logic/client"
 	"github.com/tradalab/rdms/app/logic/conn"
 	"github.com/tradalab/rdms/app/logic/key"
@@ -51,6 +53,7 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)
 		},
+		// key
 		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {
 			return key.NewKeyHashFieldDelLogic(ctx, svcCtx).KeyHashFieldDelLogic(args)
 		},
@@ -72,6 +75,12 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		// ssh
 		"ssh:test": func(ctx context.Context, args ssh.SshTestLogicArgs) (interface{}, error) {
 			return ssh.NewSshTestLogic(ctx, svcCtx).SshTestLogic(args)
+		},
+		// system
+		"system:info": func(ctx context.Context, args any) (interface{}, error) {
+			return map[string]interface{}{
+				"platform": runtime.GOOS,
+			}, nil
 		},
 	}
 	for name, handler := range handlers {
