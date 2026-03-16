@@ -24,27 +24,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build and Export Artifacts
         run: |
           docker build \
             -f docker/Dockerfile_linux \
-            -t ghcr.io/tradalab/redishub-linux:latest \
             --target artifacts \
+            --output type=local,dest=./release \
             .
-
-      - name: Create container
-        run: |
-          docker create --name extract ghcr.io/tradalab/redishub-linux:latest
-
-      - name: Copy artifacts from container
-        run: |
-          mkdir -p release
-          docker cp extract:/artifacts .
-          mv artifacts/* ./release/
-
-      - name: Remove container
-        run: |
-          docker rm extract
 
       - name: List artifacts
         run: ls -R release
