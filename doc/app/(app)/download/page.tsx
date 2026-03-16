@@ -5,14 +5,12 @@ import { Download } from "lucide-react"
 
 const LATEST_VERSION = process.env.NEXT_PUBLIC_LATEST_VERSION
 
-// type OS = "windows" | "macos" | "linux"
-type OS = "windows"
+type OS = "windows" | "linux"
 type Arch = "amd64"
 
 const MATRIX: Record<OS, { label: string; ext: string; archs: Arch[] }> = {
   windows: { label: "Windows", ext: "msi", archs: ["amd64"] },
-  // macos: { label: "macOS", ext: "dmg", archs: ["x64", "arm64"] },
-  // linux: { label: "Linux", ext: "AppImage", archs: ["x64", "arm64"] },
+  linux: { label: "Linux", ext: "AppImage", archs: ["amd64"] },
 }
 
 export default function Page() {
