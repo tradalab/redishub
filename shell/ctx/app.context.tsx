@@ -3,7 +3,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { I18nextProvider } from "react-i18next"
-
 import i18n from "@/i18n"
 import scorix from "@/lib/scorix"
 import { ConnectionDO } from "@/types/connection.do"
@@ -13,6 +12,7 @@ import { SshProvider } from "@/components/app/ssh/ssh.provider"
 import { TlsProvider } from "@/components/app/tls/tls.provider"
 import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 import { GroupProvider } from "@/components/app/group/group.provider"
+import { UpdaterProvider } from "@/components/app/updater/updater.provider"
 
 interface AppContextType {
   selectedTab: string
@@ -130,15 +130,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             setLanguage,
           }}
         >
-          <SshProvider>
-            <TlsProvider>
-              <ConnectionProvider>
-                <GroupProvider>
-                  {children}
-                </GroupProvider>
-              </ConnectionProvider>
-            </TlsProvider>
-          </SshProvider>
+          <UpdaterProvider>
+            <SshProvider>
+              <TlsProvider>
+                <ConnectionProvider>
+                  <GroupProvider>
+                    {children}
+                  </GroupProvider>
+                </ConnectionProvider>
+              </TlsProvider>
+            </SshProvider>
+          </UpdaterProvider>
         </AppContext.Provider>
       </QueryClientProvider>
     </I18nextProvider>

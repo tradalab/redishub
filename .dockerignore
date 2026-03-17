@@ -35,3 +35,5 @@ doc
 **/node_modules
 **/dist
 **/.idea
+
+dev/

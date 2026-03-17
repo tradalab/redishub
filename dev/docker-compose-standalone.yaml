@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  redis-standalone:
+    image: redis:7.2
+    container_name: redis-standalone
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./standalone.conf:/usr/local/etc/redis/redis.conf
+      - redis-standalone-data:/data
+    ports:
+      - "6001:6379"
+    networks:
+      - redis-net
+
+volumes:
+  redis-standalone-data:
+
+networks:
+  redis-net:
+    driver: bridge

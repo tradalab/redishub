@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { useSsh } from "@/components/app/ssh/ssh.context"
 import { useSshList } from "@/hooks/api/ssh.api"
 
-export function ConnectionSshTunnelForm({ form }: { form: UseFormReturn }) {
+export function ConnectionSshTunnelForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
   const ssh = useSsh()
   const { data: sshList = [] } = useSshList()

@@ -9,7 +9,6 @@ import { Toaster } from "@/components/ui/sonner"
 import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/components/app/loading"
-import { Updater } from "@/components/app/updater/updater"
 import { RedisKeysProvider } from "@/ctx/redis-keys.context"
 import { ThemeProvider } from "next-themes"
 import { ConfirmProvider } from "@/components/ui/trada-ui/confirm/confirm-provider"
@@ -51,7 +50,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     <div className="flex-1 min-h-0 flex flex-col">{children}</div>
                     <Toaster />
                     <Loading />
-                    <Updater />
                   </SidebarInset>
                 </SidebarProvider>
               </RedisKeysProvider>

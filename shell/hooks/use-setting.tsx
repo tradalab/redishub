@@ -3,8 +3,8 @@
 import { useCallback } from "react"
 import { useSettings } from "./use-settings"
 
-export function useSetting(key: string) {
-  const { get, set } = useSettings()
+export function useSetting(key: string, options?: { silent?: boolean }) {
+  const { get, set } = useSettings(options)
 
   const value = get(key)
 

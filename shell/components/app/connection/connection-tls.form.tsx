@@ -12,7 +12,7 @@ import { TlsDO } from "@/types/tls.do"
 import { useTlsList } from "@/hooks/api/tls.api"
 import { useTls } from "@/components/app/tls/tls.context"
 
-export function ConnectionTlsForm({ form }: { form: UseFormReturn }) {
+export function ConnectionTlsForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
   const { data: tlsList = [] } = useTlsList()
   const tls = useTls()

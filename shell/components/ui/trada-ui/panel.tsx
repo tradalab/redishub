@@ -9,6 +9,7 @@ type PanelItemType = {
   key: string
   label: string
   danger?: boolean
+  hasError?: boolean
   content: ReactNode
 }
 
@@ -58,7 +59,10 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
                 active === s.key ? "bg-background text-foreground shadow-sm" : s.danger ? "text-destructive" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              {s.label}
+              <span className="relative">
+                {s.label}
+                {s.hasError && <span className="absolute -top-1 -right-2 flex h-2 w-2 rounded-full bg-destructive" />}
+              </span>
             </button>
           ))}
         </div>
@@ -69,7 +73,7 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
         {/* Sidebar */}
         <aside className="hidden space-y-1 lg:block overflow-y-auto min-h-0 pr-1 [overflow:overlay]">
           {items?.map(s => (
-            <PanelItem key={s.key} active={active === s.key} danger={s.danger} onClick={() => navigate(s.key)}>
+            <PanelItem key={s.key} active={active === s.key} danger={s.danger} hasError={s.hasError} onClick={() => navigate(s.key)}>
               {s.label}
             </PanelItem>
           ))}
@@ -81,16 +85,25 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
   )
 }
 
-function PanelItem({ children, active, danger, onClick }: { children: ReactNode; active?: boolean; danger?: boolean; onClick?: () => void }) {
+export interface PanelItemProps {
+  children: ReactNode
+  active?: boolean
+  danger?: boolean
+  hasError?: boolean
+  onClick?: () => void
+}
+
+function PanelItem({ children, active, danger, hasError, onClick }: PanelItemProps) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "cursor-pointer rounded-md px-3 py-2 text-sm transition-colors",
+        "cursor-pointer rounded-md px-3 py-2 text-sm transition-colors flex items-center justify-between",
         active ? "bg-muted font-medium" : danger ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:bg-muted"
       )}
     >
-      {children}
+      <span>{children}</span>
+      {hasError && <span className="h-2 w-2 rounded-full bg-destructive" />}
     </div>
   )
 }

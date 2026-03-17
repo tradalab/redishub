@@ -5,7 +5,6 @@
 artifacts
 
 dist/
-dev/
 
 /pkg/genicon
 /pkg/png2ico

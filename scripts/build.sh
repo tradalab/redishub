@@ -123,7 +123,7 @@ case "$GOOS" in
       --icon-file installer/linux/RedisHub.png \
       --output appimage
 
-    mv RedisHub-x86_64.AppImage $ARTIFACT_DIR
+    mv RedisHub-x86_64.AppImage $ARTIFACT_DIR/${APP_NAME}-${VERSION}-${GOOS}-${GOARCH}.AppImage
     ;;
 
   *)
