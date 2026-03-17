@@ -22,6 +22,7 @@ export type ConnectionDO = {
   sock: string
   username: string
   password: string
+  addr_mapping: string
   last_db: number
   exec_timeout: number
   dial_timeout: number

@@ -26,7 +26,7 @@ export function useUpsertConnection() {
       const sql = `
         INSERT
         OR REPLACE INTO "connection"
-        (id, name, mode, network, host, port, addrs, sentinel_master, sentinel_username, sentinel_password, sock, username, password, last_db, group_id, ssh_id, ssh_enable, tls_id, tls_enable, exec_timeout, dial_timeout, key_size)
+        (id, name, mode, network, host, port, addrs, sentinel_master, sentinel_username, sentinel_password, sock, username, password, addr_mapping, last_db, group_id, ssh_id, ssh_enable, tls_id, tls_enable, exec_timeout, dial_timeout, key_size)
         VALUES (
           '${id}',
           '${values.name ?? ""}',
@@ -41,6 +41,7 @@ export function useUpsertConnection() {
           '${values.sock ?? ""}',
           '${values.username ?? ""}',
           '${values.password ?? ""}',
+          '${values.addr_mapping ?? ""}',
           ${values.last_db ?? 0},
           ${values.group_id ? `'${values.group_id}'` : "NULL"},
           ${values.ssh_id ? `'${values.ssh_id}'` : "NULL"},

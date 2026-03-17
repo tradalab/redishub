@@ -130,29 +130,46 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		options.Addrs = []string{cfg.Addr()}
 	}
 
+	// set Address Mapping
+	addrMap := make(map[string]string)
+	if cfg.AddrMapping != "" {
+		lines := append([]string{}, netx.SplitLines(cfg.AddrMapping)...)
+		for _, line := range lines {
+			if kv := netx.SplitKV(line, "="); len(kv) == 2 {
+				addrMap[kv[0]] = kv[1]
+			}
+		}
+	}
+
 	// set SSH tunnel
+	var sshClient *ssh.Client
 	if cfg.SshEnable {
 		sshConfig, err := cfg.Ssh.BuildClientCfg()
 		if err != nil {
 			return nil, err
 		}
-
 		sshAddr := cfg.Ssh.Addr()
-
-		sshClient, err := ssh.Dial("tcp", sshAddr, sshConfig)
+		sshClient, err = ssh.Dial("tcp", sshAddr, sshConfig)
 		if err != nil {
 			return nil, fmt.Errorf("ssh dial failed: %w", err)
 		}
+	}
 
-		var localAddrs []string
-		for _, remoteAddr := range options.Addrs {
-			localAddr, err := netx.StartSSHTunnel(sshClient, "tcp", remoteAddr)
-			if err != nil {
-				return nil, err
-			}
-			localAddrs = append(localAddrs, localAddr)
+	// build Dialer
+	options.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		dialAddr := addr
+		if mapped, ok := addrMap[addr]; ok {
+			dialAddr = mapped
 		}
-		options.Addrs = localAddrs
+
+		if cfg.SshEnable && sshClient != nil {
+			return sshClient.Dial(network, dialAddr)
+		}
+
+		return (&net.Dialer{
+			Timeout:   options.DialTimeout,
+			KeepAlive: options.ReadTimeout,
+		}).DialContext(ctx, network, dialAddr)
 	}
 
 	// set TLS

@@ -19,6 +19,7 @@ type ConnectionDO struct {
 	Sock             string   `json:"sock" gorm:"column:sock;"`
 	Username         string   `json:"username" gorm:"column:username;"`
 	Password         string   `json:"password" gorm:"column:password;"`
+	AddrMapping      string   `json:"addr_mapping" gorm:"column:addr_mapping;"`
 	LastDb           int      `json:"last_db" gorm:"column:last_db;default:0;"`
 	ExecTimeout      int64    `json:"exec_timeout" gorm:"column:exec_timeout;default:60;"`
 	DialTimeout      int64    `json:"dial_timeout" gorm:"column:dial_timeout;default:60;"`

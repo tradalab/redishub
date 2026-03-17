@@ -4,7 +4,7 @@ services:
   redis-master:
     image: redis:7.2
     container_name: redis-master
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --replica-announce-ip ${RDH_HOST_IP:-127.0.0.1} --replica-announce-port 8001
     volumes:
       - ./redis-sentinel-node.conf:/usr/local/etc/redis/redis.conf
     ports:
@@ -15,7 +15,7 @@ services:
   redis-replica:
     image: redis:7.2
     container_name: redis-replica
-    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379
+    command: redis-server /usr/local/etc/redis/redis.conf --replicaof redis-master 6379 --replica-announce-ip ${RDH_HOST_IP:-127.0.0.1} --replica-announce-port 8002
     volumes:
       - ./redis-sentinel-node.conf:/usr/local/etc/redis/redis.conf
     depends_on:
@@ -28,7 +28,7 @@ services:
   redis-sentinel:
     image: redis:7.2
     container_name: redis-sentinel
-    command: redis-sentinel /etc/redis/sentinel.conf
+    command: redis-sentinel /etc/redis/sentinel.conf --sentinel announce-ip ${RDH_HOST_IP:-127.0.0.1} --sentinel announce-port 9001
     volumes:
       - ./sentinel.conf:/etc/redis/sentinel.conf
     ports:

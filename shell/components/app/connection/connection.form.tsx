@@ -35,6 +35,7 @@ const connectionSchema = z
     sock: z.string().optional().nullable(),
     username: z.string().optional().nullable(),
     password: z.string().optional().nullable(),
+    addr_mapping: z.string().optional().nullable(),
     last_db: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().optional()),
     exec_timeout: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
     dial_timeout: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),

@@ -1,6 +1,7 @@
 {
   "auto_check": "Enable automatic update checks",
   "auto_update": "Automatic Updates",
+  "advanced": "Advanced",
   "auth_type": "Auth Type",
   "browser": "Browser",
   "cancel": "Cancel",
@@ -112,6 +113,8 @@
   "master_username": "Master Username",
   "master_password": "Master Password",
   "import_from_standalone": "Import from Standalone",
+  "addr_mapping": "Address Mapping (NAT)",
+  "addr_mapping_help": "Translate unreachable internal IPs to reachable host addresses. Format: internal:port=external:port, one per line.",
   "addrs": "Addresses",
   "addrs_placeholder": "Example: 127.0.0.1:6379,127.0.0.1:6380\nOne address per line or comma separated"
 }

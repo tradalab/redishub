@@ -1,7 +1,8 @@
 {
   "auto_check": "自動アップデート確認",
   "auto_update": "自動アップデート",
-  "auth_type": "認証方式",
+  "advanced": "詳細設定",
+  "auth_type": "認証タイプ",
   "browser": "ブラウザ",
   "cancel": "キャンセル",
   "check_update": "アップデート確認",
@@ -112,6 +113,8 @@
   "master_username": "マスターユーザー名",
   "master_password": "マスターパスワード",
   "import_from_standalone": "スタンドアローンからインポート",
+  "addr_mapping": "アドレスマッピング (NAT)",
+  "addr_mapping_help": "到達不能な内部IPを到達可能なホストアドレスに変換します。形式: 内部:ポート=外部:ポート、1行に1つ。",
   "addrs": "アドレス",
   "addrs_placeholder": "例: 127.0.0.1:6379,127.0.0.1:6380\n1行に1つのアドレス、またはカンマ区切り"
 }
