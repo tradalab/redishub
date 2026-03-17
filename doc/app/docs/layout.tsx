@@ -1,5 +1,3 @@
-"use client"
-
 import "nextra-theme-docs/style.css"
 import React from "react"
 import {Layout, Navbar} from "nextra-theme-docs"

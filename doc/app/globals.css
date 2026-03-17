@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "./mdx.css";
 @plugin "tailwind-scrollbar-hide";
 
 @custom-variant dark (&:is(.dark *));

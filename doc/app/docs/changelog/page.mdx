@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.7.0]
+    
+### 🚀 Features
+
+- **connection:** Enhanced Sentinel support with separate Master/Sentinel credentials and grouping
+- **connection:** Robust Cluster support with seed address import functionality
+- **connection:** Implement Address Mapping (NAT Traversal) for reaching internal Docker/NAT nodes
+- **connection:** Dynamic SSH Dialer support for discovery-based connections (Sentinel/Cluster)
+- **updater:** Add silent update setting and rate limit for check-update
+- **ui:** Add multi-tab validation indicators (error dots on tabs)
+- **i18n:** Added support for new connection fields and better localizations
+- **linux:** Support Linux release and AppImage artifacts
+
+### 🐛 Fixes
+
+- **connection:** Fix "expected string, received null" Zod validation error
+- **ssh:** Fix SSH connection stability and `panic in queuedNewConn` by reusing SSH clients
+- **docker:** Fix dev networking with `RDH_HOST_IP` for proper node announcement
+- **updater:** Refactor updater to use provider pattern and improved setting management
+
+### ♻️ Improvements & Refactors
+
+- **refactor:** Decouple SSH tunneling from static port forwarding using custom `Dialer`
+- **ui:** Improve connection form layout and alignment
+- **scripts:** Update build and dev orchestration scripts
+
 ---
 
 ## [1.6.0]

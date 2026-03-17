@@ -1,0 +1,48 @@
+# Connection Management
+
+RedisHub provides a versatile connection manager designed to handle complex networking and security configurations across various Redis architectures.
+
+## Adding a New Connection
+
+1. Click on the **+** (Plus) icon in the sidebar.
+2. Select your **Connection Type** (Standalone, Cluster, or Sentinel).
+3. Fill in the connection details:
+    - **Name**: A descriptive name for the instance.
+    - **Address**: The host and port (e.g., `127.0.0.1:6379`).
+
+## Supported Architectures
+
+### Standalone
+The standard connection type for a single Redis instance. Ideal for development and simple production environments.
+
+### Cluster
+Optimized for high-performance Redis Clusters. 
+- **Seed Address Import**: Quickly import your primary host/port as a seed address to begin discovery.
+- **Automatic Discovery**: Provide one or more seed nodes; RedisHub will automatically discover the entire cluster topology.
+- **Slot Mapping**: Intelligent routing of commands to the correct master nodes.
+
+### Sentinel
+Designed for high-availability setups.
+- **Master Name**: Specify the monitored master set name.
+- **Sentinel Nodes**: List the addresses of your Sentinel instances for reliable master discovery.
+- **Dual Credentials**: Support for separate Sentinel-level and Master-level authentication.
+
+## Security & Advanced Networking
+
+### SSH & Dynamic Dialing
+Securely connect to Redis servers within private networks.
+- **Dynamic Routing**: Unlike static port forwarding, RedisHub uses a dynamic SSH dialer that can reach any discovered node (Sentinel replicas, Cluster shards) through a single SSH tunnel.
+- **Authentication**: Supports password, private key, and SSH agent.
+
+### Address Mapping (NAT Traversal)
+For environments where Redis nodes report internal unreachable IPs (e.g., Docker containers), use **Address Mapping** in the *Optional* tab.
+- **Translation**: Map internal `ip:port` to host-reachable `ip:port`.
+- **Flexibility**: Ensures connectivity even when server-side NAT configuration cannot be changed.
+
+### TLS/SSL & mTLS
+Ensure end-to-end encryption for your data.
+- **One-way TLS**: Validate server identity using CA certificates.
+- **Mutual TLS (mTLS)**: Enhanced security requiring both server and client certificate validation.
+
+### Performance Tuning
+Configure **Dial Timeout** and **Execute Timeout** in the *Optional* tab to handle high-latency or high-load environments.
