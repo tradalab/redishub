@@ -3,6 +3,14 @@
 # Configuration
 COMPOSE_FILES=("-f" "docker-compose-standalone.yaml" "-f" "docker-compose-sentinel.yaml" "-f" "docker-compose-cluster.yaml")
 
+# Detect Host IP for Redis Cluster announcement
+# This is required for Windows host to connect to Cluster nodes in separate containers
+export RDH_HOST_IP=$(ipconfig.exe | grep "IPv4 Address" | head -n 1 | awk '{print $NF}' | tr -d '\r')
+if [ -z "$RDH_HOST_IP" ]; then
+    export RDH_HOST_IP="127.0.0.1"
+fi
+echo "Using Host IP for Cluster announcement: $RDH_HOST_IP"
+
 function up() {
     echo "Starting all Redis components..."
     docker compose "${COMPOSE_FILES[@]}" up -d
@@ -24,13 +32,13 @@ function logs() {
 }
 
 function init_cluster() {
-    echo "Initializing Redis Cluster..."
-    # Wait a bit for nodes to be ready
+    echo "Initializing Redis Cluster (Separate Instances)..."
+    # Wait for nodes
     sleep 5
     docker exec redis-node-1 redis-cli -a rdh_cluster_pwd --cluster create \
-        $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis-node-1):6379 \
-        $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis-node-2):6379 \
-        $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis-node-3):6379 \
+        $RDH_HOST_IP:7001 \
+        $RDH_HOST_IP:7002 \
+        $RDH_HOST_IP:7003 \
         --cluster-replicas 0 --cluster-yes
 }
 

@@ -4,7 +4,7 @@ services:
   redis-node-1:
     image: redis:7.2
     container_name: redis-node-1
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --cluster-announce-ip ${RDH_HOST_IP:-127.0.0.1} --cluster-announce-port 7001 --cluster-announce-bus-port 17001
     volumes:
       - ./cluster.conf:/usr/local/etc/redis/redis.conf
       - redis-node-1:/data
@@ -17,7 +17,7 @@ services:
   redis-node-2:
     image: redis:7.2
     container_name: redis-node-2
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --cluster-announce-ip ${RDH_HOST_IP:-127.0.0.1} --cluster-announce-port 7002 --cluster-announce-bus-port 17002
     volumes:
       - ./cluster.conf:/usr/local/etc/redis/redis.conf
       - redis-node-2:/data
@@ -30,7 +30,7 @@ services:
   redis-node-3:
     image: redis:7.2
     container_name: redis-node-3
-    command: redis-server /usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf --cluster-announce-ip ${RDH_HOST_IP:-127.0.0.1} --cluster-announce-port 7003 --cluster-announce-bus-port 17003
     volumes:
       - ./cluster.conf:/usr/local/etc/redis/redis.conf
       - redis-node-3:/data
