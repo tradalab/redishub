@@ -9,10 +9,15 @@ export type ConnectionDO = {
   deleted_at: string
   group_id: string
   group: GroupDO
+  mode: "standalone" | "sentinel" | "cluster"
   name: string
   network: string
   host: string
   port: number
+  addrs: string
+  sentinel_master: string
+  sentinel_username: string
+  sentinel_password: string
   sock: string
   username: string
   password: string

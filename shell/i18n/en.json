@@ -89,5 +89,21 @@
   "optional": "Optional",
   "exec_timeout": "Execute Timeout (s)",
   "dial_timeout": "Dial Timeout (s)",
-  "key_size": "Key Load Size"
+  "key_size": "Key Load Size",
+  "mode": "Mode",
+  "standalone": "Standalone",
+  "sentinel": "Sentinel",
+  "cluster": "Cluster",
+  "sentinel_master": "Master Group Name",
+  "sentinel_master_help": "The name of the Redis master group to discover (e.g., 'mymaster').",
+  "sentinel_username": "Sentinel Username",
+  "sentinel_password": "Sentinel Password",
+  "sentinel_auth_help": "Credentials used to authenticate with the Sentinel nodes.",
+  "master_credentials": "Master Credentials",
+  "master_credentials_help": "Credentials used to authenticate with the actual Redis instance(s).",
+  "sentinel_settings": "Sentinel Settings",
+  "cluster_settings": "Cluster Settings",
+  "instance_settings": "Instance Settings",
+  "addrs": "Addresses",
+  "addrs_placeholder": "Example: 127.0.0.1:6379,127.0.0.1:6380\nOne address per line or comma separated"
 }

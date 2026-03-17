@@ -3,9 +3,8 @@ package svc
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/url"
-	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -57,9 +56,20 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 	return cli, nil
 }
 
-func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, error) {
-	options := &redis.Options{
-		Addr:            cfg.Addr(),
+func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (redis.UniversalClient, error) {
+	options, err := m.buildOptions(cfg, dbIdx)
+	if err != nil {
+		return nil, err
+	}
+
+	rdb := redis.NewUniversalClient(options)
+
+	return rdb, nil
+}
+
+func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.UniversalOptions, error) {
+	options := &redis.UniversalOptions{
+		Addrs:           []string{cfg.Addr()},
 		Username:        cfg.Username,
 		Password:        cfg.Password,
 		DB:              dbIdx,
@@ -70,28 +80,36 @@ func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, er
 		IdentitySuffix:  "redishub_",
 	}
 
-	// set network
-	switch cfg.Network {
-	case "unix":
-		options.Network = "unix"
-		if len(cfg.Sock) <= 0 {
-			options.Addr = "/tmp/redis.sock"
-		} else {
-			options.Addr = cfg.Sock
+	switch cfg.Mode {
+	case "sentinel":
+		options.MasterName = cfg.SentinelMaster
+		options.SentinelUsername = cfg.SentinelUsername
+		options.SentinelPassword = cfg.SentinelPassword
+		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
+			return r == ',' || r == '\n' || r == '\r'
+		})
+	case "cluster":
+		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
+			return r == ',' || r == '\n' || r == '\r'
+		})
+	default: // standalone/standalone-like
+		// set network
+		switch cfg.Network {
+		case "unix":
+			if len(cfg.Sock) <= 0 {
+				options.Addrs = []string{"/tmp/redis.sock"}
+			} else {
+				options.Addrs = []string{cfg.Sock}
+			}
+		case "tcp":
+			// already set in default Addrs
+		default:
+			return nil, fmt.Errorf("unknown network type: %s", cfg.Network)
 		}
-	case "tcp":
-		options.Network = "tcp"
-		port := 6379
-		host := "127.0.0.1"
-		if cfg.Port > 0 {
-			port = cfg.Port
-		}
-		if len(cfg.Host) > 0 {
-			host = cfg.Host
-		}
-		options.Addr = net.JoinHostPort(host, strconv.Itoa(port))
-	default:
-		return nil, fmt.Errorf("unknown network type: %s", cfg.Network)
+	}
+
+	for i, addr := range options.Addrs {
+		options.Addrs[i] = strings.TrimSpace(addr)
 	}
 
 	// set SSH tunnel
@@ -108,12 +126,15 @@ func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, er
 			return nil, fmt.Errorf("ssh dial failed: %w", err)
 		}
 
-		localAddr, err := netx.StartSSHTunnel(sshClient, options.Network, options.Addr)
-		if err != nil {
-			return nil, err
+		var localAddrs []string
+		for _, remoteAddr := range options.Addrs {
+			localAddr, err := netx.StartSSHTunnel(sshClient, "tcp", remoteAddr)
+			if err != nil {
+				return nil, err
+			}
+			localAddrs = append(localAddrs, localAddr)
 		}
-
-		options.Addr = localAddr
+		options.Addrs = localAddrs
 	}
 
 	// set TLS
@@ -125,9 +146,7 @@ func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (*redis.Client, er
 		options.TLSConfig = tlsConfig
 	}
 
-	rdb := redis.NewClient(options)
-
-	return rdb, nil
+	return options, nil
 }
 
 func (m *ClientManager) Test(cfg *do.ConnectionDO, dbIdx int) error {
