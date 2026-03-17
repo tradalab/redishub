@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  redis-node-1:
+    image: redis:7.2
+    container_name: redis-node-1
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./cluster.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-1:/data
+    ports:
+      - "7001:6379"
+      - "17001:16379"
+    networks:
+      - redis-cluster
+
+  redis-node-2:
+    image: redis:7.2
+    container_name: redis-node-2
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./cluster.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-2:/data
+    ports:
+      - "7002:6379"
+      - "17002:16379"
+    networks:
+      - redis-cluster
+
+  redis-node-3:
+    image: redis:7.2
+    container_name: redis-node-3
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./cluster.conf:/usr/local/etc/redis/redis.conf
+      - redis-node-3:/data
+    ports:
+      - "7003:6379"
+      - "17003:16379"
+    networks:
+      - redis-cluster
+
+volumes:
+  redis-node-1:
+  redis-node-2:
+  redis-node-3:
+
+networks:
+  redis-cluster:
+    driver: bridge

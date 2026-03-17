@@ -86,11 +86,11 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		options.SentinelUsername = cfg.SentinelUsername
 		options.SentinelPassword = cfg.SentinelPassword
 		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
-			return r == ',' || r == '\n' || r == '\r'
+			return r == ',' || r == '\n' || r == '\r' || r == ' ' || r == '\t' || r == ';'
 		})
 	case "cluster":
 		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
-			return r == ',' || r == '\n' || r == '\r'
+			return r == ',' || r == '\n' || r == '\r' || r == ' ' || r == '\t' || r == ';'
 		})
 	default: // standalone/standalone-like
 		// set network
@@ -108,8 +108,18 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		}
 	}
 
-	for i, addr := range options.Addrs {
-		options.Addrs[i] = strings.TrimSpace(addr)
+	var cleanAddrs []string
+	for _, addr := range options.Addrs {
+		addr = strings.TrimSpace(addr)
+		if addr != "" {
+			cleanAddrs = append(cleanAddrs, addr)
+		}
+	}
+	options.Addrs = cleanAddrs
+
+	// fallback to host:port if addrs is empty for cluster/sentinel
+	if (cfg.Mode == "cluster" || cfg.Mode == "sentinel") && len(options.Addrs) == 0 {
+		options.Addrs = []string{cfg.Addr()}
 	}
 
 	// set SSH tunnel
