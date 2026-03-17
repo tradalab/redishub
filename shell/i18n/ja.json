@@ -40,7 +40,11 @@
   "new_field": "新規フィールド",
   "new_group": "新規グループ",
   "new_key": "新規キー",
-  "password": "Password",
+  "password": "パスワード",
+  "port": "ポート",
+  "host": "ホスト",
+  "network": "ネットワーク",
+  "sock": "Unixソケット",
   "private_key": "秘密鍵",
   "enter_private_key_pem": "SSH秘密鍵をPEM形式で入力してください",
   "none": "なし",
@@ -104,6 +108,10 @@
   "sentinel_settings": "Sentinel設定",
   "cluster_settings": "クラスター設定",
   "instance_settings": "インスタンス設定",
+  "sentinel_authentication": "Sentinel認証",
+  "master_username": "マスターユーザー名",
+  "master_password": "マスターパスワード",
+  "import_from_standalone": "スタンドアローンからインポート",
   "addrs": "アドレス",
   "addrs_placeholder": "例: 127.0.0.1:6379,127.0.0.1:6380\n1行に1つのアドレス、またはカンマ区切り"
 }

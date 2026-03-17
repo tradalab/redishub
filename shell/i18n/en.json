@@ -41,6 +41,10 @@
   "new_group": "New Group",
   "new_key": "New Key",
   "password": "Password",
+  "port": "Port",
+  "host": "Host",
+  "network": "Network",
+  "sock": "Unix Socket",
   "private_key": "Private Key",
   "enter_private_key_pem": "Enter SSH Private Key in PEM format",
   "none": "None",
@@ -104,6 +108,10 @@
   "sentinel_settings": "Sentinel Settings",
   "cluster_settings": "Cluster Settings",
   "instance_settings": "Instance Settings",
+  "sentinel_authentication": "Sentinel Authentication",
+  "master_username": "Master Username",
+  "master_password": "Master Password",
+  "import_from_standalone": "Import from Standalone",
   "addrs": "Addresses",
   "addrs_placeholder": "Example: 127.0.0.1:6379,127.0.0.1:6380\nOne address per line or comma separated"
 }

@@ -101,7 +101,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             render={({ field }) => {
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">Network</FormLabel>
+                  <FormLabel className="flex items-center justify-between">{t("network")}</FormLabel>
                   <FormControl>
                     <Select value={field.value || "tcp"} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
@@ -130,7 +130,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                   render={({ field }) => {
                     return (
                       <FormItem>
-                        <FormLabel className="flex items-center justify-between">Host</FormLabel>
+                        <FormLabel className="flex items-center justify-between">{t("host")}</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="127.0.0.1" />
                         </FormControl>
@@ -147,7 +147,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                   render={({ field }) => {
                     return (
                       <FormItem>
-                        <FormLabel className="flex items-center justify-between">Port</FormLabel>
+                        <FormLabel className="flex items-center justify-between">{t("port")}</FormLabel>
                         <FormControl>
                           <Input {...field} type="text" placeholder="6379" onChange={e => field.onChange(e.target.value)} />
                         </FormControl>
@@ -166,7 +166,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
               render={({ field }) => {
                 return (
                   <FormItem>
-                    <FormLabel className="flex items-center justify-between">Sock</FormLabel>
+                    <FormLabel className="flex items-center justify-between">{t("sock")}</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="/tmp/redis.sock" />
                     </FormControl>
@@ -202,9 +202,30 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             control={form.control}
             name="addrs"
             render={({ field }) => {
+              const host = form.getValues("host")
+              const port = form.getValues("port")
+              const canImport = host && port
+
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">{t("addrs")}</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>{t("addrs")}</FormLabel>
+                    {canImport && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = field.value || ""
+                          const newItem = `${host}:${port}`
+                          if (!current.includes(newItem)) {
+                            field.onChange(current ? `${current}\n${newItem}` : newItem)
+                          }
+                        }}
+                        className="text-[10px] text-primary hover:underline"
+                      >
+                        {t("import_from_standalone")}
+                      </button>
+                    )}
+                  </div>
                   <FormControl>
                     <Textarea {...field} placeholder={t("addrs_placeholder")} className="min-h-[80px]" />
                   </FormControl>
@@ -213,7 +234,8 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
               )
             }}
           />
-          <div className="space-y-2">
+          <div className="space-y-2 border rounded-lg p-3 bg-muted/30">
+            <div className="text-[11px] font-medium text-muted-foreground mb-2 px-1">{t("sentinel_authentication")}</div>
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -221,9 +243,9 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel className="flex items-center justify-between">{t("sentinel_username")}</FormLabel>
+                      <FormLabel className="text-[11px]">{t("sentinel_username")}</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} className="h-8 text-xs" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -236,9 +258,9 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                 render={({ field }) => {
                   return (
                     <FormItem>
-                      <FormLabel className="flex items-center justify-between">{t("sentinel_password")}</FormLabel>
+                      <FormLabel className="text-[11px]">{t("sentinel_password")}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" />
+                        <Input {...field} type="password" className="h-8 text-xs" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -246,7 +268,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                 }}
               />
             </div>
-            <FormDescription className="text-[11px] leading-tight mt-1">{t("sentinel_auth_help")}</FormDescription>
+            <FormDescription className="text-[10px] leading-tight mt-1 opacity-70">{t("sentinel_auth_help")}</FormDescription>
           </div>
         </div>
       )}
@@ -258,9 +280,30 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             control={form.control}
             name="addrs"
             render={({ field }) => {
+              const host = form.getValues("host")
+              const port = form.getValues("port")
+              const canImport = host && port
+
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">{t("addrs")}</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>{t("addrs")}</FormLabel>
+                    {canImport && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = field.value || ""
+                          const newItem = `${host}:${port}`
+                          if (!current.includes(newItem)) {
+                            field.onChange(current ? `${current}\n${newItem}` : newItem)
+                          }
+                        }}
+                        className="text-[10px] text-primary hover:underline"
+                      >
+                        {t("import_from_standalone")}
+                      </button>
+                    )}
+                  </div>
                   <FormControl>
                     <Textarea {...field} placeholder={t("addrs_placeholder")} className="min-h-[100px]" />
                   </FormControl>
@@ -283,9 +326,9 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             render={({ field }) => {
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">{t("username")}</FormLabel>
+                  <FormLabel className="flex items-center justify-between">{t("master_username")}</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder="default" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -298,7 +341,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             render={({ field }) => {
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">{t("password")}</FormLabel>
+                  <FormLabel className="flex items-center justify-between">{t("master_password")}</FormLabel>
                   <FormControl>
                     <Input {...field} type="password" />
                   </FormControl>
