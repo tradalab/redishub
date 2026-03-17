@@ -17,20 +17,27 @@ The standard connection type for a single Redis instance. Ideal for development 
 
 ### Cluster
 Optimized for high-performance Redis Clusters. 
-- **Automatic Discovery**: Simply provide one or more seed nodes; RedisHub will automatically discover the entire cluster topology.
+- **Seed Address Import**: Quickly import your primary host/port as a seed address to begin discovery.
+- **Automatic Discovery**: Provide one or more seed nodes; RedisHub will automatically discover the entire cluster topology.
 - **Slot Mapping**: Intelligent routing of commands to the correct master nodes.
 
 ### Sentinel
 Designed for high-availability setups.
 - **Master Name**: Specify the monitored master set name.
-- **Sentinel Nodes**: List the addresses of your Sentinel instances for reliable master discovery and failover handling.
+- **Sentinel Nodes**: List the addresses of your Sentinel instances for reliable master discovery.
+- **Dual Credentials**: Support for separate Sentinel-level and Master-level authentication.
 
 ## Security & Advanced Networking
 
-### SSH Tunneling
-Securely connect to Redis servers located within private networks using standard SSH protocols.
-- **Authentication**: Supports password, private key (with passphrase), and SSH agent.
-- **Port Forwarding**: Robust internal management of local port mapping.
+### SSH & Dynamic Dialing
+Securely connect to Redis servers within private networks.
+- **Dynamic Routing**: Unlike static port forwarding, RedisHub uses a dynamic SSH dialer that can reach any discovered node (Sentinel replicas, Cluster shards) through a single SSH tunnel.
+- **Authentication**: Supports password, private key, and SSH agent.
+
+### Address Mapping (NAT Traversal)
+For environments where Redis nodes report internal unreachable IPs (e.g., Docker containers), use **Address Mapping** in the *Optional* tab.
+- **Translation**: Map internal `ip:port` to host-reachable `ip:port`.
+- **Flexibility**: Ensures connectivity even when server-side NAT configuration cannot be changed.
 
 ### TLS/SSL & mTLS
 Ensure end-to-end encryption for your data.
