@@ -4,6 +4,7 @@ import { ReactNode, useState } from "react"
 import { ConnectionContext } from "./connection.context"
 import { ConnectionDialog } from "./connection.dialog"
 import { ConnectionDO } from "@/types/connection.do"
+import { RedisModeEnum } from "@/types/redis-mode.enum"
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
@@ -26,6 +27,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       ssh_enable: false,
       tls_id: "",
       tls_enable: false,
+      mode: RedisModeEnum.STANDALONE,
     })
     setOpen(true)
   }

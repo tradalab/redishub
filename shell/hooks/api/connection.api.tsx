@@ -26,20 +26,27 @@ export function useUpsertConnection() {
       const sql = `
         INSERT
         OR REPLACE INTO "connection"
-        (id, name, network, host, port, sock, username, password, group_id, ssh_id, ssh_enable, tls_id, tls_enable, exec_timeout, dial_timeout, key_size)
+        (id, name, mode, network, host, port, addrs, sentinel_master, sentinel_username, sentinel_password, sock, username, password, addr_mapping, last_db, group_id, ssh_id, ssh_enable, tls_id, tls_enable, exec_timeout, dial_timeout, key_size)
         VALUES (
           '${id}',
           '${values.name ?? ""}',
-          '${values.network ?? ""}',
+          '${values.mode ?? "standalone"}',
+          '${values.network ?? "tcp"}',
           '${values.host ?? ""}',
-          ${values.port ?? 22},
+          ${values.port ?? 6379},
+          '${values.addrs ?? ""}',
+          '${values.sentinel_master ?? ""}',
+          '${values.sentinel_username ?? ""}',
+          '${values.sentinel_password ?? ""}',
           '${values.sock ?? ""}',
           '${values.username ?? ""}',
           '${values.password ?? ""}',
-          ${values.group_id ? `'${values.group_id}'` : 'NULL'},
-          ${values.ssh_id ? `'${values.ssh_id}'` : 'NULL'},
+          '${values.addr_mapping ?? ""}',
+          ${values.last_db ?? 0},
+          ${values.group_id ? `'${values.group_id}'` : "NULL"},
+          ${values.ssh_id ? `'${values.ssh_id}'` : "NULL"},
           ${values.ssh_enable ? 1 : 0},
-          ${values.tls_id ? `'${values.tls_id}'` : 'NULL'},
+          ${values.tls_id ? `'${values.tls_id}'` : "NULL"},
           ${values.tls_enable ? 1 : 0},
           ${values.exec_timeout ?? 60},
           ${values.dial_timeout ?? 60},

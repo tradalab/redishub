@@ -9,14 +9,14 @@ import (
 )
 
 type Client struct {
-	Rdb   *redis.Client
+	Rdb   redis.UniversalClient
 	Cfg   *do.ConnectionDO
 	DbIdx int
 }
 
 //type RdbInfo map[string]map[string]string
 
-func NewClient(rdb *redis.Client, cfg *do.ConnectionDO, dbIdx int) *Client {
+func NewClient(rdb redis.UniversalClient, cfg *do.ConnectionDO, dbIdx int) *Client {
 	return &Client{Rdb: rdb, Cfg: cfg, DbIdx: dbIdx}
 }
 
