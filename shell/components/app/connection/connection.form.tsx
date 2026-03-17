@@ -2,6 +2,8 @@
 
 import { useEffect, forwardRef, useImperativeHandle } from "react"
 import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
 import { toast } from "sonner"
 import { Form } from "@/components/ui/form"
 import { useTranslation } from "react-i18next"
@@ -13,8 +15,119 @@ import { ConnectionTlsForm } from "@/components/app/connection/connection-tls.fo
 import { ConnectionOptionalForm } from "@/components/app/connection/connection-optional.form"
 
 import { ConnectionDO } from "@/types/connection.do"
+import { RedisModeEnum } from "@/types/redis-mode.enum"
 
 import { useTestConnection, useUpsertConnection } from "@/hooks/api/connection.api"
+
+const connectionSchema = z
+  .object({
+    id: z.string().optional(),
+    group_id: z.string().optional().nullable(),
+    mode: z.nativeEnum(RedisModeEnum),
+    name: z.string().min(1, "Name is required"),
+    network: z.string().default("tcp"),
+    host: z.string().optional(),
+    port: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(1).max(65535).optional()),
+    addrs: z.string().optional(),
+    sentinel_master: z.string().optional(),
+    sentinel_username: z.string().optional(),
+    sentinel_password: z.string().optional(),
+    sock: z.string().optional(),
+    username: z.string().optional(),
+    password: z.string().optional(),
+    last_db: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().optional()),
+    exec_timeout: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
+    dial_timeout: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
+    key_size: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
+    ssh_enable: z.boolean().default(false),
+    ssh_id: z.string().optional(),
+    tls_enable: z.boolean().default(false),
+    tls_id: z.string().optional(),
+  })
+  .refine(
+    data => {
+      if (data.mode === RedisModeEnum.STANDALONE && data.network === "tcp") {
+        return !!data.host
+      }
+      return true
+    },
+    {
+      message: "Host is required for TCP standalone",
+      path: ["host"],
+    }
+  )
+  .refine(
+    data => {
+      if (data.mode === RedisModeEnum.SENTINEL) {
+        return !!data.sentinel_master
+      }
+      return true
+    },
+    {
+      message: "Master Group Name is required",
+      path: ["sentinel_master"],
+    }
+  )
+  .refine(
+    data => {
+      if (data.mode === RedisModeEnum.SENTINEL || data.mode === RedisModeEnum.CLUSTER) {
+        return !!data.addrs
+      }
+      return true
+    },
+    {
+      message: "Addresses are required",
+      path: ["addrs"],
+    }
+  )
+  .refine(
+    data => {
+      if ((data.mode === RedisModeEnum.SENTINEL || data.mode === RedisModeEnum.CLUSTER) && data.addrs) {
+        const lines = data.addrs
+          .split("\n")
+          .map(l => l.trim())
+          .filter(Boolean)
+        return lines.every(line => {
+          const parts = line.split(":")
+          if (parts.length !== 2) return false
+          const port = parseInt(parts[1])
+          return !isNaN(port) && port > 0 && port <= 65535
+        })
+      }
+      return true
+    },
+    {
+      message: "Each address must be in host:port format",
+      path: ["addrs"],
+    }
+  )
+  .refine(
+    data => {
+      if (data.ssh_enable) {
+        return !!data.ssh_id
+      }
+      return true
+    },
+    {
+      message: "SSH configuration is required",
+      path: ["ssh_id"],
+    }
+  )
+  .refine(
+    data => {
+      if (data.tls_enable) {
+        return !!data.tls_id
+      }
+      return true
+    },
+    {
+      message: "TLS configuration is required",
+      path: ["tls_id"],
+    }
+  )
+
+type FormValues = z.input<typeof connectionSchema>
+type FormOutput = z.output<typeof connectionSchema>
 
 export interface PendingState {
   save: boolean
@@ -34,8 +147,17 @@ interface Props {
 export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection, onPendingChange }, ref) => {
   const { t } = useTranslation()
 
-  const form = useForm<Partial<ConnectionDO>>({
-    defaultValues: connection,
+  const form = useForm<FormValues>({
+    resolver: zodResolver(connectionSchema),
+    defaultValues: {
+      mode: RedisModeEnum.STANDALONE,
+      network: "tcp",
+      port: 6379,
+      exec_timeout: 60,
+      dial_timeout: 60,
+      key_size: 10000,
+      ...connection,
+    } as any,
   })
 
   const upsertConnection = useUpsertConnection()
@@ -52,14 +174,15 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
 
   useEffect(() => {
     onPendingChange?.(pending)
-  }, [pending.save, pending.test])
+  }, [pending.save, pending.test, onPendingChange])
 
   const submit = () =>
     new Promise<boolean>(resolve => {
       form.handleSubmit(
         async values => {
+          const data = values as FormOutput
           try {
-            await upsertConnection.mutateAsync(values)
+            await upsertConnection.mutateAsync(data as any)
             toast.success(t("saved"))
             resolve(true)
           } catch (e: any) {
@@ -72,8 +195,9 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
     })
 
   const testConn = form.handleSubmit(async values => {
+    const data = values as FormOutput
     try {
-      await testConnection.mutateAsync(values)
+      await testConnection.mutateAsync(data as any)
       toast.success(t("conn_success"))
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
@@ -90,6 +214,30 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
     [submit, testConn]
   )
 
+  const { errors } = form.formState
+
+  const hasGeneralError = Object.keys(errors).some(key =>
+    [
+      "name",
+      "mode",
+      "group_id",
+      "network",
+      "host",
+      "port",
+      "sock",
+      "sentinel_master",
+      "addrs",
+      "sentinel_username",
+      "sentinel_password",
+      "username",
+      "password",
+      "last_db",
+    ].includes(key)
+  )
+  const hasOptionalError = Object.keys(errors).some(key => ["exec_timeout", "dial_timeout", "key_size"].includes(key))
+  const hasTlsError = Object.keys(errors).some(key => ["tls_enable", "tls_id"].includes(key))
+  const hasSshError = Object.keys(errors).some(key => ["ssh_enable", "ssh_id"].includes(key))
+
   return (
     <Form {...form}>
       <form onSubmit={submit} className="flex flex-col flex-1 min-h-0">
@@ -99,21 +247,25 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
               {
                 key: "conn-general-form",
                 label: t("general"),
+                hasError: hasGeneralError,
                 content: <ConnectionGeneralForm form={form} />,
               },
               {
                 key: "conn-optional-form",
                 label: t("optional"),
+                hasError: hasOptionalError,
                 content: <ConnectionOptionalForm form={form} />,
               },
               {
                 key: "conn-tls-form",
                 label: "TLS/SSL",
+                hasError: hasTlsError,
                 content: <ConnectionTlsForm form={form} />,
               },
               {
                 key: "conn-ssh-tunnel-form",
                 label: t("ssh_tunnel"),
+                hasError: hasSshError,
                 content: <ConnectionSshTunnelForm form={form} />,
               },
             ]}

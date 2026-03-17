@@ -8,12 +8,13 @@ import { useTranslation } from "react-i18next"
 import { useGroupList } from "@/hooks/api/group.api"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
+import { RedisModeEnum } from "@/types/redis-mode.enum"
 
-export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
+export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
   const { data: groups = [] } = useGroupList()
 
-  const mode: string = form.watch("mode") || "standalone"
+  const mode: RedisModeEnum = form.watch("mode") || RedisModeEnum.STANDALONE
   const network: string = form.watch("network")
 
   return (
@@ -27,11 +28,12 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
               <FormItem>
                 <FormLabel className="flex items-center justify-between">{t("group")}</FormLabel>
                 <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value || "none"} onValueChange={val => field.onChange(val === "none" ? null : val)}>
                     <SelectTrigger className="w-full">
-                      <SelectValue />
+                      <SelectValue placeholder={t("none")} />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="none">{t("none")}</SelectItem>
                       {groups?.map(e => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.name}
@@ -45,7 +47,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
             )
           }}
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 items-start">
           <FormField
             control={form.control}
             name="mode"
@@ -54,14 +56,14 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
                 <FormItem>
                   <FormLabel className="flex items-center justify-between">{t("mode")}</FormLabel>
                   <FormControl>
-                    <Select value={field.value || "standalone"} onValueChange={field.onChange}>
+                    <Select value={field.value || RedisModeEnum.STANDALONE} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="standalone">{t("standalone")}</SelectItem>
-                        <SelectItem value="sentinel">{t("sentinel")}</SelectItem>
-                        <SelectItem value="cluster">{t("cluster")}</SelectItem>
+                        <SelectItem value={RedisModeEnum.STANDALONE}>{t("standalone")}</SelectItem>
+                        <SelectItem value={RedisModeEnum.SENTINEL}>{t("sentinel")}</SelectItem>
+                        <SelectItem value={RedisModeEnum.CLUSTER}>{t("cluster")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -147,12 +149,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn }) {
                       <FormItem>
                         <FormLabel className="flex items-center justify-between">Port</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            placeholder="6379"
-                            onChange={e => field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)}
-                          />
+                          <Input {...field} type="text" placeholder="6379" onChange={e => field.onChange(e.target.value)} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

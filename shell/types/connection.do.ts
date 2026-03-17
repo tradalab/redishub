@@ -1,4 +1,5 @@
 import { GroupDO } from "@/types/group.do"
+import { RedisModeEnum } from "@/types/redis-mode.enum"
 import { SshDO } from "@/types/ssh.do"
 import { TlsDO } from "@/types/tls.do"
 
@@ -9,7 +10,7 @@ export type ConnectionDO = {
   deleted_at: string
   group_id: string
   group: GroupDO
-  mode: "standalone" | "sentinel" | "cluster"
+  mode: RedisModeEnum
   name: string
   network: string
   host: string
