@@ -3,7 +3,9 @@ package svc
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -88,10 +90,16 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
 			return r == ',' || r == '\n' || r == '\r' || r == ' ' || r == '\t' || r == ';'
 		})
+		if len(options.Addrs) == 0 {
+			options.Addrs = []string{net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))}
+		}
 	case "cluster":
 		options.Addrs = strings.FieldsFunc(cfg.Addrs, func(r rune) bool {
 			return r == ',' || r == '\n' || r == '\r' || r == ' ' || r == '\t' || r == ';'
 		})
+		if len(options.Addrs) == 0 {
+			options.Addrs = []string{net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port))}
+		}
 	default: // standalone/standalone-like
 		// set network
 		switch cfg.Network {

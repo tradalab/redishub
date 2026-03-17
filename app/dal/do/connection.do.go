@@ -38,7 +38,7 @@ func (d *ConnectionDO) TableName() string {
 }
 
 func (d *ConnectionDO) Addr() string {
-	if d.Mode == "sentinel" || d.Mode == "cluster" {
+	if (d.Mode == "sentinel" || d.Mode == "cluster") && d.Addrs != "" {
 		return d.Addrs
 	}
 	return net.JoinHostPort(d.Host, strconv.Itoa(d.Port))
