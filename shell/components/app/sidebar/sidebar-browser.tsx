@@ -2,11 +2,12 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
-import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
+import { filterTree, flattenTree, sortTree, TreeItem } from "@/components/app/tree"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
-import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
+import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
+import { Virtuoso } from "react-virtuoso"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,7 +25,7 @@ export function SidebarBrowser() {
   const [dataset, setDataset] = useState<TreeItem[]>([])
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [expandedIds] = useState<string[]>([])
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [dbs, setDbs] = useState<any[]>([])
   const confirm = useConfirm()
 
@@ -43,7 +44,7 @@ export function SidebarBrowser() {
 
   useEffect(() => {
     setDataset([...sortTree(buildTree(keys))])
-  }, [keys.length])
+  }, [keys])
 
   const handleDelete = async (key: string) => {
     if (isLoading) return
@@ -60,43 +61,38 @@ export function SidebarBrowser() {
 
   const buildTree = (keys: string[], delimiter = ":"): TreeItem[] => {
     const root: TreeItem[] = []
+    const cache = new Map<string, TreeItem>()
 
     for (const key of keys) {
       const parts = key.split(delimiter)
       let currentLevel = root
+      let currentPath = ""
 
       parts.forEach((part, index) => {
         const isLast = index === parts.length - 1
+        const path = currentPath ? currentPath + delimiter + part : part
+        currentPath = path
+        const id = isLast ? path : "group__" + path
 
-        // find node group same name
-        let nodeGroup = currentLevel.find(n => n.name === part && n.isGroup)
+        let node = cache.get(id)
 
-        if (isLast) {
-          // leaf node
-          const leafExists = currentLevel.find(n => n.name === part && n.isLeaf)
-          if (!leafExists) {
-            const leafNode: TreeItem = {
-              id: parts.slice(0, index + 1).join(delimiter),
-              name: part,
-              isLeaf: true,
-              level: index,
-              children: [],
-            }
-            currentLevel.push(leafNode)
+        if (!node) {
+          node = {
+            id,
+            name: part,
+            isLeaf: isLast,
+            isGroup: !isLast,
+            level: index,
+            children: [],
+            keyCount: 0,
           }
-        } else {
-          if (!nodeGroup) {
-            const groupNode: TreeItem = {
-              id: "group__" + parts.slice(0, index + 1).join(delimiter),
-              name: part,
-              isGroup: true,
-              level: index,
-              children: [],
-            }
-            currentLevel.push(groupNode)
-            nodeGroup = groupNode
-          }
-          currentLevel = nodeGroup.children!
+          cache.set(id, node)
+          currentLevel.push(node)
+        }
+
+        if (!isLast) {
+          node.keyCount = (node.keyCount || 0) + 1
+          currentLevel = node.children!
         }
       })
     }
@@ -119,6 +115,10 @@ export function SidebarBrowser() {
   const filteredDataset = useMemo(() => {
     return filterTree(dataset, keyword)
   }, [dataset, keyword])
+
+  const flattenedData = useMemo(() => {
+    return flattenTree(filteredDataset, expandedIds)
+  }, [filteredDataset, expandedIds])
 
   const onChangeDbIdx = async (idx: number) => {
     try {
@@ -187,15 +187,27 @@ export function SidebarBrowser() {
         </div>
         <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e?.target?.value)} />
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup className="p-0">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <TreeProvider defaultExpandedIds={expandedIds} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
-                <TreeView className="py-2 px-1">
-                  {filteredDataset.map((item, index) => (
-                    <RenderTreeItem key={index} item={item} deleteKey={handleDelete} />
-                  ))}
+      <SidebarContent className="overflow-hidden! p-0 flex flex-col h-full">
+        <SidebarGroup className="p-0 flex-1 min-h-0 flex flex-col">
+          <SidebarGroupContent className="flex-1 min-h-0 flex flex-col">
+            <SidebarMenu className="flex-1 min-h-0 flex flex-col">
+              <TreeProvider
+                className="flex flex-col flex-1 min-h-0"
+                expandedIds={expandedIds}
+                onExpandedChange={setExpandedIds}
+                selectedIds={selectedIds}
+                onSelectionChange={setSelectedIds}
+                multiSelect
+              >
+                <TreeView className="p-0 flex flex-col flex-1 min-h-0 relative h-full">
+                  {flattenedData.length === 0 && keys.length > 0 && <div className="p-4 text-xs text-muted-foreground text-center">{t("no_keys_match")}</div>}
+                  <div className="absolute inset-0">
+                    <Virtuoso
+                      className="h-full w-full"
+                      data={flattenedData}
+                      itemContent={(index, item) => <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} />}
+                    />
+                  </div>
                 </TreeView>
               </TreeProvider>
             </SidebarMenu>
@@ -206,7 +218,7 @@ export function SidebarBrowser() {
   )
 }
 
-function RenderTreeItem({ item, deleteKey }: { item: TreeItem; deleteKey: (key: string) => Promise<void> }) {
+function RenderTreeItem({ item, deleteKey }: { item: any; deleteKey: (key: string) => Promise<void> }) {
   const { setSelectedKey, setSelectedSection } = useAppContext()
 
   const selectKey = () => {
@@ -214,34 +226,16 @@ function RenderTreeItem({ item, deleteKey }: { item: TreeItem; deleteKey: (key: 
     setSelectedSection("key-detail")
   }
 
-  if (!item.isGroup) {
-    return (
-      <TreeNode nodeId={item.id} isLast={item.level == 0} level={item.level}>
-        <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item" onClick={selectKey}>
-          <TreeExpander />
-          <TreeIcon />
-          <TreeLabel>{item.name}</TreeLabel>
-          <ActionButton item={item} deleteKey={deleteKey} />
-        </TreeNodeTrigger>
-      </TreeNode>
-    )
-  }
-
   return (
-    <TreeNode nodeId={item.id} level={item.level} isLast={item.level == 0}>
-      <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item">
-        <TreeExpander hasChildren />
-        <TreeIcon hasChildren />
+    <TreeNode nodeId={item.id} isLast={item.isLast} level={item.depth}>
+      <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item" onClick={item.isGroup ? undefined : selectKey}>
+        <TreeExpander hasChildren={item.isGroup} />
+        <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel title={item.name}>
-          {item.name || "[Empty]"} {item?.children?.length && `(${item.children?.length})`}
+          {item.name || "[Empty]"} {item.isGroup && item.keyCount !== undefined && item.keyCount > 0 && `(${item.keyCount})`}
         </TreeLabel>
         <ActionButton item={item} deleteKey={deleteKey} />
       </TreeNodeTrigger>
-      <TreeNodeContent hasChildren>
-        {item.children?.map((item, index) => (
-          <RenderTreeItem key={index} item={item} deleteKey={deleteKey} />
-        ))}
-      </TreeNodeContent>
     </TreeNode>
   )
 }

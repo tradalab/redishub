@@ -10,6 +10,16 @@ export type TreeItem = {
   group?: GroupDO
   connection?: ConnectionDO
   children?: TreeItem[]
+  keyCount?: number
+}
+
+export type FlattenedTreeItem = TreeItem & {
+  depth: number
+  parentId?: string
+  isVisible: boolean
+  isExpanded: boolean
+  hasChildren: boolean
+  isLast: boolean
 }
 
 export function filterTree(items: TreeItem[], keyword: string): TreeItem[] {
@@ -41,4 +51,26 @@ export function sortTree(items: TreeItem[]): TreeItem[] {
 
       return a.name.localeCompare(b.name, "en", { sensitivity: "base" })
     })
+}
+
+export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth = 0, parentId?: string): FlattenedTreeItem[] {
+  let result: FlattenedTreeItem[] = []
+  items.forEach((item, index) => {
+    const isLast = index === items.length - 1
+    const hasChildren = !!(item.children && item.children.length > 0)
+    const isExpanded = expandedIds.has(item.id)
+    result.push({
+      ...item,
+      depth,
+      parentId,
+      isVisible: true,
+      isExpanded,
+      hasChildren,
+      isLast,
+    } as FlattenedTreeItem)
+    if (item.isGroup && isExpanded && item.children) {
+      result = result.concat(flattenTree(item.children, expandedIds, depth + 1, item.id))
+    }
+  })
+  return result
 }
