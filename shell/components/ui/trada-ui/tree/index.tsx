@@ -53,6 +53,8 @@ export type TreeProviderProps = {
   multiSelect?: boolean
   selectedIds?: string[]
   onSelectionChange?: (selectedIds: string[]) => void
+  expandedIds?: Set<string>
+  onExpandedChange?: (expandedIds: Set<string>) => void
   indent?: number
   animateExpand?: boolean
   className?: string
@@ -70,24 +72,35 @@ export const TreeProvider = ({
   indent = 20,
   animateExpand = true,
   className,
+  expandedIds,
+  onExpandedChange,
 }: TreeProviderProps) => {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set(defaultExpandedIds))
+  const [internalExpandedIds, setInternalExpandedIds] = useState<Set<string>>(new Set(defaultExpandedIds))
   const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>(selectedIds ?? [])
 
-  const isControlled = selectedIds !== undefined && onSelectionChange !== undefined
-  const currentSelectedIds = isControlled ? selectedIds : internalSelectedIds
+  const isControlledSelected = selectedIds !== undefined && onSelectionChange !== undefined
+  const currentSelectedIds = isControlledSelected ? selectedIds : internalSelectedIds
 
-  const toggleExpanded = useCallback((nodeId: string) => {
-    setExpandedIds(prev => {
-      const newSet = new Set(prev)
+  const isControlledExpanded = expandedIds !== undefined && onExpandedChange !== undefined
+  const currentExpandedIds = isControlledExpanded ? expandedIds : internalExpandedIds
+
+  const toggleExpanded = useCallback(
+    (nodeId: string) => {
+      const newSet = new Set<string>(currentExpandedIds)
       if (newSet.has(nodeId)) {
         newSet.delete(nodeId)
       } else {
         newSet.add(nodeId)
       }
-      return newSet
-    })
-  }, [])
+
+      if (isControlledExpanded) {
+        onExpandedChange?.(newSet)
+      } else {
+        setInternalExpandedIds(newSet)
+      }
+    },
+    [currentExpandedIds, isControlledExpanded, onExpandedChange]
+  )
 
   const handleSelection = useCallback(
     (nodeId: string, ctrlKey = false) => {
@@ -103,19 +116,19 @@ export const TreeProvider = ({
         newSelection = currentSelectedIds.includes(nodeId) ? [] : [nodeId]
       }
 
-      if (isControlled) {
+      if (isControlledSelected) {
         onSelectionChange?.(newSelection)
       } else {
         setInternalSelectedIds(newSelection)
       }
     },
-    [selectable, multiSelect, currentSelectedIds, isControlled, onSelectionChange]
+    [selectable, multiSelect, currentSelectedIds, isControlledSelected, onSelectionChange]
   )
 
   return (
     <TreeContext.Provider
       value={{
-        expandedIds,
+        expandedIds: currentExpandedIds,
         selectedIds: currentSelectedIds,
         toggleExpanded,
         handleSelection,
