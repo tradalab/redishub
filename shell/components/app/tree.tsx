@@ -16,6 +16,7 @@ export type TreeItem = {
 export type FlattenedTreeItem = TreeItem & {
   depth: number
   parentId?: string
+  parentPath: boolean[]
   isVisible: boolean
   isExpanded: boolean
   hasChildren: boolean
@@ -58,7 +59,14 @@ export function sortTree(items: TreeItem[]): TreeItem[] {
   return items
 }
 
-export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth = 0, parentId?: string, result: FlattenedTreeItem[] = []): FlattenedTreeItem[] {
+export function flattenTree(
+  items: TreeItem[],
+  expandedIds: Set<string>,
+  depth = 0,
+  parentId?: string,
+  parentPath: boolean[] = [],
+  result: FlattenedTreeItem[] = []
+): FlattenedTreeItem[] {
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
     const isLast = i === items.length - 1
@@ -69,6 +77,7 @@ export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth =
       ...item,
       depth,
       parentId,
+      parentPath,
       isVisible: true,
       isExpanded,
       hasChildren,
@@ -76,7 +85,7 @@ export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth =
     } as FlattenedTreeItem)
 
     if (item.isGroup && isExpanded && item.children) {
-      flattenTree(item.children, expandedIds, depth + 1, item.id, result)
+      flattenTree(item.children, expandedIds, depth + 1, item.id, [...parentPath, isLast], result)
     }
   }
   return result

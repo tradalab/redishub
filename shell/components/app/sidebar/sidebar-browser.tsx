@@ -2,8 +2,8 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
-import { filterTree, flattenTree, sortTree, TreeItem } from "@/components/app/tree"
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
@@ -34,7 +34,7 @@ export function SidebarBrowser() {
   const currentConnection = connectionList.find(c => c.id === selectedDb)
   const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
 
-  const [isBuildingTree, startBuildingTree] = useTransition()
+  const [isBuildingTree, setIsBuildingTree] = useState(false)
 
   useEffect(() => {
     loadInfo()
@@ -45,9 +45,16 @@ export function SidebarBrowser() {
   }, [selectedDb, selectedDbIdx])
 
   useEffect(() => {
-    startBuildingTree(() => {
+    if (keys.length === 0) {
+      setDataset([])
+      return
+    }
+    setIsBuildingTree(true)
+    const timer = setTimeout(() => {
       setDataset(sortTree(buildTree(keys)))
-    })
+      setIsBuildingTree(false)
+    }, 50)
+    return () => clearTimeout(timer)
   }, [keys])
 
   const handleDelete = async (key: string) => {
@@ -116,9 +123,11 @@ export function SidebarBrowser() {
     }
   }
 
+  const deferredKeyword = useDeferredValue(keyword)
+
   const filteredDataset = useMemo(() => {
-    return filterTree(dataset, keyword)
-  }, [dataset, keyword])
+    return filterTree(dataset, deferredKeyword)
+  }, [dataset, deferredKeyword])
 
   const flattenedData = useMemo(() => {
     return flattenTree(filteredDataset, expandedIds)
@@ -229,7 +238,7 @@ export function SidebarBrowser() {
   )
 }
 
-function RenderTreeItem({ item, deleteKey }: { item: any; deleteKey: (key: string) => Promise<void> }) {
+function RenderTreeItem({ item, deleteKey }: { item: FlattenedTreeItem; deleteKey: (key: string) => Promise<void> }) {
   const { setSelectedKey, setSelectedSection } = useAppContext()
 
   const selectKey = () => {
@@ -238,7 +247,7 @@ function RenderTreeItem({ item, deleteKey }: { item: any; deleteKey: (key: strin
   }
 
   return (
-    <TreeNode nodeId={item.id} isLast={item.isLast} level={item.depth}>
+    <TreeNode nodeId={item.id} isLast={item.isLast} level={item.depth} parentPath={item.parentPath}>
       <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item" onClick={item.isGroup ? undefined : selectKey}>
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
