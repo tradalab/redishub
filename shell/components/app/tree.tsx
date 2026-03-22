@@ -23,6 +23,8 @@ export type FlattenedTreeItem = TreeItem & {
 }
 
 export function filterTree(items: TreeItem[], keyword: string): TreeItem[] {
+  if (!keyword) return items
+
   const lower = keyword.toLowerCase()
   return items
     .map<TreeItem | null>(item => {
@@ -40,25 +42,29 @@ export function filterTree(items: TreeItem[], keyword: string): TreeItem[] {
 }
 
 export function sortTree(items: TreeItem[]): TreeItem[] {
-  return items
-    .map(item => ({
-      ...item,
-      children: item.children ? sortTree(item.children) : undefined,
-    }))
-    .sort((a, b) => {
-      if (a.isGroup && !b.isGroup) return -1
-      if (!a.isGroup && b.isGroup) return 1
+  items.sort((a, b) => {
+    if (a.isGroup && !b.isGroup) return -1
+    if (!a.isGroup && b.isGroup) return 1
 
-      return a.name.localeCompare(b.name, "en", { sensitivity: "base" })
-    })
+    return a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+  })
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].children && items[i].children!.length > 0) {
+      sortTree(items[i].children!)
+    }
+  }
+
+  return items
 }
 
-export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth = 0, parentId?: string): FlattenedTreeItem[] {
-  let result: FlattenedTreeItem[] = []
-  items.forEach((item, index) => {
-    const isLast = index === items.length - 1
+export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth = 0, parentId?: string, result: FlattenedTreeItem[] = []): FlattenedTreeItem[] {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    const isLast = i === items.length - 1
     const hasChildren = !!(item.children && item.children.length > 0)
     const isExpanded = expandedIds.has(item.id)
+
     result.push({
       ...item,
       depth,
@@ -68,9 +74,10 @@ export function flattenTree(items: TreeItem[], expandedIds: Set<string>, depth =
       hasChildren,
       isLast,
     } as FlattenedTreeItem)
+
     if (item.isGroup && isExpanded && item.children) {
-      result = result.concat(flattenTree(item.children, expandedIds, depth + 1, item.id))
+      flattenTree(item.children, expandedIds, depth + 1, item.id, result)
     }
-  })
+  }
   return result
 }

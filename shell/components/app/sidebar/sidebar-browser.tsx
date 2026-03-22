@@ -3,7 +3,7 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
 import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem } from "@/components/app/tree"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
@@ -34,6 +34,8 @@ export function SidebarBrowser() {
   const currentConnection = connectionList.find(c => c.id === selectedDb)
   const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
 
+  const [isBuildingTree, startBuildingTree] = useTransition()
+
   useEffect(() => {
     loadInfo()
   }, [selectedDb, selectedDbIdx])
@@ -43,7 +45,9 @@ export function SidebarBrowser() {
   }, [selectedDb, selectedDbIdx])
 
   useEffect(() => {
-    setDataset([...sortTree(buildTree(keys))])
+    startBuildingTree(() => {
+      setDataset(sortTree(buildTree(keys)))
+    })
   }, [keys])
 
   const handleDelete = async (key: string) => {
@@ -200,7 +204,14 @@ export function SidebarBrowser() {
                 multiSelect
               >
                 <TreeView className="p-0 flex flex-col flex-1 min-h-0 relative h-full">
-                  {flattenedData.length === 0 && keys.length > 0 && <div className="p-4 text-xs text-muted-foreground text-center">{t("no_keys_match")}</div>}
+                  {isBuildingTree && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                      <Spinner className="h-6 w-6 text-primary" />
+                    </div>
+                  )}
+                  {flattenedData.length === 0 && keys.length > 0 && !isBuildingTree && (
+                    <div className="p-4 text-xs text-muted-foreground text-center">{t("no_keys_match")}</div>
+                  )}
                   <div className="absolute inset-0">
                     <Virtuoso
                       className="h-full w-full"
