@@ -85,7 +85,7 @@ export function TabBar() {
                 </Button>
 
                 {/* Active indicator line at bottom to override the wrapper's border-b smoothly */}
-                {isActive && <div className="absolute -bottom-[1px] left-0 right-0 h-[1.5px] bg-background z-10" />}
+                {isActive && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-background z-10" />}
               </div>
             )
           })}
