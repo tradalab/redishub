@@ -1,7 +1,7 @@
 "use client"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon } from "lucide-react"
+import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon, TerminalIcon, ActivityIcon, DatabaseIcon } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { useTabStore } from "@/stores/tab.store"
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
@@ -30,6 +31,7 @@ export function SidebarBrowser() {
   const confirm = useConfirm()
 
   const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
+  const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
   const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
@@ -160,7 +162,37 @@ export function SidebarBrowser() {
       <SidebarHeader className="gap-2 border-b p-2">
         <div className="flex w-full items-center justify-between">
           <div className="text-foreground text-base font-medium">{t("browser")}</div>
-          <div className="flex gap-3.5">
+          <div className="flex gap-2.5">
+            <DatabaseIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({
+                  type: "general",
+                  title: currentConnection?.name || "General",
+                  connectionId: selectedDb!,
+                  connectionName: currentConnection?.name,
+                  databaseIdx: selectedDbIdx,
+                })
+              }
+            />
+            <TerminalIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+              }
+            />
+            <ActivityIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({
+                  type: "slow-query",
+                  title: "Slow Query",
+                  connectionId: selectedDb!,
+                  connectionName: currentConnection?.name,
+                  databaseIdx: selectedDbIdx,
+                })
+              }
+            />
             <RefreshCcwIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -225,7 +257,9 @@ export function SidebarBrowser() {
                     <Virtuoso
                       className="h-full w-full"
                       data={flattenedData}
-                      itemContent={(index, item) => <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} />}
+                      itemContent={(index, item) => (
+                        <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} connectionName={currentConnection?.name} />
+                      )}
                     />
                   </div>
                 </TreeView>
@@ -238,12 +272,19 @@ export function SidebarBrowser() {
   )
 }
 
-function RenderTreeItem({ item, deleteKey }: { item: FlattenedTreeItem; deleteKey: (key: string) => Promise<void> }) {
-  const { setSelectedKey, setSelectedSection } = useAppContext()
+function RenderTreeItem({ item, deleteKey, connectionName }: { item: FlattenedTreeItem; deleteKey: (key: string) => Promise<void>; connectionName?: string }) {
+  const { selectedDb, selectedDbIdx } = useAppContext()
+  const { addTab } = useTabStore()
 
   const selectKey = () => {
-    setSelectedKey(item.id)
-    setSelectedSection("key-detail")
+    addTab({
+      type: "key-detail",
+      title: item.name,
+      connectionId: selectedDb!,
+      connectionName: connectionName,
+      databaseIdx: selectedDbIdx,
+      key: item.id,
+    })
   }
 
   return (

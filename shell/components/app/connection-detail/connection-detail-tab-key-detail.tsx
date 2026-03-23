@@ -1,6 +1,7 @@
 "use client"
 
 import { ReactNode, useEffect, useState } from "react"
+import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyDetailHash } from "@/components/app/key-detail/key-detail-hash"
@@ -38,8 +39,10 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   const [newKeyName, setNewKeyName] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { setSelectedKey } = useAppContext()
+  const { addTab, updateTab, removeTab, tabs, activeTabId } = useTabStore()
   const { updateKey, deleteKey, isLoading } = useRedisKeys(connectionId || "", databaseIdx)
+
+  const activeTab = tabs.find(t => t.id === activeTabId)
 
   const load = async (selectedKey?: string) => {
     if (!selectedKey) {
@@ -96,11 +99,11 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   }
 
   const updateKeyName = async () => {
-    if (!newKeyName || !selectedKey) {
+    if (!newKeyName || !selectedKey || !activeTabId) {
       return
     }
     updateKey(selectedKey, newKeyName).then(() => {
-      setSelectedKey(newKeyName)
+      updateTab(activeTabId, { key: newKeyName, title: newKeyName })
     })
   }
 
@@ -120,8 +123,8 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
       confirmText: t("delete"),
       danger: true,
     })
-    if (ok) {
-      await deleteKey(key).then(() => setSelectedKey())
+    if (ok && activeTabId) {
+      await deleteKey(key).then(() => removeTab(activeTabId))
     }
   }
 

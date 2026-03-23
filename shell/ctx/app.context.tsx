@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
+import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
@@ -23,12 +24,6 @@ interface AppContextType {
 
   selectedDbIdx: number
   setSelectedDbIdx: (idx: number) => void
-
-  selectedKey?: string
-  setSelectedKey: (id?: string) => void
-
-  selectedSection?: string
-  setSelectedSection: (id: string) => void
 
   loading: boolean
   setLoading: (state: boolean) => void
@@ -55,12 +50,12 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedTab, setSelectedTab] = useState<string>("/connections")
-  const [selectedSection, setSelectedSection] = useState<string>("general")
   const [selectedDb, setSelectedDb] = useState<string | undefined>()
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
-  const [selectedKey, setSelectedKey] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
   const [language, setLanguage] = useSetting("language")
+
+  const { addTab } = useTabStore()
 
   useEffect(() => {
     i18n.changeLanguage(language)
@@ -79,11 +74,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSelectedDbIdx(dbIdx)
       setSelectedDb(database.id)
       setSelectedTab("/browser")
+      
+      addTab({
+        type: "general",
+        title: database.name || "General",
+        connectionId: database.id,
+        connectionName: database.name,
+        databaseIdx: dbIdx,
+      })
+      
       return res
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       if (msg == `client ${database.id}:${dbIdx} already exists`) {
         setSelectedTab("/browser")
+        addTab({
+          type: "general",
+          title: database.name || "General",
+          connectionId: database.id,
+          connectionName: database.name,
+          databaseIdx: dbIdx,
+        })
         return
       }
       toast.error(msg)
@@ -118,10 +129,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             setSelectedDb,
             selectedDbIdx,
             setSelectedDbIdx,
-            selectedKey,
-            setSelectedKey,
-            selectedSection,
-            setSelectedSection,
             loading,
             setLoading,
             connect,
