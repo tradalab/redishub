@@ -133,6 +133,6 @@
 
 @layer base {
   * {
-    scrollbar-width: thin !important;
+    scrollbar-width: thin;
   }
 }

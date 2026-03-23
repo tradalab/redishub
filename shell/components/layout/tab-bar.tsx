@@ -5,8 +5,8 @@ import { X, Database, Key, Terminal, Activity, ChevronDown } from "lucide-react"
 import { useTabStore, TabType } from "@/stores/tab.store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 const IconMap: Record<TabType, React.ElementType> = {
   general: Database,
@@ -18,7 +18,6 @@ const IconMap: Record<TabType, React.ElementType> = {
 export function TabBar() {
   const { tabs, activeTabId, setActiveTabId, removeTab } = useTabStore()
   const activeTabRef = useRef<HTMLDivElement>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Scroll active tab into view when it changes
   useEffect(() => {
@@ -29,10 +28,11 @@ export function TabBar() {
 
   // Map vertical wheel scroll to horizontal scroll
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (scrollContainerRef.current) {
-      // Only handle if scrolling vertically
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        scrollContainerRef.current.scrollLeft += e.deltaY * 0.5 // Adjust scrolling speed
+    // Only handle if scrolling vertically
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      const viewport = e.currentTarget.querySelector('[data-slot="scroll-area-viewport"]')
+      if (viewport) {
+        viewport.scrollLeft += e.deltaY * 0.5 // Adjust scrolling speed
       }
     }
   }
@@ -43,16 +43,8 @@ export function TabBar() {
 
   return (
     <div className="flex items-center border-b bg-muted/30 h-11 shrink-0 overflow-hidden w-full group/tabbar">
-      {/* 
-        Scroll container:
-        - overflow-x-auto allows horizontal scrolling
-        - CSS classes make scrollbar transparent natively, and visible on hover over the entire tab bar (group/tabbar)
-      */}
-      <div
-        ref={scrollContainerRef}
-        onWheel={handleWheel}
-        className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden [&::-webkit-scrollbar]:h-1 hover:[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-transparent group-hover/tabbar:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 transition-all rounded-full"
-      >
+      {/* Scroll container */}
+      <ScrollArea type="hover" className="flex-1 min-w-0 overflow-hidden [&_[data-orientation=vertical]]:hidden" onWheel={handleWheel}>
         <div className="flex h-11 items-center gap-0 w-max">
           {tabs.map(tab => {
             const Icon = IconMap[tab.type] || Database
@@ -98,7 +90,8 @@ export function TabBar() {
             )
           })}
         </div>
-      </div>
+        <ScrollBar orientation="horizontal" className="h-1.5 hover:h-2 z-20" />
+      </ScrollArea>
 
       {/* Tab Overflow Dropdown */}
       <div className="shrink-0 flex items-center px-1 border-l bg-muted/30 h-11">
