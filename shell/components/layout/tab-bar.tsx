@@ -55,6 +55,7 @@ export function TabBar() {
                 key={tab.id}
                 ref={isActive ? activeTabRef : null}
                 onClick={() => setActiveTabId(tab.id)}
+                title={tab.title}
                 className={cn(
                   "group relative flex items-center h-11 min-w-[140px] max-w-[240px] px-3 gap-2 border-r cursor-pointer transition-colors select-none shrink-0",
                   isActive
@@ -108,6 +109,7 @@ export function TabBar() {
                 <DropdownMenuItem
                   key={tab.id}
                   onClick={() => setActiveTabId(tab.id)}
+                  title={tab.title}
                   className={cn("gap-2 cursor-pointer py-2", activeTabId === tab.id && "bg-accent")}
                 >
                   <Icon className="size-4 shrink-0 text-muted-foreground" />
