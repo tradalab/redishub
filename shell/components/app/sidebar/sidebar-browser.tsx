@@ -279,7 +279,7 @@ function RenderTreeItem({ item, deleteKey, connectionName }: { item: FlattenedTr
   const selectKey = () => {
     addTab({
       type: "key-detail",
-      title: item.name,
+      title: item.id,
       connectionId: selectedDb!,
       connectionName: connectionName,
       databaseIdx: selectedDbIdx,
