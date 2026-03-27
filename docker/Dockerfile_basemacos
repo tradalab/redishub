@@ -62,10 +62,22 @@ RUN ./build.sh
 # 4. Final Environment Configuration
 ENV PATH="/osxcross/target/bin:${PATH}"
 
-# Link the SDK to a generic name and the specific name the wrapper might want
-RUN ln -sf /osxcross/target/SDK/MacOSX${MY_SDK_VERSION}.sdk /osxcross/target/SDK/MacOSX.sdk && \
-    ln -sf /osxcross/target/SDK/MacOSX${MY_SDK_VERSION}.sdk /osxcross/target/SDK/MacOSX14.5.sdk && \
-    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
+RUN find /osxcross/target -name "*.sdk"
+
+# Link the SDK to all possible names the wrapper might want
+RUN export ACTUAL_SDK=$(find /osxcross/target/SDK -name "MacOSX*.sdk" | head -n 1) && \
+    echo "Actual SDK found at: $ACTUAL_SDK" && \
+    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX.sdk && \
+    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX0u.sdk && \
+    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX14.5.sdk
+
+# Set permanent environment variables to force the path
+ENV OSXCROSS_SDK=/osxcross/target/SDK/MacOSX.sdk
+ENV OSXCROSS_SDK_VERSION=14.5
+ENV MACOSX_DEPLOYMENT_TARGET=11.0
+
+# Create generic compiler symlinks
+RUN ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
     ln -sf /osxcross/target/bin/aarch64-apple-darwin*-clang /osxcross/target/bin/aarch64-apple-darwin-clang && \
     ln -sf /osxcross/target/bin/x86_64-apple-darwin*-lipo /osxcross/target/bin/x86_64-apple-darwin-lipo
 
