@@ -60,8 +60,18 @@ COPY docker/tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz tarballs/
 ENV UNATTENDED=1
 ENV OSXCROSS_SDK_VERSION=${SDK_VERSION}
 ENV TARBALL_DIR=/osxcross/tarballs
+ENV MACOSX_DEPLOYMENT_TARGET=${SDK_VERSION}
 
 RUN ./build.sh
+
+# Ensure the SDK is in the target directory (sometimes build.sh needs help)
+RUN if [ ! -d "/osxcross/target/SDK/MacOSX${SDK_VERSION}.sdk" ]; then \
+        echo "Moving SDK to target directory..."; \
+        mkdir -p /osxcross/target/SDK; \
+        cp -r /osxcross/tarballs/MacOSX${SDK_VERSION}.sdk /osxcross/target/SDK/ 2>/dev/null || \
+        cp -r /osxcross/target/sdk/MacOSX${SDK_VERSION}.sdk /osxcross/target/SDK/ 2>/dev/null || \
+        echo "SDK already in place or not found"; \
+    fi
 
 # 4. Final Environment Configuration
 # ------------------------------------------------------------------------------
