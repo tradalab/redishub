@@ -51,13 +51,15 @@ RUN git clone https://github.com/tpoechtrager/osxcross.git .
 RUN mkdir -p /osxcross/tarballs
 COPY docker/tarballs/ /osxcross/tarballs/
 
-# We set TARBALL_DIR explicitly to avoid the absolute path resolution issue
-ENV TARBALL_DIR=/osxcross/tarballs
-ENV OSXCROSS_SDK_VERSION=14.5
+# We place the SDK in the repo's tarballs directory
+COPY docker/tarballs/MacOSX14.5.sdk.tar.xz ./tarballs/
 
-# List files for debugging and run build
-RUN ls -la $TARBALL_DIR && \
-    UNATTENDED=1 ./build.sh
+# Build osxcross
+# We pass variables directly in the RUN command to ensure they are available
+RUN UNATTENDED=1 \
+    OSXCROSS_SDK_VERSION=14.5 \
+    TARBALL_DIR=$(pwd)/tarballs \
+    ./build.sh
 
 # Ensure the bin directory is in the path
 ENV PATH="/osxcross/target/bin:${PATH}"
