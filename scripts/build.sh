@@ -86,8 +86,31 @@ case "$GOOS" in
     ;;
 
   darwin)
-    GOOS=$GOOS GOARCH=$GOARCH \
-      go build -o "$TEMP_DIR/$APP_NAME" ./main.go
+    if [ "$GOARCH" = "universal" ]; then
+      echo "==> Building universal binary (amd64 + arm64)"
+      mkdir -p "$TEMP_DIR/amd64" "$TEMP_DIR/arm64"
+
+      echo "+ Build amd64"
+      CC_AMD64=${CC_amd64:-${CC:-gcc}}
+      GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC="$CC_AMD64" \
+        go build -ldflags "-s -w" -o "$TEMP_DIR/amd64/$APP_NAME" ./main.go
+
+      echo "+ Build arm64"
+      CC_ARM64=${CC_arm64:-${CC:-gcc}}
+      GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 CC="$CC_ARM64" \
+        go build -ldflags "-s -w" -o "$TEMP_DIR/arm64/$APP_NAME" ./main.go
+
+      echo "+ Merge universal binary (lipo)"
+      LIPO_CMD="lipo"
+      # If cross-compiling, use the prefixed lipo
+      if command -v x86_64-apple-darwin23.1-lipo >/dev/null 2>&1; then
+        LIPO_CMD="x86_64-apple-darwin23.1-lipo"
+      fi
+      $LIPO_CMD -create -output "$TEMP_DIR/$APP_NAME" "$TEMP_DIR/amd64/$APP_NAME" "$TEMP_DIR/arm64/$APP_NAME"
+    else
+      GOOS=$GOOS GOARCH=$GOARCH \
+        go build -o "$TEMP_DIR/$APP_NAME" ./main.go
+    fi
 
     echo "==> Packaging macOS .app + .dmg..."
 
@@ -95,16 +118,36 @@ case "$GOOS" in
     mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 
     cp "$TEMP_DIR/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/"
-    cp installer/macos/Info.plist "$APP_BUNDLE/Contents/"
+    # Corrected path to installer/mac
+    if [ -f "installer/mac/Info.plist" ]; then
+      cp "installer/mac/Info.plist" "$APP_BUNDLE/Contents/"
+    fi
 
-    [ -f installer/macos/AppIcon.icns ] && \
-      cp installer/macos/AppIcon.icns "$APP_BUNDLE/Contents/Resources/"
+    if [ -f "installer/mac/AppIcon.icns" ]; then
+      cp "installer/mac/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/"
+    fi
 
-    hdiutil create \
-      -volname "$APP_NAME" \
-      -srcfolder "$APP_BUNDLE" \
-      -ov -format UDZO \
-      "$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg"
+    if command -v hdiutil >/dev/null 2>&1; then
+      echo "==> Using hdiutil to create DMG"
+      hdiutil create \
+        -volname "$APP_NAME" \
+        -srcfolder "$APP_BUNDLE" \
+        -ov -format UDZO \
+        "$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg"
+    elif command -v dmgbuild >/dev/null 2>&1; then
+      echo "==> Using dmgbuild to create DMG (Linux-compatible)"
+      # Create a basic settings file if it doesn't exist
+      SETTINGS_FILE=".scorix/dmg_settings.py"
+      cat > "$SETTINGS_FILE" <<EOF
+filename = '$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg'
+volume_name = '$APP_NAME'
+files = ['$APP_BUNDLE']
+symlinks = {'Applications': '/Applications'}
+EOF
+      dmgbuild -s "$SETTINGS_FILE" "$APP_NAME" "$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg"
+    else
+      echo "!! No DMG tool found (hdiutil or dmgbuild). Skipping DMG creation."
+    fi
     ;;
 
   linux)

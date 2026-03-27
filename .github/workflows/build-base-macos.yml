@@ -1,0 +1,46 @@
+name: Build & Push macOS Base Image
+
+on:
+  push:
+    paths:
+      - 'docker/Dockerfile_basemacos'
+  workflow_dispatch:
+    inputs:
+      sdk_url:
+        description: 'URL to macOS SDK tarball'
+        required: false
+        default: 'https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download macOS SDK
+        run: |
+          mkdir -p docker/tarballs
+          wget -q -O docker/tarballs/MacOSX14.5.sdk.tar.xz "${{ github.event.inputs.sdk_url || 'https://github.com/joseluisq/macosx-sdks/releases/download/14.5/MacOSX14.5.sdk.tar.xz' }}"
+
+      - name: Build & Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile_basemacos
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-base-macos:latest
+            ghcr.io/${{ github.repository }}-base-macos:${{ github.sha }}
