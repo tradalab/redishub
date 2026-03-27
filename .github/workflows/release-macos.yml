@@ -3,8 +3,7 @@ name: Build & Release macOS App
 on:
   push:
     branches:
-      - "main"
-      - "master"
+      - "feat/issue-29-macos-support"
     tags:
       - "v*"
   workflow_dispatch:
