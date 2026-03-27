@@ -1,13 +1,21 @@
-# 1. Base Linux image for cross-compilation
+# ==============================================================================
+# RedisHub macOS Cross-Compilation Base Image
+# Optimized for Go 1.24+ and macOS SDK 14.5+
+# ==============================================================================
+
 FROM ubuntu:22.04 AS base
 
+# Prevent interactive prompts during apt-get
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GO_VERSION=1.24.10
-ENV OSXCROSS_VERSION=v1.0
-ENV SDK_VERSION=14.5
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
+# Build-time arguments
+ARG GO_VERSION=1.24.10
+ARG SDK_VERSION=14.5
+ARG OSXCROSS_REPO=https://github.com/tpoechtrager/osxcross.git
+
+# 1. Install System Dependencies
+# ------------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     wget \
@@ -15,15 +23,13 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     clang \
     llvm-dev \
-    pkg-config \
-    cmake \
-    patch \
     libxml2-dev \
     libssl-dev \
-    zlib1g-dev \
+    libz-dev \
     liblzma-dev \
     libbz2-dev \
-    libz-dev \
+    cmake \
+    patch \
     bash \
     python3 \
     python3-pip \
@@ -31,43 +37,48 @@ RUN apt-get update && apt-get install -y \
     cpio \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dmgbuild
-RUN pip3 install dmgbuild
-
-# Install Go
+# 2. Setup Go Environment
+# ------------------------------------------------------------------------------
 RUN wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
     rm go${GO_VERSION}.linux-amd64.tar.gz
 
 ENV PATH="/usr/local/go/bin:${PATH}"
 
-# Install osxcross
-# Note: This requires the macOS SDK to be present in the build context at tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz
+# 3. Setup OSXCROSS
+# ------------------------------------------------------------------------------
 WORKDIR /osxcross
-RUN git clone https://github.com/tpoechtrager/osxcross.git .
+RUN git clone ${OSXCROSS_REPO} .
 
-# We expect the SDK to be provided in the 'tarballs' directory
-# Ensure the directory exists
-RUN mkdir -p /osxcross/tarballs
-COPY docker/tarballs/ /osxcross/tarballs/
+# Copy SDK into the standard tarballs directory
+# We assume the SDK is provided in the build context at docker/tarballs/
+RUN mkdir -p tarballs
+COPY docker/tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz tarballs/
 
-# We place the SDK in the repo's tarballs directory
-COPY docker/tarballs/MacOSX14.5.sdk.tar.xz ./tarballs/
+# Build OSXCROSS
+# We set all variables explicitly to ensure the build script succeeds
+ENV UNATTENDED=1
+ENV OSXCROSS_SDK_VERSION=${SDK_VERSION}
+ENV TARBALL_DIR=/osxcross/tarballs
 
-# Build osxcross
-# We pass variables directly in the RUN command to ensure they are available
-RUN UNATTENDED=1 \
-    OSXCROSS_SDK_VERSION=14.5 \
-    TARBALL_DIR=$(pwd)/tarballs \
-    ./build.sh
+RUN ./build.sh
 
-# Ensure the bin directory is in the path
+# 4. Final Environment Configuration
+# ------------------------------------------------------------------------------
 ENV PATH="/osxcross/target/bin:${PATH}"
 
-# Add generic symlinks if they don't exist
-# osxcross usually does this, but let's be safe
+# Create generic symlinks for tools to decouple from specific SDK versions
 RUN ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
-    ln -sf /osxcross/target/bin/aarch64-apple-darwin*-clang /osxcross/target/bin/aarch64-apple-darwin-clang
+    ln -sf /osxcross/target/bin/aarch64-apple-darwin*-clang /osxcross/target/bin/aarch64-apple-darwin-clang && \
+    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-lipo /osxcross/target/bin/x86_64-apple-darwin-lipo && \
+    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-libtool /osxcross/target/bin/x86_64-apple-darwin-libtool
+
+# Install dmgbuild for Linux-compatible DMG creation
+RUN pip3 install --no-cache-dir dmgbuild
 
 # Verification
-RUN go version
+RUN go version && \
+    x86_64-apple-darwin-clang --version && \
+    aarch64-apple-darwin-clang --version
+
+WORKDIR /workspace
