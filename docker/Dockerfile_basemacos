@@ -8,9 +8,9 @@ FROM ubuntu:22.04 AS base
 # Prevent interactive prompts during apt-get
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Build-time arguments
+# Build-time arguments (prefixed to avoid conflict with osxcross internal vars)
 ARG GO_VERSION=1.24.10
-ARG SDK_VERSION=14.5
+ARG MY_SDK_VERSION=14.5
 ARG OSXCROSS_REPO=https://github.com/tpoechtrager/osxcross.git
 
 # 1. Install System Dependencies
@@ -53,42 +53,30 @@ RUN git clone ${OSXCROSS_REPO} .
 # Copy SDK into the standard tarballs directory
 # We assume the SDK is provided in the build context at docker/tarballs/
 RUN mkdir -p tarballs
-COPY docker/tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz tarballs/
+COPY docker/tarballs/MacOSX${MY_SDK_VERSION}.sdk.tar.xz tarballs/
 
 # Build OSXCROSS
-# We set all variables explicitly to ensure the build script succeeds
-ENV UNATTENDED=1
-ENV OSXCROSS_SDK_VERSION=${SDK_VERSION}
-ENV TARBALL_DIR=/osxcross/tarballs
-ENV MACOSX_DEPLOYMENT_TARGET=${SDK_VERSION}
-
-RUN ./build.sh
-
-# Ensure the SDK is in the target directory (sometimes build.sh needs help)
-RUN if [ ! -d "/osxcross/target/SDK/MacOSX${SDK_VERSION}.sdk" ]; then \
-        echo "Moving SDK to target directory..."; \
-        mkdir -p /osxcross/target/SDK; \
-        cp -r /osxcross/tarballs/MacOSX${SDK_VERSION}.sdk /osxcross/target/SDK/ 2>/dev/null || \
-        cp -r /osxcross/target/sdk/MacOSX${SDK_VERSION}.sdk /osxcross/target/SDK/ 2>/dev/null || \
-        echo "SDK already in place or not found"; \
-    fi
+# We set OSXCROSS_SDK_VERSION to help the script find it
+RUN UNATTENDED=1 OSXCROSS_SDK_VERSION=${MY_SDK_VERSION} ./build.sh
 
 # 4. Final Environment Configuration
 # ------------------------------------------------------------------------------
 ENV PATH="/osxcross/target/bin:${PATH}"
 
-# Create generic symlinks for tools to decouple from specific SDK versions
-RUN ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
+# Crucial: Link the SDK to a generic name that wrappers can always find
+# Also ensure the compilers have generic names
+RUN ln -sf /osxcross/target/SDK/MacOSX${MY_SDK_VERSION}.sdk /osxcross/target/SDK/MacOSX.sdk && \
+    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
     ln -sf /osxcross/target/bin/aarch64-apple-darwin*-clang /osxcross/target/bin/aarch64-apple-darwin-clang && \
-    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-lipo /osxcross/target/bin/x86_64-apple-darwin-lipo && \
-    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-libtool /osxcross/target/bin/x86_64-apple-darwin-libtool
+    ln -sf /osxcross/target/bin/x86_64-apple-darwin*-lipo /osxcross/target/bin/x86_64-apple-darwin-lipo
 
-# Install dmgbuild for Linux-compatible DMG creation
+# Install dmgbuild
 RUN pip3 install --no-cache-dir dmgbuild
 
 # Verification
+# We set MACOS_SDK_VERSION here for the verification run
 RUN go version && \
-    x86_64-apple-darwin-clang --version && \
-    aarch64-apple-darwin-clang --version
+    OSXCROSS_SDK_VERSION=${MY_SDK_VERSION} x86_64-apple-darwin-clang --version && \
+    OSXCROSS_SDK_VERSION=${MY_SDK_VERSION} aarch64-apple-darwin-clang --version
 
 WORKDIR /workspace
