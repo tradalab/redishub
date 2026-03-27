@@ -59,7 +59,7 @@ RUN set -eux; \
 
 
 # 4. Go + macOS builder
-FROM ghcr.io/tradalab/scorix-base-macos:latest AS macos-builder
+FROM ghcr.io/tradalab/redishub-base-macos:latest AS macos-builder
 
 WORKDIR /workspace
 
