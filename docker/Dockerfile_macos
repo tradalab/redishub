@@ -75,8 +75,8 @@ COPY --from=next-builder /app/dist /workspace/.scorix/dist
 
 # Build macOS app using the consolidated build script
 # We set CC for cross-compilation
-ENV CC_amd64=x86_64-apple-darwin23.1-clang
-ENV CC_arm64=aarch64-apple-darwin23.1-clang
+ENV CC_amd64=x86_64-apple-darwin-clang
+ENV CC_arm64=aarch64-apple-darwin-clang
 
 # We need to ensure CC is set correctly for each arch during build.sh execution.
 # Since build.sh calls go build twice for universal, we can either:

@@ -45,13 +45,18 @@ WORKDIR /osxcross
 RUN git clone https://github.com/tpoechtrager/osxcross.git .
 
 # We expect the SDK to be provided in the 'tarballs' directory
-# If not present, the build will fail here during the actual build process
-# COPY tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz /osxcross/tarballs/
+COPY docker/tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz /osxcross/tarballs/
 
 # Build osxcross
-# RUN UNATTENDED=1 ./build.sh
+# We need to ensure we are in /osxcross
+RUN UNATTENDED=1 ./build.sh
 
 ENV PATH="/osxcross/target/bin:${PATH}"
+
+# Add generic symlinks if they don't exist
+# osxcross usually does this, but let's be safe
+RUN ln -sf /osxcross/target/bin/x86_64-apple-darwin*-clang /osxcross/target/bin/x86_64-apple-darwin-clang && \
+    ln -sf /osxcross/target/bin/aarch64-apple-darwin*-clang /osxcross/target/bin/aarch64-apple-darwin-clang
 
 # Verification
 RUN go version

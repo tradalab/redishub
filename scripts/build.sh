@@ -103,7 +103,9 @@ case "$GOOS" in
       echo "+ Merge universal binary (lipo)"
       LIPO_CMD="lipo"
       # If cross-compiling, use the prefixed lipo
-      if command -v x86_64-apple-darwin23.1-lipo >/dev/null 2>&1; then
+      if command -v x86_64-apple-darwin-lipo >/dev/null 2>&1; then
+        LIPO_CMD="x86_64-apple-darwin-lipo"
+      elif command -v x86_64-apple-darwin23.1-lipo >/dev/null 2>&1; then
         LIPO_CMD="x86_64-apple-darwin23.1-lipo"
       fi
       $LIPO_CMD -create -output "$TEMP_DIR/$APP_NAME" "$TEMP_DIR/amd64/$APP_NAME" "$TEMP_DIR/arm64/$APP_NAME"
