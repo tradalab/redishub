@@ -47,12 +47,18 @@ WORKDIR /osxcross
 RUN git clone https://github.com/tpoechtrager/osxcross.git .
 
 # We expect the SDK to be provided in the 'tarballs' directory
-COPY docker/tarballs/MacOSX${SDK_VERSION}.sdk.tar.xz /osxcross/tarballs/
+# Ensure the directory exists
+RUN mkdir -p /osxcross/tarballs
+COPY docker/tarballs/ /osxcross/tarballs/
 
 # Build osxcross
-# We need to ensure we are in /osxcross
-RUN UNATTENDED=1 ./build.sh
+# We set OSXCROSS_SDK_VERSION to help the script
+ENV OSXCROSS_SDK_VERSION=${SDK_VERSION}
+# List files for debugging in CI logs if it fails again
+RUN ls -la /osxcross/tarballs/ && \
+    UNATTENDED=1 ./build.sh
 
+# Ensure the bin directory is in the path
 ENV PATH="/osxcross/target/bin:${PATH}"
 
 # Add generic symlinks if they don't exist
