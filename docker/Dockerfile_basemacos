@@ -62,17 +62,10 @@ RUN ./build.sh
 # 4. Final Environment Configuration
 ENV PATH="/osxcross/target/bin:${PATH}"
 
-RUN find /osxcross/target -name "*.sdk"
+# List the SDK directory for verification
+RUN ls -R /osxcross/target/SDK
 
-# Link the SDK to all possible names the wrapper might want
-RUN export ACTUAL_SDK=$(find /osxcross/target/SDK -name "MacOSX*.sdk" | head -n 1) && \
-    echo "Actual SDK found at: $ACTUAL_SDK" && \
-    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX.sdk && \
-    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX0u.sdk && \
-    ln -sf "$ACTUAL_SDK" /osxcross/target/SDK/MacOSX14.5.sdk
-
-# Set permanent environment variables to force the path
-ENV OSXCROSS_SDK=/osxcross/target/SDK/MacOSX.sdk
+# Set persistent version variables
 ENV OSXCROSS_SDK_VERSION=14.5
 ENV MACOSX_DEPLOYMENT_TARGET=11.0
 
