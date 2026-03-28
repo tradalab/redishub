@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.8.0]
+
+### 🚀 Features
+
+- **macos:** Add macOS support (#42)
+- **ui:** Add tab-based interface (#36)
+
+### ⚡ Performance
+
+- **search:** Improve key search performance (#27)
+- **tree:** Optimize tree for handling large number of keys (#27)
+
+### 🐛 Fixes
+
+- **group:** Fix incorrect key count in groups (#27)
+
+---
+
 ## [1.7.0]
     
 ### 🚀 Features

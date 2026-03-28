@@ -1,6 +1,6 @@
 app:
   name: RedisHub
-  version: 1.7.0
+  version: 1.8.0
   identifier: com.tradalab.redishub
   description: "RedisHub"
   authors: [ "TradaLab Team" ]
@@ -11,7 +11,7 @@ window:
   title: RedisHub
   width: 1024
   height: 768
-  debug: true
+  debug: false
 
 security:
   csp: none
@@ -46,4 +46,4 @@ modules:
     public_key_base_64:
     platform_key:
     force_elevate: true
-    current_version: 1.7.0
+    current_version: 1.8.0
