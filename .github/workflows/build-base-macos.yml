@@ -4,6 +4,8 @@ on:
   push:
     # paths:
     #   - 'docker/Dockerfile_basemacos'
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       sdk_url:
