@@ -1,0 +1,33 @@
+# Building for macOS
+
+macOS builds are performed natively using the standard macOS SDK and the Go toolchain. We create a **Universal Binary** that supports both Intel (AMD64) and Apple Silicon (ARM64) architectures.
+
+## Prerequisites
+
+- **Go 1.24+**
+- **Node.js 22+**
+- **pnpm**
+- **Xcode Command Line Tools**: Install via `xcode-select --install`.
+
+## Build Process
+
+To build the macOS application and bundle it into a `.dmg` installer, use the provided build script:
+
+```bash
+bash scripts/build.sh darwin universal
+```
+
+Under the hood, this script:
+1. Compiles the frontend and Go backend.
+2. Creates separate `amd64` and `arm64` binaries.
+3. Uses `lipo` to merge them into a single universal binary.
+4. Bundles the binary into an `.app` structure.
+5. Packages the `.app` into a `.dmg` via `dmgbuild` or `hdiutil`.
+
+## Output Locations
+
+Upon a successful build, the following files will be available:
+
+- `artifacts/RedisHub-1.8.0-macos-universal.dmg`
+
+This DMG can be mounted and dragged into the Applications folder for installation.

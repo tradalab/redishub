@@ -1,0 +1,49 @@
+# Building for Windows
+
+To build Windows artifacts, you need to use **Windows containers** in a Windows environment, as the build process requires the Wix Toolset and Windows system libraries.
+
+## Prerequisites
+
+- **Docker Desktop** (Switched to **Windows containers**)
+- **Hyper-V** (Must be enabled on the host machine)
+- **Git** (For cloning the repository)
+
+## Building the Base Image
+
+The base image contains large dependencies like `Go`, `Node.js`, and the `Wix Toolset`. 
+
+Build the base image from the project root:
+
+```bash
+DOCKER_BUILDKIT=0 docker build \
+  -f docker/Dockerfile_basewindows \
+  -t ghcr.io/tradalab/scorix-base-windows:latest \
+  .
+```
+
+## Creating the MSI Installer
+
+Once the base image is ready, you can compile the application and build the MSI installer.
+
+```bash
+DOCKER_BUILDKIT=0 docker build \
+  --platform windows/amd64 \
+  -f docker/Dockerfile_windows \
+  . -t redishub:windows
+```
+
+## Exporting the Artifacts
+
+Because Windows containers don't support the `--output type=local` buildx feature as easily as Linux containers, you'll need to create a temporary container to copy the files out:
+
+```bash
+docker create --name tmp redishub:windows && \
+docker cp tmp:C:/artifacts ./ && \
+docker rm tmp
+```
+
+## Output Locations
+
+Upon a successful export, the following files will be available:
+
+- `artifacts/RedisHub-1.8.0-windows-amd64.msi`

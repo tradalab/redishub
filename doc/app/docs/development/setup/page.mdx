@@ -1,0 +1,49 @@
+# Getting Started
+
+This guide covers the initial setup of your development environment and explains the core project structure of RedisHub.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your machine:
+
+- **Go 1.24+**: Backend language.
+- **Node.js 22+**: Frontend runtime.
+- **pnpm**: Fast, disk space efficient package manager.
+    - Enable via: `corepack enable pnpm`
+
+## Initializing the Workspace
+
+Clone the repository and install the frontend dependencies:
+
+```bash
+git clone https://github.com/tradalab/redishub.git
+cd redishub/shell
+pnpm install
+```
+
+## Running the Development Server
+
+To start both the Go backend and the Next.js frontend concurrently, use the provided development script:
+
+```bash
+cd ..
+bash scripts/dev.sh
+```
+
+- **Frontend**: Accessible at `http://localhost:3000` (or the port specified in your console).
+- **Backend API**: The Go server handles IPC and system-level requests.
+
+## Project Structure
+
+A high-level map of the codebase to help you navigate:
+
+| Directory | Description |
+| :--- | :--- |
+| `app/` | Core backend business logic, services, and handlers. |
+| `cmd/` | Supplementary CLI tools (e.g., `appcast-server`, `release-signer`). |
+| `doc/` | The Nextra-powered documentation site (what you are reading now). |
+| `etc/` | Static configuration and application manifests (`app.yaml`). |
+| `pkg/` | Reusable Go packages and utility libraries. |
+| `shell/` | The Next.js frontend application (React, Tailwind, Lucide). |
+| `scripts/` | Automation scripts for development, building, and releases. |
+| `artifacts/` | Output directory for built distribution packages. |

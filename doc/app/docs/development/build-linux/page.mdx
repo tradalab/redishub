@@ -1,0 +1,41 @@
+# Building for Linux
+
+Linux AppImage artifacts are built within a controlled Docker environment to ensure that all system-level dependencies are correctly linked and that the resulting package is portable across different distributions.
+
+## Prerequisites
+
+- **Docker Desktop**: With **Linux containers** selected.
+- **Docker Buildx**: For multi-stage builds.
+
+## Building the Base Image
+
+The basic system dependencies (e.g., `linuxdeploy`, `zlib`, `libfuse`) are packed into a base image to speed up subsequent builds. 
+
+Run from the project root:
+
+```bash
+DOCKER_BUILDKIT=1 docker build \
+  -f docker/Dockerfile_baselinux \
+  -t ghcr.io/tradalab/scorix-base-linux:latest \
+  .
+```
+
+## Creating the AppImage
+
+Once the base image is ready, you can build the application itself and export the `.AppImage` directly to your local `artifacts/` folder:
+
+```bash
+docker buildx build \
+  -f docker/Dockerfile_linux \
+  --target artifacts \
+  --output type=local,dest=./artifacts \
+  .
+```
+
+## Output Locations
+
+Upon a successful build, the following files will be available:
+
+- `artifacts/RedisHub-1.8.0-linux-amd64.AppImage`
+
+This AppImage can be run directly on any modern Linux distribution without installation.
