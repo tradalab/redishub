@@ -5,12 +5,13 @@ import { Download } from "lucide-react"
 
 const LATEST_VERSION = process.env.NEXT_PUBLIC_LATEST_VERSION
 
-type OS = "windows" | "linux"
-type Arch = "amd64"
+type OS = "windows" | "linux" | "macos"
+type Arch = "amd64" | "universal"
 
 const MATRIX: Record<OS, { label: string; ext: string; archs: Arch[] }> = {
   windows: { label: "Windows", ext: "msi", archs: ["amd64"] },
   linux: { label: "Linux", ext: "AppImage", archs: ["amd64"] },
+  macos: { label: "macOS", ext: "dmg", archs: ["universal"] },
 }
 
 export default function Page() {
@@ -19,6 +20,9 @@ export default function Page() {
 
   const downloadUrl = useMemo(() => {
     const ext = MATRIX[os].ext
+    if (os === "macos") {
+      return `https://github.com/tradalab/redishub/releases/download/v${LATEST_VERSION}/RedisHub-${LATEST_VERSION}.${ext}`
+    }
     return `https://github.com/tradalab/redishub/releases/download/v${LATEST_VERSION}/RedisHub-${LATEST_VERSION}-${os}-${arch}.${ext}`
   }, [os, arch])
 
