@@ -139,7 +139,7 @@ case "$GOOS" in
         -volname "$APP_NAME" \
         -srcfolder "$APP_BUNDLE" \
         -ov -format UDZO \
-        "$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg"
+        "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-macos-${GOARCH}.dmg"
     elif command -v dmgbuild >/dev/null 2>&1; then
       echo "==> Using dmgbuild to create DMG (Linux-compatible)"
       # Create a basic settings file if it doesn't exist
@@ -150,7 +150,7 @@ volume_name = '$APP_NAME'
 files = ['$APP_BUNDLE']
 symlinks = {'Applications': '/Applications'}
 EOF
-      dmgbuild -s "$SETTINGS_FILE" "$APP_NAME" "$ARTIFACT_DIR/${APP_NAME}-${VERSION}.dmg"
+      dmgbuild -s "$SETTINGS_FILE" "$APP_NAME" "$ARTIFACT_DIR/${APP_NAME}-${VERSION}-macos-${GOARCH}.dmg"
     else
       echo "!! No DMG tool found (hdiutil or dmgbuild). Skipping DMG creation."
     fi

@@ -46,7 +46,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true)
     try {
       const info: { platform: string } = await scorix.invoke("system:info", {})
-      if (info.platform === "linux") {
+      if (info.platform === "linux" || info.platform === "darwin") {
         await scorix.invoke("mod:browser:OpenUrl", { url: "https://github.com/tradalab/redishub/releases" })
         return
       }
