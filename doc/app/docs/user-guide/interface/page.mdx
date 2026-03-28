@@ -1,0 +1,30 @@
+# Interface & Tabs
+
+RedisHub features a modern, tab-based interface designed for high-productivity multitasking. This layout allows you to maintain multiple active connections and switch between different operational contexts without losing your place.
+
+## Tab Navigation
+
+The tab bar is located at the top of the application and serves as your primary navigation hub.
+
+### Core Tabs
+- **Connections Dashboard**: Your home screen for managing servers, groups, and SSH tunnels.
+- **Key Browser**: Appear when you connect to a database. Each browser tab is tied to a specific connection.
+- **Settings**: Accessible via the sidebar, allowing you to tune the application without closing active browsers.
+
+## Working with Multiple Connections
+
+RedisHub is built to handle many active connections simultaneously:
+
+1. **Simultaneous Browsing**: You can open multiple browser tabs for different Redis instances (e.g., Development, Staging, and Production).
+2. **Tab Isolation**: Each tab maintains its own database selection, search results, and scroll position.
+
+## UI Indicators
+
+- **Active State**: The currently focused tab is highlighted with an indigo bottom border.
+- **Loading Indicators**: Tabs will show a subtle loading spinner when a long-running command (like a deep `SCAN`) is in progress.
+- **Validation Dots**: Indicators appear on tabs when there are connectivity issues or validation errors within that specific context.
+
+## Managing Tabs
+
+- **Closing Tabs**: Click the **x** icon on a tab to close it. This will safely terminate the UI context for that connection.
+- **Reordering**: Drag and drop tabs to organize your workspace according to your current workflow.
