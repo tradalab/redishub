@@ -52,8 +52,8 @@ jobs:
           git clone ${GITOPS_GITLAB_REPO}
           cd gitops
 
-          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:${{ steps.vars.outputs.short_sha }}|" k8s/apps/redishub/web/overlays/pro/patch-image.yaml
-          
+          sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-doc:${{ steps.vars.outputs.short_sha }}|" k8s/app/redishub/web/overlays/prod/patch-image.yaml
+
           git config user.email "gitops-bot@gitlab.com"
           git config user.name "gitops-bot"
 
