@@ -2,8 +2,8 @@ name: Build & Push macOS Base Image
 
 on:
   push:
-    paths:
-      - 'docker/Dockerfile_basemacos'
+    # paths:
+    #   - 'docker/Dockerfile_basemacos'
   workflow_dispatch:
     inputs:
       sdk_url:

@@ -2,15 +2,15 @@ name: Build & Release macOS App
 
 on:
   push:
-    # branches:
-    #   - "feat/issue-29-macos-support"
+    branches:
+      - "feat/issue-29-macos-support"
     tags:
       - "v*"
   workflow_dispatch:
 
 jobs:
   build-macos:
-    runs-on: ubuntu-22.04
+    runs-on: macos-14
 
     permissions:
       contents: write
@@ -19,27 +19,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: shell/package-lock.json
 
-      - name: Build and Export Artifacts
+      - name: Install Frontend Dependencies
+        working-directory: shell
         run: |
-          docker build \
-            -f docker/Dockerfile_macos \
-            --target artifacts \
-            --output type=local,dest=./release \
-            .
+          if [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f pnpm-lock.yaml ]; then
+            corepack enable pnpm && pnpm install --frozen-lockfile
+          else
+            npm install
+          fi
+
+      - name: Build Frontend
+        working-directory: shell
+        run: |
+          if [ -f yarn.lock ]; then
+            yarn build
+          elif [ -f package-lock.json ]; then
+            npm run build
+          elif [ -f pnpm-lock.yaml ]; then
+            pnpm run build
+          else
+            npm run build
+          fi
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Inject Frontend Artifacts
+        run: |
+          mkdir -p .scorix/dist
+          cp -R shell/dist/* .scorix/dist/
+
+      - name: Build macOS App
+        run: bash scripts/build.sh darwin universal
 
       - name: List artifacts
-        run: ls -R release
+        run: ls -R artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/**/*.dmg
+          files: artifacts/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

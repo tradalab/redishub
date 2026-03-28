@@ -41,7 +41,11 @@ mkdir -p "$TEMP_DIR"
 echo "==> Generate config"
 
 echo "+ Write version"
-sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed -i '' -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
+else
+  sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
+fi
 
 echo "+ Copy icon"
 cp assets/icon.ico "$TEMP_DIR/$APP_NAME.ico"
