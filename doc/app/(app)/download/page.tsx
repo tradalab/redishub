@@ -20,9 +20,6 @@ export default function Page() {
 
   const downloadUrl = useMemo(() => {
     const ext = MATRIX[os].ext
-    if (os === "macos") {
-      return `https://github.com/tradalab/redishub/releases/download/v${LATEST_VERSION}/RedisHub-${LATEST_VERSION}.${ext}`
-    }
     return `https://github.com/tradalab/redishub/releases/download/v${LATEST_VERSION}/RedisHub-${LATEST_VERSION}-${os}-${arch}.${ext}`
   }, [os, arch])
 
