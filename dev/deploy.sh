@@ -5,7 +5,11 @@ COMPOSE_FILES=("-f" "docker-compose-standalone.yaml" "-f" "docker-compose-sentin
 
 # Detect Host IP for Redis Cluster announcement
 # This is required for Windows host to connect to Cluster nodes in separate containers
-export RDH_HOST_IP=$(ipconfig.exe | grep "IPv4 Address" | head -n 1 | awk '{print $NF}' | tr -d '\r')
+if command -v ipconfig.exe &>/dev/null; then
+    export RDH_HOST_IP=$(ipconfig.exe | grep "IPv4 Address" | head -n 1 | awk '{print $NF}' | tr -d '\r')
+else
+    export RDH_HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+fi
 if [ -z "$RDH_HOST_IP" ]; then
     export RDH_HOST_IP="127.0.0.1"
 fi

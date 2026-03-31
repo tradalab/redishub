@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "export",
   productionBrowserSourceMaps: true,
-  distDir: "/dist",
+  distDir: "dist",
 }
 
 export default nextConfig
