@@ -7,7 +7,7 @@ app:
   license: "UNLICENSE"
   icon: "assets/icon.ico"
 
-mode: web
+mode: app
 
 web:
   host: 127.0.0.1
