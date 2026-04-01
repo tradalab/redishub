@@ -14,6 +14,7 @@ import (
 	"github.com/tradalab/rdms/app/dal/do"
 	"github.com/tradalab/rdms/pkg/netx"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/proxy"
 )
 
 type ClientManager struct {
@@ -141,7 +142,50 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		}
 	}
 
-	// set SSH tunnel
+	// build Base Dialer (with Proxy support if enabled)
+	var baseDialer interface {
+		DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+	}
+
+	if cfg.ProxyEnable && cfg.Proxy != nil {
+		switch cfg.Proxy.Protocol {
+		case "socks5":
+			auth := &proxy.Auth{
+				User:     cfg.Proxy.Username,
+				Password: cfg.Proxy.Password,
+			}
+			pd, err := proxy.SOCKS5("tcp", cfg.Proxy.Addr(), auth, proxy.Direct)
+			if err != nil {
+				return nil, fmt.Errorf("socks5 proxy setup failed: %w", err)
+			}
+			// SOCKS5 dialer is a proxy.ContextDialer which has DialContext
+			if cd, ok := pd.(proxy.ContextDialer); ok {
+				baseDialer = cd
+			} else {
+				// Fallback to wrapper for non-context dialer
+				baseDialer = netx.NewContextWrapper(pd)
+			}
+		case "http":
+			baseDialer = &netx.HttpConnectDialer{
+				ProxyAddr: cfg.Proxy.Addr(),
+				Username:  cfg.Proxy.Username,
+				Password:  cfg.Proxy.Password,
+				Timeout:   options.DialTimeout,
+			}
+		default:
+			baseDialer = &net.Dialer{
+				Timeout:   options.DialTimeout,
+				KeepAlive: options.ReadTimeout,
+			}
+		}
+	} else {
+		baseDialer = &net.Dialer{
+			Timeout:   options.DialTimeout,
+			KeepAlive: options.ReadTimeout,
+		}
+	}
+
+	// set SSH tunnel (optionally through proxy)
 	var sshClient *ssh.Client
 	if cfg.SshEnable {
 		sshConfig, err := cfg.Ssh.BuildClientCfg()
@@ -149,13 +193,22 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 			return nil, err
 		}
 		sshAddr := cfg.Ssh.Addr()
-		sshClient, err = ssh.Dial("tcp", sshAddr, sshConfig)
+
+		// Dial SSH through baseDialer which might be proxy
+		sshConn, err := baseDialer.DialContext(context.Background(), "tcp", sshAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ssh dial failed: %w", err)
 		}
+
+		c, chans, reqs, err := ssh.NewClientConn(sshConn, sshAddr, sshConfig)
+		if err != nil {
+			sshConn.Close()
+			return nil, fmt.Errorf("ssh handshake failed: %w", err)
+		}
+		sshClient = ssh.NewClient(c, chans, reqs)
 	}
 
-	// build Dialer
+	// build Final Dialer
 	options.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
 		dialAddr := addr
 		if mapped, ok := addrMap[addr]; ok {
@@ -166,10 +219,7 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 			return sshClient.Dial(network, dialAddr)
 		}
 
-		return (&net.Dialer{
-			Timeout:   options.DialTimeout,
-			KeepAlive: options.ReadTimeout,
-		}).DialContext(ctx, network, dialAddr)
+		return baseDialer.DialContext(ctx, network, dialAddr)
 	}
 
 	// set TLS

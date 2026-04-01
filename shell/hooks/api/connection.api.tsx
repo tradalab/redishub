@@ -24,9 +24,16 @@ export function useUpsertConnection() {
     mutationFn: async (values: Partial<ConnectionDO>) => {
       const id = values.id ?? uuidv7()
       const sql = `
-        INSERT
-        OR REPLACE INTO "connection"
-        (id, name, mode, network, host, port, addrs, sentinel_master, sentinel_username, sentinel_password, sock, username, password, addr_mapping, last_db, group_id, ssh_id, ssh_enable, tls_id, tls_enable, exec_timeout, dial_timeout, key_size)
+        INSERT OR REPLACE INTO "connection"
+        (
+          id, name, mode, network, host, port, addrs, 
+          sentinel_master, sentinel_username, sentinel_password, 
+          sock, username, password, addr_mapping, last_db, 
+          group_id, ssh_id, ssh_enable, 
+          proxy_id, proxy_enable,
+          tls_id, tls_enable, 
+          exec_timeout, dial_timeout, key_size
+        )
         VALUES (
           '${id}',
           '${values.name ?? ""}',
@@ -46,6 +53,8 @@ export function useUpsertConnection() {
           ${values.group_id ? `'${values.group_id}'` : "NULL"},
           ${values.ssh_id ? `'${values.ssh_id}'` : "NULL"},
           ${values.ssh_enable ? 1 : 0},
+          ${values.proxy_id ? `'${values.proxy_id}'` : "NULL"},
+          ${values.proxy_enable ? 1 : 0},
           ${values.tls_id ? `'${values.tls_id}'` : "NULL"},
           ${values.tls_enable ? 1 : 0},
           ${values.exec_timeout ?? 60},
@@ -53,12 +62,12 @@ export function useUpsertConnection() {
           ${values.key_size ?? 10000}
         )
       `
-      await scorix.invoke("mod:gorm:Query", {sql})
+      await scorix.invoke("mod:gorm:Query", { sql })
       return id
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: QUERY_KEY})
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 }
@@ -68,10 +77,10 @@ export function useDeleteConnection() {
   return useMutation({
     mutationFn: async (id: string) => {
       const sql = `DELETE FROM "connection" WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", {sql})
+      await scorix.invoke("mod:gorm:Query", { sql })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: QUERY_KEY})
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 }

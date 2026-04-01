@@ -23,6 +23,8 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       exec_timeout: 60,
       dial_timeout: 60,
       key_size: 10000,
+      proxy_id: "",
+      proxy_enable: false,
       ssh_id: "",
       ssh_enable: false,
       tls_id: "",
@@ -33,7 +35,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   }
 
   const handleEdit = (conn: ConnectionDO) => {
-    setConnection({ ...conn, ssh_enable: Boolean(conn.ssh_enable), tls_enable: Boolean(conn.tls_enable) })
+    setConnection({ ...conn, proxy_enable: Boolean(conn.proxy_enable), ssh_enable: Boolean(conn.ssh_enable), tls_enable: Boolean(conn.tls_enable) })
     setOpen(true)
   }
 

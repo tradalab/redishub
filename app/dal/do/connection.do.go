@@ -26,10 +26,13 @@ type ConnectionDO struct {
 	KeySize          int64    `json:"key_size" gorm:"column:key_size;default:10000;"`
 	GroupId          *string  `json:"group_id" gorm:"column:group_id;size:36;"`
 	Group            *GroupDO `json:"group,omitempty" gorm:"foreignKey:GroupId;references:Id"`
-	SshEnable        bool     `json:"ssh_enable" gorm:"column:ssh_enable;"`
+	SshEnable        bool     `json:"ssh_enable" gorm:"column:ssh_enable;default:0;"`
 	SshId            *string  `json:"ssh_id" gorm:"column:ssh_id;size:36;"`
 	Ssh              *SshDO   `json:"ssh,omitempty" gorm:"foreignKey:SshId;references:Id"`
-	TlsEnable        bool     `json:"tls_enable" gorm:"column:tls_enable;"`
+	ProxyEnable      bool     `json:"proxy_enable" gorm:"column:proxy_enable;default:0;"`
+	ProxyId          *string  `json:"proxy_id" gorm:"column:proxy_id;size:36;"`
+	Proxy            *ProxyDO `json:"proxy,omitempty" gorm:"foreignKey:ProxyId;references:Id"`
+	TlsEnable        bool     `json:"tls_enable" gorm:"column:tls_enable;default:0;"`
 	TlsId            *string  `json:"tls_id" gorm:"column:tls_id;size:36;"`
 	Tls              *TlsDO   `json:"tls,omitempty" gorm:"foreignKey:TlsId;references:Id"`
 }

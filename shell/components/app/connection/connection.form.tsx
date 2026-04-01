@@ -13,10 +13,9 @@ import { ConnectionGeneralForm } from "@/components/app/connection/connection-ge
 import { ConnectionSshTunnelForm } from "@/components/app/connection/connection-ssh-tunnel.form"
 import { ConnectionTlsForm } from "@/components/app/connection/connection-tls.form"
 import { ConnectionOptionalForm } from "@/components/app/connection/connection-optional.form"
-
+import { ConnectionProxyForm } from "@/components/app/connection/connection-proxy.form"
 import { ConnectionDO } from "@/types/connection.do"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
-
 import { useTestConnection, useUpsertConnection } from "@/hooks/api/connection.api"
 
 const connectionSchema = z
@@ -41,9 +40,11 @@ const connectionSchema = z
     dial_timeout: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
     key_size: z.preprocess(val => (val === "" ? undefined : val), z.coerce.number().min(0).optional()),
     ssh_enable: z.boolean().default(false),
-    ssh_id: z.string().optional().nullable(),
+    ssh_id: z.string().nullish(),
+    proxy_enable: z.boolean().default(false),
+    proxy_id: z.string().nullish(),
     tls_enable: z.boolean().default(false),
-    tls_id: z.string().optional().nullable(),
+    tls_id: z.string().nullish(),
   })
   .refine(
     data => {
@@ -116,6 +117,18 @@ const connectionSchema = z
   )
   .refine(
     data => {
+      if (data.proxy_enable) {
+        return !!data.proxy_id
+      }
+      return true
+    },
+    {
+      message: "Proxy configuration is required",
+      path: ["proxy_id"],
+    }
+  )
+  .refine(
+    data => {
       if (data.tls_enable) {
         return !!data.tls_id
       }
@@ -157,6 +170,9 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
       exec_timeout: 60,
       dial_timeout: 60,
       key_size: 10000,
+      proxy_enable: false,
+      ssh_enable: false,
+      tls_enable: false,
       ...connection,
     } as any,
   })
@@ -165,7 +181,12 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
   const testConnection = useTestConnection()
 
   useEffect(() => {
-    form.reset(connection)
+    form.reset({
+      proxy_enable: false,
+      ssh_enable: false,
+      tls_enable: false,
+      ...connection,
+    })
   }, [connection, form])
 
   const pending: PendingState = {
@@ -238,6 +259,7 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
   const hasOptionalError = Object.keys(errors).some(key => ["exec_timeout", "dial_timeout", "key_size"].includes(key))
   const hasTlsError = Object.keys(errors).some(key => ["tls_enable", "tls_id"].includes(key))
   const hasSshError = Object.keys(errors).some(key => ["ssh_enable", "ssh_id"].includes(key))
+  const hasProxyError = Object.keys(errors).some(key => ["proxy_enable", "proxy_id"].includes(key))
 
   return (
     <Form {...form}>
@@ -256,6 +278,12 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
                 label: t("optional"),
                 hasError: hasOptionalError,
                 content: <ConnectionOptionalForm form={form} />,
+              },
+              {
+                key: "conn-proxy-form",
+                label: t("proxy"),
+                hasError: hasProxyError,
+                content: <ConnectionProxyForm form={form} />,
               },
               {
                 key: "conn-tls-form",

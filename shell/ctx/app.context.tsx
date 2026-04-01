@@ -11,6 +11,7 @@ import { useSetting } from "@/hooks/use-setting"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/components/app/ssh/ssh.provider"
 import { TlsProvider } from "@/components/app/tls/tls.provider"
+import { ProxyProvider } from "@/components/app/proxy/proxy.provider"
 import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 import { GroupProvider } from "@/components/app/group/group.provider"
 import { UpdaterProvider } from "@/components/app/updater/updater.provider"
@@ -140,11 +141,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           <UpdaterProvider>
             <SshProvider>
               <TlsProvider>
-                <ConnectionProvider>
-                  <GroupProvider>
-                    {children}
-                  </GroupProvider>
-                </ConnectionProvider>
+                <ProxyProvider>
+                  <ConnectionProvider>
+                    <GroupProvider>{children}</GroupProvider>
+                  </ConnectionProvider>
+                </ProxyProvider>
               </TlsProvider>
             </SshProvider>
           </UpdaterProvider>

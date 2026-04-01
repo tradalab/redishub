@@ -120,5 +120,13 @@
   "conn_connected": "Connected",
   "conn_connecting": "Connecting...",
   "conn_disconnected": "Disconnected",
-  "reconnect": "Reconnect"
+  "reconnect": "Reconnect",
+  "proxy": "Proxy",
+  "enable_proxy": "Enable Proxy",
+  "enable_proxy_desc": "Connect to Redis through an HTTP or SOCKS5 proxy.",
+  "proxy_configuration": "Proxy Configuration",
+  "proxy_configuration_desc": "Configure proxy settings for the Redis connection.",
+  "protocol": "Protocol",
+  "select_protocol": "Select protocol",
+  "proxy_configurations": "Proxy Configurations"
 }

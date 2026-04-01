@@ -30,6 +30,9 @@ export type ConnectionDO = {
   ssh_enable: boolean
   ssh_id: string
   ssh: SshDO
+  proxy_enable: boolean
+  proxy_id: string
+  proxy: any
   tls_enable: boolean
   tls_id: string
   tls: TlsDO
