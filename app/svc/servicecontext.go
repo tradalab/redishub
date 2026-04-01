@@ -22,7 +22,7 @@ func NewServiceContext(cfg *config.Config, app scorix.App) *ServiceContext {
 	return &ServiceContext{
 		Cfg:     cfg,
 		App:     app,
-		Cli:     NewManager(),
+		Cli:     NewManager(_gormmod),
 		GormMod: _gormmod,
 	}
 }

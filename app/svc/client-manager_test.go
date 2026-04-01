@@ -1,13 +1,14 @@
 package svc
 
 import (
+	"context"
 	"testing"
 
 	"github.com/tradalab/rdms/app/dal/do"
 )
 
 func TestClientManager_BuildOptions(t *testing.T) {
-	m := NewManager()
+	m := NewManager(nil)
 
 	t.Run("Standalone TCP", func(t *testing.T) {
 		cfg := &do.ConnectionDO{
@@ -16,7 +17,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Host:    "127.0.0.1",
 			Port:    6379,
 		}
-		opts, err := m.buildOptions(cfg, 0)
+		opts, err := m.buildOptions(context.TODO(), cfg, 0)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -31,7 +32,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Network: "unix",
 			Sock:    "/tmp/redis.sock",
 		}
-		opts, err := m.buildOptions(cfg, 0)
+		opts, err := m.buildOptions(context.TODO(), cfg, 0)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -50,7 +51,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Username:         "redis_user",
 			Password:         "redis_pass",
 		}
-		opts, err := m.buildOptions(cfg, 1)
+		opts, err := m.buildOptions(context.TODO(), cfg, 1)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -88,7 +89,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Mode:  "cluster",
 			Addrs: "127.0.0.1:7000,127.0.0.1:7001",
 		}
-		opts, err := m.buildOptions(cfg, 0)
+		opts, err := m.buildOptions(context.TODO(), cfg, 0)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}

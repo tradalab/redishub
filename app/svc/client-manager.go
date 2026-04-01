@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/app/dal/do"
 	"github.com/tradalab/rdms/pkg/netx"
+	gormmod "github.com/tradalab/scorix/module/gorm"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
 )
@@ -20,33 +21,53 @@ import (
 type ClientManager struct {
 	mu      sync.RWMutex
 	clients map[string]*Client
+	db      *gormmod.GormModule
 }
 
-func NewManager() *ClientManager {
+func NewManager(db *gormmod.GormModule) *ClientManager {
 	return &ClientManager{
 		clients: make(map[string]*Client),
+		db:      db,
 	}
 }
 
 func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	key := fmt.Sprintf("%s:%d", cfg.Id, dbIdx)
 
-	if _, ok := m.clients[key]; ok {
-		return nil, fmt.Errorf("client %s already exists", key)
-	}
+	m.mu.RLock()
+	if c, ok := m.clients[key]; ok {
+		isStale := false
+		if !cfg.UpdatedAt.Equal(c.Cfg.UpdatedAt) {
+			isStale = true
+		} else if cfg.SshEnable && cfg.Ssh != nil && c.Cfg.Ssh != nil && !cfg.Ssh.UpdatedAt.Equal(c.Cfg.Ssh.UpdatedAt) {
+			isStale = true
+		} else if cfg.ProxyEnable && cfg.Proxy != nil && c.Cfg.Proxy != nil && !cfg.Proxy.UpdatedAt.Equal(c.Cfg.Proxy.UpdatedAt) {
+			isStale = true
+		} else if cfg.TlsEnable && cfg.Tls != nil && c.Cfg.Tls != nil && !cfg.Tls.UpdatedAt.Equal(c.Cfg.Tls.UpdatedAt) {
+			isStale = true
+		}
 
-	rdb, err := m.init(cfg, dbIdx)
-	if err != nil {
-		return nil, err
+		if !isStale {
+			m.mu.RUnlock()
+			return c, nil
+		}
+
+		m.mu.RUnlock()
+		_ = m.Remove(cfg.Id.String(), dbIdx)
+	} else {
+		m.mu.RUnlock()
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
 	defer cancel()
 
+	rdb, err := m.init(ctx, cfg, dbIdx)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := rdb.Ping(ctx).Err(); err != nil {
+		rdb.Close()
 		return nil, fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
 	}
 
@@ -54,13 +75,21 @@ func (m *ClientManager) Add(cfg *do.ConnectionDO, dbIdx int) (*Client, error) {
 
 	cli := NewClient(rdb, cfg, dbIdx)
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if c, ok := m.clients[key]; ok {
+		rdb.Close()
+		return c, nil
+	}
+
 	m.clients[key] = cli
 
 	return cli, nil
 }
 
-func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (redis.UniversalClient, error) {
-	options, err := m.buildOptions(cfg, dbIdx)
+func (m *ClientManager) init(ctx context.Context, cfg *do.ConnectionDO, dbIdx int) (redis.UniversalClient, error) {
+	options, err := m.buildOptions(ctx, cfg, dbIdx)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +99,7 @@ func (m *ClientManager) init(cfg *do.ConnectionDO, dbIdx int) (redis.UniversalCl
 	return rdb, nil
 }
 
-func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.UniversalOptions, error) {
+func (m *ClientManager) buildOptions(ctx context.Context, cfg *do.ConnectionDO, dbIdx int) (*redis.UniversalOptions, error) {
 	options := &redis.UniversalOptions{
 		Addrs:           []string{cfg.Addr()},
 		Username:        cfg.Username,
@@ -81,6 +110,29 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		DialTimeout:     time.Duration(cfg.DialTimeout) * time.Second,
 		DisableIdentity: true,
 		IdentitySuffix:  "redishub_",
+		PoolSize:        1,
+	}
+
+	if cfg.SshEnable {
+		options.Protocol = 2
+		options.ReadTimeout = -1
+		options.WriteTimeout = -1
+	}
+
+	if cfg.SshEnable && cfg.Ssh == nil && cfg.SshId != nil {
+		if err := m.db.DB().WithContext(ctx).Model(&do.SshDO{}).Where("id = ?", *cfg.SshId).First(&cfg.Ssh).Error; err != nil {
+			return nil, fmt.Errorf("failed to lazy-load ssh config: %w", err)
+		}
+	}
+	if cfg.ProxyEnable && cfg.Proxy == nil && cfg.ProxyId != nil {
+		if err := m.db.DB().WithContext(ctx).Model(&do.ProxyDO{}).Where("id = ?", *cfg.ProxyId).First(&cfg.Proxy).Error; err != nil {
+			return nil, fmt.Errorf("failed to lazy-load proxy config: %w", err)
+		}
+	}
+	if cfg.TlsEnable && cfg.Tls == nil && cfg.TlsId != nil {
+		if err := m.db.DB().WithContext(ctx).Model(&do.TlsDO{}).Where("id = ?", *cfg.TlsId).First(&cfg.Tls).Error; err != nil {
+			return nil, fmt.Errorf("failed to lazy-load tls config: %w", err)
+		}
 	}
 
 	switch cfg.Mode {
@@ -195,9 +247,14 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		sshAddr := cfg.Ssh.Addr()
 
 		// Dial SSH through baseDialer which might be proxy
-		sshConn, err := baseDialer.DialContext(context.Background(), "tcp", sshAddr)
+		sshConn, err := baseDialer.DialContext(ctx, "tcp", sshAddr)
 		if err != nil {
 			return nil, fmt.Errorf("ssh dial failed: %w", err)
+		}
+
+		// set deadline for SSH handshake if context has one
+		if d, ok := ctx.Deadline(); ok {
+			_ = sshConn.SetDeadline(d)
 		}
 
 		c, chans, reqs, err := ssh.NewClientConn(sshConn, sshAddr, sshConfig)
@@ -216,10 +273,32 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 		}
 
 		if cfg.SshEnable && sshClient != nil {
-			return sshClient.Dial(network, dialAddr)
+			type dialResult struct {
+				conn net.Conn
+				err  error
+			}
+			ch := make(chan dialResult, 1)
+			go func() {
+				conn, err := sshClient.Dial(network, dialAddr)
+				ch <- dialResult{conn, err}
+			}()
+
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case res := <-ch:
+				if res.err != nil {
+					return nil, res.err
+				}
+				return &netx.IgnoreDeadlineConn{Conn: res.conn}, nil
+			}
 		}
 
-		return baseDialer.DialContext(ctx, network, dialAddr)
+		conn, err := baseDialer.DialContext(ctx, network, dialAddr)
+		if err != nil {
+			return nil, err
+		}
+		return conn, nil
 	}
 
 	// set TLS
@@ -235,15 +314,17 @@ func (m *ClientManager) buildOptions(cfg *do.ConnectionDO, dbIdx int) (*redis.Un
 }
 
 func (m *ClientManager) Test(cfg *do.ConnectionDO, dbIdx int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
+	defer cancel()
+
 	// init cli
-	rdb, err := m.init(cfg, dbIdx)
+	rdb, err := m.init(ctx, cfg, dbIdx)
 	if err != nil {
 		return err
 	}
+	defer rdb.Close()
 
 	// test connection
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
-	defer cancel()
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		return fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
 	}

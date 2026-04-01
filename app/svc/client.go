@@ -14,8 +14,6 @@ type Client struct {
 	DbIdx int
 }
 
-//type RdbInfo map[string]map[string]string
-
 func NewClient(rdb redis.UniversalClient, cfg *do.ConnectionDO, dbIdx int) *Client {
 	return &Client{Rdb: rdb, Cfg: cfg, DbIdx: dbIdx}
 }
