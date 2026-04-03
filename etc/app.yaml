@@ -1,6 +1,6 @@
 app:
   name: RedisHub
-  version: 1.8.0
+  version: 1.9.0
   identifier: com.tradalab.redishub
   description: "RedisHub"
   authors: ["TradaLab Team"]

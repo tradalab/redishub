@@ -1,0 +1,51 @@
+# Commands Reference
+
+RedisHub uses a `Makefile` to orchestrate common development, testing, and build tasks. All commands should be run from the project root.
+
+---
+
+## Development Cycle
+
+| Command | Action |
+|---------|--------|
+| `make dev` | Build frontend + run Go app (Recommended) |
+| `make shell-dev` | Next.js hot-reload (Frontend ONLY) |
+| `make deps` | Install all backend and frontend dependencies |
+| `make shell-install` | Install frontend dependencies only |
+| `make shell-build` | Build frontend only |
+
+---
+
+## Testing & Quality
+
+| Command | Action |
+|---------|--------|
+| `make test` | Run Go backend tests |
+| `make lint` | Run complete linting (Go vet + ESLint) |
+| `make lint-go` | Run Go vet only |
+
+---
+
+## Redis Infrastructure (Docker)
+
+| Command | Action |
+|---------|--------|
+| `make redis-up` | Start all Redis containers (Standalone, Sentinel, Cluster) |
+| `make redis-down` | Stop and remove Redis containers |
+| `make redis-init-cluster` | Initialize cluster sharding (One-time only) |
+| `make redis-status` | Show container status |
+| `make redis-logs` | Tail logs of all Redis containers |
+
+---
+
+## Build & Release
+
+| Command | Action |
+|---------|--------|
+| `make build` | Build production binary for current OS/Arch |
+| `make clean` | Remove build artifacts and temporary files |
+
+---
+
+> [!TIP]
+> If you encounter CGO-related errors while running `make dev`, ensure your GCC compiler is in your `PATH` and correctly configured for your operating system.

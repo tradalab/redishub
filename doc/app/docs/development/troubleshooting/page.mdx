@@ -1,0 +1,53 @@
+# Troubleshooting
+
+Common development, setup, and build issues for RedisHub, with solutions.
+
+---
+
+## `//go:embed .scorix/dist/*` Fails at Build Time
+**Symptom**: `go run main.go` fails with an error about missing files in the `.scorix/dist/` directory.
+
+**Solution**: Run `make dev` instead of `go run main.go`. The native Go command cannot find the embedded files until the Next.js frontend has been built. The `make dev` command handles both frontend building and backend execution.
+
+---
+
+## CGO / `cannot find package "C"` Errors
+**Symptom**: Compilation fails with errors related to `CGO` or a missing `C` package.
+
+**Solution**: Ensure your development environment is correctly configured for your OS:
+- **macOS**: Run `xcode-select --install`.
+- **Linux**: Install development headers: `apt-get install libwebkit2gtk-4.1-dev`.
+- **Windows**: Install [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) and verify `gcc` is in your `PATH`.
+
+---
+
+## App Window Doesn't Open
+**Symptom**: `make dev` completes without error, but no application window appears.
+
+**Solution**:
+1.  Check the logs in your terminal for any hidden errors.
+2.  Enable debug mode in `etc/app.yaml`:
+    ```yaml
+    window:
+      debug: true
+    ```
+3.  This will open the Chromium DevTools automatically, which might reveal JavaScript errors or connection failures.
+
+---
+
+## Redis Cluster Won't Connect
+**Symptom**: You can connect to standalone Redis but not to the local Docker cluster.
+
+**Solution**:
+1.  Ensure you have run `make redis-up`.
+2.  Run `make redis-init-cluster`. The Redis cluster requires a one-time initialization of its sharding slots before it can accept connections.
+
+---
+
+## Port Conflict
+**Symptom**: `make dev` or `make redis-up` fails with "address already in use".
+
+**Solution**:
+1.  Identify the conflicting port (e.g., `8080` for the web server or `6379` for Redis).
+2.  Edit the port mappings in `dev/docker-compose-*.yaml` or `etc/app.yaml`.
+3.  Update the connection settings in the RedisHub UI to match the new ports.

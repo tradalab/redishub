@@ -5,44 +5,68 @@ RedisHub provides a versatile connection manager designed to handle complex netw
 ## Adding a New Connection
 
 1. Click on the **+** (Plus) icon in the sidebar.
-2. Select your **Connection Type** (Standalone, Cluster, or Sentinel).
-3. Fill in the connection details:
-    - **Name**: A descriptive name for the instance.
-    - **Address**: The host and port (e.g., `127.0.0.1:6379`).
+2. The connection dialog is organized into five specialized tabs:
+    - **General**: Core configuration (Mode, Address, Credentials).
+    - **Optional**: Performance tuning and NAT traversal.
+    - **Proxy**: HTTP/SOCKS5 proxy settings.
+    - **TLS/SSL**: Encryption and certificate management.
+    - **SSH Tunnel**: Secure access to private networks.
 
-## Supported Architectures
+![New Connection Dialog](/assets/en/new-connection.png)
+
+## Connection Modes
 
 ### Standalone
-The standard connection type for a single Redis instance. Ideal for development and simple production environments.
+The standard connection type for a single Redis instance.
+- **Network**: Supports both **TCP** (standard) and **Unix Socket** connections.
+- **Authentication**: Supports standard Redis password and ACL usernames.
 
 ### Cluster
-Optimized for high-performance Redis Clusters. 
-- **Seed Address Import**: Quickly import your primary host/port as a seed address to begin discovery.
-- **Automatic Discovery**: Provide one or more seed nodes; RedisHub will automatically discover the entire cluster topology.
-- **Slot Mapping**: Intelligent routing of commands to the correct master nodes.
+Optimized for high-performance Redis Clusters.
+- **Seed Address Import**: Use the "Import from Standalone" link to quickly copy your primary host/port as a seed address.
+- **Automatic Discovery**: RedisHub automatically discovers the entire cluster topology from your seed nodes.
+- **Slot Mapping**: Intelligent routing ensures commands are sent to the correct master nodes.
 
 ### Sentinel
 Designed for high-availability setups.
-- **Master Name**: Specify the monitored master set name.
-- **Sentinel Nodes**: List the addresses of your Sentinel instances for reliable master discovery.
+- **Master Group Name**: Specify the name of the monitored master set (e.g., `mymaster`).
+- **Sentinel Nodes**: List the addresses of your Sentinel instances for reliable discovery.
 - **Dual Credentials**: Support for separate Sentinel-level and Master-level authentication.
 
-## Security & Advanced Networking
+## Advanced Networking
 
-### SSH & Dynamic Dialing
-Securely connect to Redis servers within private networks.
-- **Dynamic Routing**: Unlike static port forwarding, RedisHub uses a dynamic SSH dialer that can reach any discovered node (Sentinel replicas, Cluster shards) through a single SSH tunnel.
-- **Authentication**: Supports password, private key, and SSH agent.
+### SSH Tunnel
+Connect to Redis servers located within private VPCs or behind firewalls.
+- **Dynamic Routing**: RedisHub uses a dynamic SSH dialer that can reach any discovered node (Sentinel replicas, Cluster shards) through a single SSH tunnel.
+- **Authentication**: Compatible with password, private key (PEM), and SSH agent.
 
-### Address Mapping (NAT Traversal)
-For environments where Redis nodes report internal unreachable IPs (e.g., Docker containers), use **Address Mapping** in the *Optional* tab.
-- **Translation**: Map internal `ip:port` to host-reachable `ip:port`.
-- **Flexibility**: Ensures connectivity even when server-side NAT configuration cannot be changed.
+![SSH Configuration](/assets/en/ssh-configuration.png)
+
+### Proxy Support (HTTP/SOCKS5)
+Route your Redis traffic through intermediate proxy servers.
+- **Protocols**: Supports both **HTTP** and **SOCKS5**.
+- **Authentication**: Supports proxy-level credentials (User/Pass).
+
+![Proxy Configuration](/assets/en/proxy-configuration.png)
 
 ### TLS/SSL & mTLS
 Ensure end-to-end encryption for your data.
-- **One-way TLS**: Validate server identity using CA certificates.
+- **Verification**: Validate server identity using CA certificates.
 - **Mutual TLS (mTLS)**: Enhanced security requiring both server and client certificate validation.
+- **SNI**: Support for Server Name Indication for virtual hosted targeting.
+
+![TLS Configuration](/assets/en/tls-configuration.png)
+
+## Tuning & Optimization (Optional Tab)
+
+Access these settings under the **Optional** tab for fine-grained control:
 
 ### Performance Tuning
-Configure **Dial Timeout** and **Execute Timeout** in the *Optional* tab to handle high-latency or high-load environments.
+- **Execute Timeout**: Maximum time allowed for command execution before timing out.
+- **Dial Timeout**: Timeout for establishing the initial network connection.
+- **Key Load Size**: Limit the number of keys loaded during scan to ensure UI responsiveness in massive databases.
+
+### Address Mapping (NAT Traversal)
+Essential for environments where Redis nodes report internal, unreachable IPs (e.g., Docker or AWS ElastiCache behind NAT).
+- **Mapping**: Define rules to translate internal `ip:port` to host-reachable `ip:port`.
+- **Syntax**: `internal:port=external:port`, one entry per line.

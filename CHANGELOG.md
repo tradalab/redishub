@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.9.0]
+
+### 🚀 Features
+
+- **proxy:** Support HTTP and SOCKS5 proxies for Redis connections
+- **ui:** Enhanced tab management with pinning and bulk closing (Close All, Close Others)
+- **web:** Full support for **Web Mode**, allowing RedisHub to run as a central web server
+- **web:** Improved context menu and event handling for web performance
+- **seo:** Optimized meta tags and social sharing in documentation site
+
+### 🐛 Fixes
+
+- **ssh:** Improved SSH tunnel stability and reconnection logic
+- **ui:** Fixed event bubbling issues in web tab context menu
+- **sentinel:** Support for separate Sentinel credentials and NAT address mapping
+
+---
+
 ## [1.8.0]
 
 ### 🚀 Features
