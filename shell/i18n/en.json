@@ -128,5 +128,10 @@
   "proxy_configuration_desc": "Configure proxy settings for the Redis connection.",
   "protocol": "Protocol",
   "select_protocol": "Select protocol",
-  "proxy_configurations": "Proxy Configurations"
+  "proxy_configurations": "Proxy Configurations",
+  "pin_tab": "Pin Tab",
+  "unpin_tab": "Unpin Tab",
+  "close": "Close",
+  "close_others": "Close Others",
+  "close_all": "Close All"
 }

@@ -56,11 +56,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(false)
   const [language, setLanguage] = useSetting("language")
 
-  const { addTab } = useTabStore()
+  const { tabs, activeTabId, addTab } = useTabStore()
+  const [lastSyncTabId, setLastSyncTabId] = useState<string | undefined>()
 
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language])
+
+  useEffect(() => {
+    if (!activeTabId || activeTabId === lastSyncTabId) return
+    const activeTab = tabs.find(t => t.id === activeTabId)
+    if (activeTab) {
+      setSelectedDb(activeTab.connectionId)
+      setSelectedDbIdx(activeTab.databaseIdx)
+      setSelectedTab("/browser")
+      setLastSyncTabId(activeTabId)
+    }
+  }, [activeTabId, tabs, lastSyncTabId])
 
   const connect = async (database: ConnectionDO | undefined, dbIdx: number) => {
     if (!database) {
@@ -75,7 +87,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSelectedDbIdx(dbIdx)
       setSelectedDb(database.id)
       setSelectedTab("/browser")
-      
+
       addTab({
         type: "general",
         title: database.name || "General",
@@ -83,7 +95,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         connectionName: database.name,
         databaseIdx: dbIdx,
       })
-      
+
       return res
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
