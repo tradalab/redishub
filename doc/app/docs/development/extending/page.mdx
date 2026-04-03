@@ -1,0 +1,73 @@
+# Adding a New IPC Command
+
+RedisHub uses a structured Inter-Process Communication (IPC) system to bridge the Go backend and the Next.js frontend. Commands follow the pattern `domain:action` (e.g., `client:connect`).
+
+Follow these steps to implement a new feature that requires backend logic.
+
+---
+
+## Step 1: Write the Business Logic
+
+Create a new file in `app/logic/<domain>/<action>.logic.go`. Define your arguments and the logic function.
+
+```go
+package mydomain
+
+import "context"
+
+type MyLogicArgs struct {
+    ConnectionId string `json:"connection_id" validate:"required"`
+    CustomParam  int    `json:"custom_param"`
+}
+
+type MyLogic struct {
+    ctx    context.Context
+    svcCtx *svc.ServiceContext
+}
+
+func NewMyLogic(ctx context.Context, svcCtx *svc.ServiceContext) *MyLogic {
+    return &MyLogic{
+        ctx:    ctx,
+        svcCtx: svcCtx,
+    }
+}
+
+func (l *MyLogic) MyLogic(params MyLogicArgs) (interface{}, error) {
+    // 1. Validate or fetch data from DAL
+    // 2. Perform Redis operation
+    // 3. Return serializable result or error
+    return "success", nil
+}
+```
+
+---
+
+## Step 2: Register the Handler
+
+Open `app/handler/handler.go` and register your new command with the Application Command Router.
+
+```go
+// app/handler/handler.go
+
+svcCtx.App.Cmd().Handle("mydomain:my-action", func(ctx context.Context, params mydomain.MyLogicArgs) (interface{}, error) {
+    return mydomain.NewMyLogic(ctx, svcCtx).MyLogic(params)
+})
+```
+
+---
+
+## Step 3: Call from Frontend
+
+Use the `useApi` hook or the direct IPC client in the `shell` project to invoke your command.
+
+```typescript
+// shell/src/hooks/use-my-feature.ts
+
+const { data, isLoading } = useApi("mydomain:my-action", {
+    connection_id: "123",
+    custom_param: 42
+});
+```
+
+> [!TIP]
+> Always use `validate:"required"` in your Go structs to ensure the frontend sends the necessary data. The IPC layer automatically performs Zod-like validation before executing your logic.

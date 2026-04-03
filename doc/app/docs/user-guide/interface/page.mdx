@@ -24,7 +24,39 @@ RedisHub is built to handle many active connections simultaneously:
 - **Loading Indicators**: Tabs will show a subtle loading spinner when a long-running command (like a deep `SCAN`) is in progress.
 - **Validation Dots**: Indicators appear on tabs when there are connectivity issues or validation errors within that specific context.
 
+## Web Mode Support
+
+Starting with version 1.9.0, RedisHub can be deployed as a central web application. This is ideal for teams that want a shared Redis management console accessible from any browser without installing native clients on every machine.
+
+### Enabling Web Mode
+
+To switch RedisHub from a desktop application to a web server, modify the `mode` setting in your `etc/app.yaml`:
+
+```yaml
+# etc/app.yaml
+mode: web
+
+web:
+  host: 0.0.0.0 # Listen on all interfaces
+  port: 8080    # The port to serve the UI
+```
+
+### Key Benefits
+
+- **Centralized Accessibility**: Host RedisHub on a internal server (e.g., behind a VPN) for the entire team to access.
+- **Proxy Compatibility**: Works seamlessly with HTTP/SOCKS5 proxies for secure backend communication.
+- **Persistent Sessions**: Maintain open connections and browser tabs across different machines when accessing the web UI.
+
 ## Managing Tabs
 
 - **Closing Tabs**: Click the **x** icon on a tab to close it. This will safely terminate the UI context for that connection.
 - **Reordering**: Drag and drop tabs to organize your workspace according to your current workflow.
+
+### Advanced Tab Management
+Maximize your productivity with specialized tab controls:
+- **Pinning**: Right-click a tab and select **Pin Tab**. Pinned tabs are moved to the left and take up less space, keeping your most important connections always visible.
+- **Bulk Closing**: Right-click any tab to access bulk management actions:
+    - **Close Others**: Quickly close all tabs except the currently selected one.
+    - **Close All**: Clear your entire workspace in one action.
+
+![Tab Context Menu](/assets/en/tab-context-menu.png)

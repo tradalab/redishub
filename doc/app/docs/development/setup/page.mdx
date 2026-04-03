@@ -4,46 +4,90 @@ This guide covers the initial setup of your development environment and explains
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed on your machine:
+Ensure you have the following tools installed and available in your `PATH`:
 
-- **Go 1.24+**: Backend language.
-- **Node.js 22+**: Frontend runtime.
-- **pnpm**: Fast, disk space efficient package manager.
-    - Enable via: `corepack enable pnpm`
+| Tool | Version | Notes |
+|------|---------|-------|
+| **Go** | 1.26+ | Core backend logic. |
+| **Node.js** | 22+ | Frontend runtime. |
+| **pnpm** | 10.3+ | Fast package manager (corepack enable pnpm). |
+| **Docker** | recent | Required for local Redis instances. |
+| **CGO** | enabled | Required for SQLite and webview integration. |
 
-## Initializing the Workspace
+### OS-Specific Setup
 
-Clone the repository and install the frontend dependencies:
-
+#### macOS
+Install Xcode command line tools for CGO support:
 ```bash
-git clone https://github.com/tradalab/redishub.git
-cd redishub/shell
-pnpm install
+xcode-select --install
 ```
 
-## Running the Development Server
-
-To start both the Go backend and the Next.js frontend concurrently, use the provided development script:
-
+#### Linux (Ubuntu/Debian)
+Install required development libraries:
 ```bash
-cd ..
-bash scripts/dev.sh
+sudo apt-get install -y gcc libwebkit2gtk-4.1-dev libgtk-3-dev pkg-config
 ```
 
-- **Frontend**: Accessible at `http://localhost:3000` (or the port specified in your console).
-- **Backend API**: The Go server handles IPC and system-level requests.
+#### Windows
+Install [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) or MSYS2 `mingw-w64-gcc` and ensure `gcc` is correctly configured in your `PATH`.
+
+---
+
+## Workspace Initialization
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/tradalab/redishub.git
+    cd redishub
+    ```
+2.  **Install dependencies**:
+    ```bash
+    make deps
+    ```
+
+---
+
+## Local Redis Instances
+
+RedisHub provides a pre-configured Docker Compose setup for testing different topologies:
+
+```bash
+make redis-up
+```
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **Standalone** | `6001` | Basic single instance. |
+| **Sentinel** | `9001` | High-availability discovery node. |
+| **Cluster** | `7001-7003` | Sharded Redis nodes. |
+
+> [!NOTE]
+> For the cluster setup, run `make redis-init-cluster` once after the containers are up to initialize the sharding.
+
+---
+
+## Running Development Server
+
+To start both the Go backend and the Next.js frontend concurrently:
+
+```bash
+make dev
+```
+
+- **Native App**: The application window will open automatically.
+- **Web Frontend**: For hot-reloading at `localhost:3000`, use `make shell-dev` (IPC Backend calls won't work in this mode).
+
+---
 
 ## Project Structure
-
-A high-level map of the codebase to help you navigate:
 
 | Directory | Description |
 | :--- | :--- |
 | `app/` | Core backend business logic, services, and handlers. |
-| `cmd/` | Supplementary CLI tools (e.g., `appcast-server`, `release-signer`). |
+| `cmd/` | Supplementary CLI tools and release utilities. |
 | `doc/` | The Nextra-powered documentation site (what you are reading now). |
 | `etc/` | Static configuration and application manifests (`app.yaml`). |
 | `pkg/` | Reusable Go packages and utility libraries. |
 | `shell/` | The Next.js frontend application (React, Tailwind, Lucide). |
-| `scripts/` | Automation scripts for development, building, and releases. |
-| `artifacts/` | Output directory for built distribution packages. |
+| `scripts/` | Automation scripts for orchestration and releases. |
+| `dev/` | Docker Compose files for local development environments. |
