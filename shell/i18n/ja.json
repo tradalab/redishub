@@ -128,5 +128,10 @@
   "proxy_configuration_desc": "Redisの接続に使用するプロキシ設定を構成します。",
   "protocol": "プロトコル",
   "select_protocol": "プロトコルを選択",
-  "proxy_configurations": "プロキシ設定一覧"
+  "proxy_configurations": "プロキシ設定一覧",
+  "pin_tab": "ピン留め",
+  "unpin_tab": "ピン留めを解除",
+  "close": "閉じる",
+  "close_others": "他のタブを閉じる",
+  "close_all": "すべてのタブを閉じる"
 }

@@ -10,15 +10,18 @@ export interface TabDO {
   connectionName?: string
   databaseIdx: number
   key?: string
+  pinned?: boolean
 }
 
 interface TabState {
   tabs: TabDO[]
   activeTabId: string | undefined
-  addTab: (tab: Omit<TabDO, "id">) => void
+  addTab: (tab: Omit<TabDO, "id" | "pinned">) => void
   updateTab: (id: string, updates: Partial<TabDO>) => void
   removeTab: (id: string) => void
   setActiveTabId: (id: string | undefined) => void
+  togglePin: (id: string) => void
+  closeOthers: (id: string) => void
   closeAll: () => void
 }
 
@@ -43,18 +46,30 @@ export const useTabStore = create<TabState>((set, get) => ({
     }
 
     const newId = crypto.randomUUID()
-    const newTab: TabDO = { ...tabData, id: newId }
+    const newTab: TabDO = { ...tabData, id: newId, pinned: false }
+    const newTabs = [...tabs, newTab]
+
+    // Keep pinned tabs at the beginning
+    const sortedTabs = [
+      ...newTabs.filter((t) => t.pinned),
+      ...newTabs.filter((t) => !t.pinned),
+    ]
+
     set({
-      tabs: [...tabs, newTab],
+      tabs: sortedTabs,
       activeTabId: newId,
     })
   },
 
   updateTab: (id, updates) => {
     const { tabs } = get()
-    set({
-      tabs: tabs.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    })
+    const newTabs = tabs.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    // Re-sort if pinned status changed
+    const sortedTabs = [
+      ...newTabs.filter((t) => t.pinned),
+      ...newTabs.filter((t) => !t.pinned),
+    ]
+    set({ tabs: sortedTabs })
   },
 
   removeTab: (id) => {
@@ -75,5 +90,29 @@ export const useTabStore = create<TabState>((set, get) => ({
 
   setActiveTabId: (id) => set({ activeTabId: id }),
 
-  closeAll: () => set({ tabs: [], activeTabId: undefined }),
+  togglePin: (id) => {
+    const { tabs } = get()
+    const newTabs = tabs.map((t) => (t.id === id ? { ...t, pinned: !t.pinned } : t))
+    const sortedTabs = [
+      ...newTabs.filter((t) => t.pinned),
+      ...newTabs.filter((t) => !t.pinned),
+    ]
+    set({ tabs: sortedTabs })
+  },
+
+  closeOthers: (id) => {
+    const { tabs } = get()
+    const newTabs = tabs.filter((t) => t.id === id || t.pinned)
+    set({ tabs: newTabs, activeTabId: id })
+  },
+
+  closeAll: () => {
+    const { tabs, activeTabId } = get()
+    const pinnedTabs = tabs.filter((t) => t.pinned)
+    let newActiveId = activeTabId
+    if (activeTabId && !pinnedTabs.find((t) => t.id === activeTabId)) {
+      newActiveId = pinnedTabs.length > 0 ? pinnedTabs[0].id : undefined
+    }
+    set({ tabs: pinnedTabs, activeTabId: newActiveId })
+  },
 }))

@@ -8,7 +8,7 @@ import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCc
 import { toast } from "sonner"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
-import { buildDbTree } from "@/lib/utils"
+import { buildDbTree, cn } from "@/lib/utils"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
@@ -79,7 +79,8 @@ type RenderTreeItemProps = {
 }
 
 function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
-  const { connect } = useAppContext()
+  const { connect, selectedDb } = useAppContext()
+  const isActive = !item.isGroup && item.id === selectedDb
 
   return (
     <TreeNode
@@ -97,7 +98,7 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
           : undefined
       }
     >
-      <TreeNodeTrigger className="group/item px-1 py-1.5">
+      <TreeNodeTrigger className={cn("group/item px-1 py-1.5", isActive && "bg-accent text-accent-foreground font-medium rounded-md")}>
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel>{item.name}</TreeLabel>
