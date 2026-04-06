@@ -2,6 +2,7 @@ app:
   name: RedisHub
   version: 1.9.0
   identifier: com.tradalab.redishub
+  single_instance: true
   description: "RedisHub"
   authors: ["TradaLab Team"]
   license: "UNLICENSE"
@@ -18,6 +19,7 @@ window:
   width: 1024
   height: 768
   debug: false
+  hide_on_close: true
 
 security:
   csp: none
@@ -38,6 +40,10 @@ logger:
   max_age: 7 # days
 
 modules:
+  systemtray:
+    enabled: true
+    title: RedisHub
+    tooltip: RedisHub
   browser:
     enabled: true
   gorm:

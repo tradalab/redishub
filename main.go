@@ -3,12 +3,10 @@ package main
 import (
 	"embed"
 
-	"github.com/energye/systray"
 	"github.com/tradalab/rdms/app/handler"
+	"github.com/tradalab/rdms/app/setup"
 	"github.com/tradalab/rdms/app/svc"
 	scorix "github.com/tradalab/scorix/kernel"
-	browsermod "github.com/tradalab/scorix/module/browser"
-	updatermod "github.com/tradalab/scorix/module/updater"
 )
 
 //go:embed .scorix/dist/*
@@ -28,33 +26,11 @@ func main() {
 		scorix.WithAssets(embeddedPublic, ".scorix/dist"),
 	)
 
-	go systray.Run(
-		func() {
-			systray.SetIcon(icon)
-			systray.SetTitle(app.Cfg().App.Name)
-			systray.SetTooltip(app.Cfg().App.Name)
-
-			systray.SetOnClick(func(menu systray.IMenu) { app.Show() })
-			systray.SetOnDClick(func(menu systray.IMenu) { app.Show() })
-			systray.SetOnRClick(func(menu systray.IMenu) {
-				err := menu.ShowMenu()
-				if err != nil {
-					//ctx.Logger().Error(err.Error())
-					return
-				}
-			})
-
-			systray.AddMenuItem("Open", "Open Application").Click(func() { app.Show() })
-			systray.AddMenuItem("Quit", "Quit Application").Click(func() { app.Close() })
-		},
-		func() {},
-	)
+	// Setup desktop-specific components (systray, browser module) if not in server mode
+	setup.Desktop(app, icon)
 
 	//logger.Info("init svcCtx")
 	svcCtx := svc.NewServiceContext(app.Cfg(), app)
-
-	app.Modules().Register(browsermod.New())
-	app.Modules().Register(updatermod.New())
 
 	//logger.Info("inject logic")
 	handler.RegisterHandlers(svcCtx)

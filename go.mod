@@ -3,14 +3,13 @@ module github.com/tradalab/rdms
 go 1.26.0
 
 require (
-	github.com/energye/systray v1.0.3
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/samber/lo v1.53.0
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef
-	github.com/tradalab/scorix v0.2.0
+	github.com/tradalab/scorix v0.3.0
 	golang.org/x/crypto v0.49.0
 	golang.org/x/image v0.37.0
 	golang.org/x/net v0.52.0
@@ -20,6 +19,7 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/energye/systray v1.0.3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
