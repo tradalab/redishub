@@ -1,38 +1,67 @@
-# Stage 1: Build the frontend (Next.js)
-FROM node:22-alpine AS next-builder
+# 1. Base Node image
+FROM node:22-alpine AS node-base
 WORKDIR /app
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# libc6-compat is required by some native deps
 RUN apk add --no-cache libc6-compat
 
-# Install dependencies
-COPY shell/package.json \
-     shell/yarn.lock* \
-     shell/package-lock.json* \
-     shell/pnpm-lock.yaml* \
-     shell/.npmrc* \
+
+# 2. Install frontend deps
+FROM node-base AS next-deps
+
+ARG SHELL_DIR=shell
+
+COPY ${SHELL_DIR}/package.json \
+     ${SHELL_DIR}/yarn.lock* \
+     ${SHELL_DIR}/package-lock.json* \
+     ${SHELL_DIR}/pnpm-lock.yaml* \
+     ${SHELL_DIR}/.npmrc* \
      ./
 
 RUN set -eux; \
-    if [ -f pnpm-lock.yaml ]; then \
-        corepack enable pnpm && pnpm install --frozen-lockfile; \
-    elif [ -f yarn.lock ]; then \
+    if [ -f yarn.lock ]; then \
         yarn install --frozen-lockfile; \
     elif [ -f package-lock.json ]; then \
         npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then \
+        corepack enable pnpm && pnpm install --frozen-lockfile; \
     else \
         echo "No lockfile found" && exit 1; \
     fi
 
-# Copy source and build
-COPY shell/ ./
-RUN corepack enable pnpm && pnpm run build
 
+# 3. Build frontend
+FROM node-base AS next-builder
+WORKDIR /app
 
-# Stage 2: Build the backend (Go)
-FROM golang:1.26-alpine AS go-builder
+ARG SHELL_DIR=shell
+ARG BUILD_ENV=production
+ARG ENV_FILE=${SHELL_DIR}/.env.${BUILD_ENV}
+
+COPY --from=next-deps /app/node_modules ./node_modules
+COPY ${SHELL_DIR}/ ./
+
+# Explicit env copy
+COPY ${ENV_FILE} .env.production
+
+RUN set -eux; \
+    if [ -f yarn.lock ]; then \
+        yarn build; \
+    elif [ -f package-lock.json ]; then \
+        npm run build; \
+    elif [ -f pnpm-lock.yaml ]; then \
+        corepack enable pnpm && pnpm run build; \
+    else \
+        echo "No lockfile found" && exit 1; \
+    fi
+
+# 4. Go + Web builder
+FROM ghcr.io/tradalab/scorix-base-linux:latest AS web-builder
+
 WORKDIR /workspace
-RUN apk add --no-cache git gcc musl-dev
 
 # Cache Go modules
 COPY go.mod go.sum ./
@@ -41,14 +70,14 @@ RUN go mod download
 # Copy source
 COPY . .
 
-# Inject frontend artifacts for go:embed (referenced in main.go)
+# Inject frontend artifacts
 COPY --from=next-builder /app/dist /workspace/.scorix/dist
 
-# Build the Go application for Linux
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o /workspace/redishub ./main.go
+# Build image
+RUN CGO_ENABLED=0 GOOS=linux go build -tags server -ldflags "-s -w" -o /workspace/redishub .
 
 
-# Stage 3: Final Runner
+# 5. Final Runner
 FROM alpine:latest
 WORKDIR /app
 
@@ -56,8 +85,8 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates tzdata
 
 # Copy binary and configuration
-COPY --from=go-builder /workspace/redishub /app/redishub
-COPY --from=go-builder /workspace/etc/app.yaml /app/etc/app.yaml
+COPY --from=web-builder /workspace/redishub /app/redishub
+COPY --from=web-builder /workspace/etc/app.yaml /app/etc/app.yaml
 
 # Set environment variables for scorix web mode
 ENV SCORIX_MODE=web
