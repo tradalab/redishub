@@ -67,7 +67,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
                 setData(JSON.stringify(JSON.parse(val), null, 2))
                 setKind("json")
                 return
-              } catch (_) { }
+              } catch (_) {}
             }
             setData(val)
             break

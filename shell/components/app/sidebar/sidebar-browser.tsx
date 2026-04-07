@@ -12,6 +12,7 @@ import {
   ActivityIcon,
   DatabaseIcon,
   RadioIcon,
+  LayoutGridIcon,
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
@@ -182,6 +183,18 @@ export function SidebarBrowser() {
             </div>
           </div>
           <div className="flex gap-2.5">
+            <LayoutGridIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({
+                  type: "key-list",
+                  title: t("key_list") + ` (DB ${selectedDbIdx})`,
+                  connectionId: selectedDb!,
+                  connectionName: currentConnection?.name,
+                  databaseIdx: selectedDbIdx,
+                })
+              }
+            />
             <DatabaseIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() =>

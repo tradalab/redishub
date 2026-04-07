@@ -53,6 +53,10 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"client:key-value-update": func(ctx context.Context, args client.KeyValueUpdateLogicArgs) (interface{}, error) {
 			return client.NewClientKeyValueUpdateLogic(ctx, svcCtx).ClientKeyValueUpdateLogic(args)
 		},
+		"client:keys-metadata": func(ctx context.Context, args client.KeysMetadataLogicArgs) (interface{}, error) {
+			return client.NewClientKeysMetadataLogic(ctx, svcCtx).ClientKeysMetadataLogic(args)
+		},
+		// conn
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)
 		},

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { X, Database, Key, Terminal, Activity, ChevronDown, Pin, PinOff, ListX, Trash2, Radio } from "lucide-react"
+import { X, Database, Key, Terminal, Activity, ChevronDown, Pin, PinOff, ListX, Trash2, Radio, LayoutGrid, Network } from "lucide-react"
 import { useTabStore, TabType } from "@/stores/tab.store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ const IconMap: Record<TabType, React.ElementType> = {
   console: Terminal,
   "slow-query": Activity,
   pubsub: Radio,
+  "key-list": LayoutGrid,
 }
 
 export function TabBar() {
