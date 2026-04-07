@@ -1,7 +1,18 @@
 "use client"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon, TerminalIcon, ActivityIcon, DatabaseIcon, RadioIcon } from "lucide-react"
+import {
+  ArrowDownToLineIcon,
+  ListEndIcon,
+  MoreHorizontal,
+  PlusIcon,
+  RefreshCcwIcon,
+  Trash2Icon,
+  TerminalIcon,
+  ActivityIcon,
+  DatabaseIcon,
+  RadioIcon,
+} from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
