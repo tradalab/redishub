@@ -290,7 +290,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
     initTerminal()
 
-    const off = scorix.on("console:output:" + connectionId, async (payload: any, error: string) => {
+    const offPromise = scorix.on("console:output:" + connectionId, async (payload: any, error: string) => {
       await termRef.current?.write("\r")
       if (payload?.stdout) {
         await termRef.current?.writeln(payload?.stdout)
@@ -305,7 +305,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     })
 
     return () => {
-      off?.()
+      Promise.resolve(offPromise).then(off => {
+        if (typeof off === "function") off()
+      })
       termRef.current?.dispose()
     }
   }, [])
