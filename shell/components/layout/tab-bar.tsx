@@ -11,11 +11,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 
 const IconMap: Record<TabType, React.ElementType> = {
-  "general": Database,
+  general: Database,
   "key-detail": Key,
-  "console": Terminal,
+  console: Terminal,
   "slow-query": Activity,
-  "pubsub": Radio,
+  pubsub: Radio,
 }
 
 export function TabBar() {

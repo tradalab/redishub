@@ -57,7 +57,7 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
       form.handleSubmit(
         async values => {
           try {
-            await upsertGroup.mutateAsync(values)
+            await upsertGroup.mutateAsync({ ...values, id: group?.id })
             toast.success(t("saved"))
             resolve(true)
           } catch (e: any) {
