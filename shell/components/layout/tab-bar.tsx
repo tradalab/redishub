@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { X, Database, Key, Terminal, Activity, ChevronDown, Pin, PinOff, ListX, Trash2 } from "lucide-react"
+import { X, Database, Key, Terminal, Activity, ChevronDown, Pin, PinOff, ListX, Trash2, Radio } from "lucide-react"
 import { useTabStore, TabType } from "@/stores/tab.store"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -11,10 +11,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 
 const IconMap: Record<TabType, React.ElementType> = {
-  general: Database,
+  "general": Database,
   "key-detail": Key,
-  console: Terminal,
+  "console": Terminal,
   "slow-query": Activity,
+  "pubsub": Radio,
 }
 
 export function TabBar() {

@@ -352,6 +352,11 @@ func (m *ClientManager) Remove(id string, dbIdx int) error {
 	key := fmt.Sprintf("%s:%d", id, dbIdx)
 
 	if c, ok := m.clients[key]; ok {
+		c.PubSubMu.Lock()
+		if c.PubSub != nil {
+			_ = c.PubSub.Close()
+		}
+		c.PubSubMu.Unlock()
 		_ = c.Rdb.Close()
 		delete(m.clients, key)
 		return nil

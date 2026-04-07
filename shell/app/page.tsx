@@ -7,6 +7,7 @@ import { ConnectionDetailTabGeneral } from "@/components/app/connection-detail/c
 import { ConnectionDetailTabConsole } from "@/components/app/connection-detail/connection-detail-tab-console"
 import { ConnectionDetailTabKeyDetail } from "@/components/app/connection-detail/connection-detail-tab-key-detail"
 import { ConnectionDetailTabSlowQuery } from "@/components/app/connection-detail/connection-detail-tab-slow-query"
+import { ConnectionDetailTabPubSub } from "@/components/app/connection-detail/connection-detail-tab-pubsub"
 
 export default function Page() {
   const { selectedDb } = useAppContext()
@@ -30,6 +31,7 @@ export default function Page() {
               <ConnectionDetailTabKeyDetail connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} selectedKey={activeTab.key} />
             )}
             {activeTab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
+            {activeTab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">Select an item from the sidebar to open a tab</div>

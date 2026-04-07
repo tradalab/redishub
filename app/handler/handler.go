@@ -9,6 +9,7 @@ import (
 	"github.com/tradalab/rdms/app/logic/conn"
 	"github.com/tradalab/rdms/app/logic/key"
 	"github.com/tradalab/rdms/app/logic/proxy"
+	"github.com/tradalab/rdms/app/logic/pubsub"
 	"github.com/tradalab/rdms/app/logic/ssh"
 	"github.com/tradalab/rdms/app/logic/tls"
 	"github.com/tradalab/rdms/app/svc"
@@ -54,6 +55,16 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		},
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)
+		},
+		// pubsub
+		"pubsub:subscribe": func(ctx context.Context, args pubsub.SubscribeLogicArgs) (interface{}, error) {
+			return pubsub.NewPubsubLogic(ctx, svcCtx).Subscribe(args)
+		},
+		"pubsub:unsubscribe": func(ctx context.Context, args pubsub.SubscribeLogicArgs) (interface{}, error) {
+			return pubsub.NewPubsubLogic(ctx, svcCtx).Unsubscribe(args)
+		},
+		"pubsub:publish": func(ctx context.Context, args pubsub.PublishLogicArgs) (interface{}, error) {
+			return pubsub.NewPubsubLogic(ctx, svcCtx).Publish(args)
 		},
 		// key
 		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {

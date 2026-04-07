@@ -3,15 +3,19 @@ package svc
 import (
 	"context"
 	"strings"
+	"sync"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/app/dal/do"
 )
 
 type Client struct {
-	Rdb   redis.UniversalClient
-	Cfg   *do.ConnectionDO
-	DbIdx int
+	Rdb          redis.UniversalClient
+	Cfg          *do.ConnectionDO
+	DbIdx        int
+	PubSub       *redis.PubSub
+	PubSubActive bool
+	PubSubMu     sync.Mutex
 }
 
 func NewClient(rdb redis.UniversalClient, cfg *do.ConnectionDO, dbIdx int) *Client {

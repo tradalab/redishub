@@ -1,7 +1,7 @@
 "use client"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon, TerminalIcon, ActivityIcon, DatabaseIcon } from "lucide-react"
+import { ArrowDownToLineIcon, ListEndIcon, MoreHorizontal, PlusIcon, RefreshCcwIcon, Trash2Icon, TerminalIcon, ActivityIcon, DatabaseIcon, RadioIcon } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -187,6 +187,18 @@ export function SidebarBrowser() {
               className="h-4 w-4 cursor-pointer"
               onClick={() =>
                 addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+              }
+            />
+            <RadioIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({
+                  type: "pubsub",
+                  title: "Pub/Sub",
+                  connectionId: selectedDb!,
+                  connectionName: currentConnection?.name,
+                  databaseIdx: selectedDbIdx,
+                })
               }
             />
             <ActivityIcon
