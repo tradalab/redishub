@@ -1,7 +1,7 @@
 "use client"
 
 import { toast } from "sonner"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import { parseRedisInfo } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import scorix from "@/lib/scorix"
@@ -27,7 +27,15 @@ const SECTION_ICONS: Record<string, LucideIcon> = {
   Keyspace: Key,
 }
 
-function SummaryCard({ title, value, icon: Icon, colorClass, extra }: { title: string; value: string; icon: LucideIcon; colorClass: string; extra?: React.ReactNode }) {
+type SummaryCardProps = {
+  title: string
+  value: string
+  icon: LucideIcon
+  colorClass: string
+  extra?: React.ReactNode
+}
+
+function SummaryCard({ title, value, icon: Icon, colorClass, extra }: SummaryCardProps) {
   return (
     <Card className="shadow-none border-none bg-transparent">
       <CardContent className="p-0 flex items-center gap-3">
@@ -53,40 +61,31 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
   const [activeSection, setActiveSection] = useState<string>("Server")
   const [collapsed, setCollapsed] = useState<boolean>(false)
 
-  const general = async (id: string) => {
-    if (!id) return
+  const general = useCallback(
+    async (id: string) => {
+      if (!id) return
 
-    setLoading(true)
-    try {
-      const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { connection_id: id, database_index: databaseIdx })
-      const parsedInfo = parseRedisInfo(res.info) as Record<string, Record<string, any>>
-      setInfo(parsedInfo)
-      if (parsedInfo && !parsedInfo[activeSection]) {
-        setActiveSection(Object.keys(parsedInfo)[0] || "Server")
+      setLoading(true)
+      try {
+        const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { connection_id: id, database_index: databaseIdx })
+        const parsedInfo = parseRedisInfo(res.info) as Record<string, Record<string, any>>
+        setInfo(parsedInfo)
+        if (parsedInfo && !parsedInfo[activeSection]) {
+          setActiveSection(Object.keys(parsedInfo)[0] || "Server")
+        }
+      } catch (e: any) {
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+        toast.error(msg)
+      } finally {
+        setLoading(false)
       }
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+    [databaseIdx, t, activeSection]
+  )
 
   useEffect(() => {
     general(connectionId)
-  }, [connectionId])
-
-  if (loading) {
-    return (
-      <div className="h-full w-full flex justify-center items-center">
-        <Spinner />
-      </div>
-    )
-  }
-
-  if (!info) {
-    return null
-  }
+  }, [connectionId, general])
 
   const summaryMetrics = useMemo(() => {
     if (!info) return null
@@ -107,6 +106,14 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
       keys: keysCount,
     }
   }, [info, databaseIdx])
+
+  if (loading) {
+    return (
+      <div className="h-full w-full flex justify-center items-center">
+        <Spinner />
+      </div>
+    )
+  }
 
   if (!info || !summaryMetrics) {
     return null
@@ -154,7 +161,17 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
           <SummaryCard title={t("Memory")} value={summaryMetrics.memory} icon={Zap} colorClass="bg-blue-500/10 text-blue-500" />
           <SummaryCard title={t("Keys (DB " + databaseIdx + ")")} value={summaryMetrics.keys} icon={Database} colorClass="bg-green-500/10 text-green-500" />
           <SummaryCard title={t("Clients")} value={summaryMetrics.clients} icon={Users} colorClass="bg-amber-500/10 text-amber-500" />
-          <SummaryCard title={t("Version")} value={summaryMetrics.version} icon={Info} colorClass="bg-purple-500/10 text-purple-500" extra={<Badge variant="outline" className="text-[10px] py-0 h-4 font-normal">{summaryMetrics.uptime}d up</Badge>} />
+          <SummaryCard
+            title={t("Version")}
+            value={summaryMetrics.version}
+            icon={Info}
+            colorClass="bg-purple-500/10 text-purple-500"
+            extra={
+              <Badge variant="outline" className="text-[10px] py-0 h-4 font-normal">
+                {summaryMetrics.uptime}d up
+              </Badge>
+            }
+          />
         </div>
 
         <div className="flex-1 overflow-auto p-0">

@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
@@ -17,32 +17,35 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   const [autoupdate] = useSetting("autoupdate")
   const [lastCheck, setLastCheck] = useSetting("last_update_check", { silent: true })
 
-  const checkUpdate = async (options?: { silent?: boolean }) => {
-    setLoading(true)
-    try {
-      const res: { new_version: string; notes: string } = await scorix.invoke("mod:updater:CheckForUpdate", {})
-      setNewVersion(res.new_version)
-      setNotes(res.notes)
-      await setLastCheck(Date.now().toString())
-      return res
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "unknown_error"
-      const isNoUpdate = msg === "no update available"
-
-      if (!options?.silent && !isNoUpdate && !msg.includes("No connection could be made because the target machine actively refused it")) {
-        toast.error(t(msg as any, { defaultValue: msg }))
-      }
-
-      if (isNoUpdate) {
+  const checkUpdate = useCallback(
+    async (options?: { silent?: boolean }) => {
+      setLoading(true)
+      try {
+        const res: { new_version: string; notes: string } = await scorix.invoke("mod:updater:CheckForUpdate", {})
+        setNewVersion(res.new_version)
+        setNotes(res.notes)
         await setLastCheck(Date.now().toString())
-      }
-      return null
-    } finally {
-      setLoading(false)
-    }
-  }
+        return res
+      } catch (e: any) {
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "unknown_error"
+        const isNoUpdate = msg === "no update available"
 
-  const fullUpdate = async () => {
+        if (!options?.silent && !isNoUpdate && !msg.includes("No connection could be made because the target machine actively refused it")) {
+          toast.error(t(msg as any, { defaultValue: msg }))
+        }
+
+        if (isNoUpdate) {
+          await setLastCheck(Date.now().toString())
+        }
+        return null
+      } finally {
+        setLoading(false)
+      }
+    },
+    [setLastCheck, t]
+  )
+
+  const fullUpdate = useCallback(async () => {
     setLoading(true)
     try {
       const info: { platform: string } = await scorix.invoke("system:info", {})
@@ -57,9 +60,9 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [t])
 
-  const popup = () => {
+  const popup = useCallback(() => {
     if (!newVersion || !notes) return
 
     toast(t("update_available", { v: newVersion }), {
@@ -94,7 +97,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
         description: "whitespace-pre-line",
       },
     })
-  }
+  }, [newVersion, notes, t, loading, fullUpdate])
 
   useEffect(() => {
     if (autoupdate === "false") return
@@ -108,7 +111,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
         popup()
       }
     })
-  }, [autoupdate, lastCheck])
+  }, [autoupdate, lastCheck, checkUpdate, popup])
 
   return <UpdaterContext.Provider value={{ loading, newVersion, notes, checkUpdate, fullUpdate, popup }}>{children}</UpdaterContext.Provider>
 }

@@ -310,7 +310,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       })
       termRef.current?.dispose()
     }
-  }, [])
+  }, [connectionId, databaseIdx, t, resolvedTheme])
 
   useEffect(() => {
     if (!termRef.current) return

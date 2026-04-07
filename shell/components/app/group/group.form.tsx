@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, forwardRef, useImperativeHandle } from "react"
+import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -48,26 +48,29 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
     save: upsertGroup.isPending,
   }
 
+  const submit = useCallback(
+    () =>
+      new Promise<boolean>(resolve => {
+        form.handleSubmit(
+          async values => {
+            try {
+              await upsertGroup.mutateAsync({ ...values, id: group?.id })
+              toast.success(t("saved"))
+              resolve(true)
+            } catch (e: any) {
+              toast.error(e?.message ?? t("unknown_error"))
+              resolve(false)
+            }
+          },
+          () => resolve(false)
+        )()
+      }),
+    [form, upsertGroup, group?.id, t]
+  )
+
   useEffect(() => {
     onPendingChange?.(pending)
-  }, [pending.save])
-
-  const submit = () =>
-    new Promise<boolean>(resolve => {
-      form.handleSubmit(
-        async values => {
-          try {
-            await upsertGroup.mutateAsync({ ...values, id: group?.id })
-            toast.success(t("saved"))
-            resolve(true)
-          } catch (e: any) {
-            toast.error(e?.message ?? t("unknown_error"))
-            resolve(false)
-          }
-        },
-        () => resolve(false)
-      )()
-    })
+  }, [pending.save, onPendingChange])
 
   useImperativeHandle(ref, () => ({ submit }), [submit])
 

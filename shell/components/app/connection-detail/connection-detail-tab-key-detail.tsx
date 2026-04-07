@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useEffect, useState, useCallback } from "react"
 import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { CodeEditor } from "@/components/x/code-editor"
@@ -44,59 +44,62 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   const activeTab = tabs.find(t => t.id === activeTabId)
 
-  const load = async (selectedKey?: string) => {
-    if (!selectedKey) {
-      return
-    }
-    setNewKeyName(undefined)
-    setLoading(true)
-    try {
-      const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
-        connection_id: connectionId,
-        database_index: databaseIdx,
-        key: selectedKey,
-      })
-      setTtl(ttl)
-      setKind(kind)
-      switch (kind) {
-        case "string": {
-          const val = value as string
-          if (val.startsWith("{") || val.startsWith("[")) {
-            try {
-              setData(JSON.stringify(JSON.parse(val), null, 2))
-              setKind("json")
-              return
-            } catch (_) {}
-          }
-          setData(val)
-          break
-        }
-        case "list":
-          setData(value)
-          break
-        case "hash":
-          setData(value)
-          break
-        case "set":
-          setData(value)
-          break
-        case "zset":
-          setData(value)
-          break
-        case "stream":
-          setData(value)
-          break
-        case "rejson-rl":
-          setData(value)
-          break
+  const load = useCallback(
+    async (selectedKey?: string) => {
+      if (!selectedKey) {
+        return
       }
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }
+      setNewKeyName(undefined)
+      setLoading(true)
+      try {
+        const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
+          connection_id: connectionId,
+          database_index: databaseIdx,
+          key: selectedKey,
+        })
+        setTtl(ttl)
+        setKind(kind)
+        switch (kind) {
+          case "string": {
+            const val = value as string
+            if (val.startsWith("{") || val.startsWith("[")) {
+              try {
+                setData(JSON.stringify(JSON.parse(val), null, 2))
+                setKind("json")
+                return
+              } catch (_) { }
+            }
+            setData(val)
+            break
+          }
+          case "list":
+            setData(value)
+            break
+          case "hash":
+            setData(value)
+            break
+          case "set":
+            setData(value)
+            break
+          case "zset":
+            setData(value)
+            break
+          case "stream":
+            setData(value)
+            break
+          case "rejson-rl":
+            setData(value)
+            break
+        }
+      } catch (e: any) {
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+        toast.error(msg)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [connectionId, databaseIdx, t]
+  )
 
   const updateKeyName = async () => {
     if (!newKeyName || !selectedKey || !activeTabId) {
@@ -113,7 +116,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   useEffect(() => {
     load(selectedKey)
-  }, [selectedKey])
+  }, [selectedKey, load])
 
   const handleDelete = async (key: string) => {
     if (isLoading) return

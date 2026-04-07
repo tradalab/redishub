@@ -88,7 +88,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
 
   useEffect(() => {
     onPendingChange?.(pending)
-  }, [pending.save, pending.test, pending.delete])
+  }, [pending.save, pending.test, pending.delete, onPendingChange])
 
   const submit = form.handleSubmit(
     async values => {
@@ -136,7 +136,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
       testConn,
       handleDelete,
     }),
-    [submit, testConn]
+    [submit, testConn, handleDelete]
   )
 
   return (

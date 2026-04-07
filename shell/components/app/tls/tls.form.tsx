@@ -81,7 +81,7 @@ export const TlsForm = forwardRef<TlsFormRef, Props>(({ tls, onPendingChange, on
 
   useEffect(() => {
     onPendingChange?.(pending)
-  }, [pending.save, pending.delete])
+  }, [pending.save, pending.delete, onPendingChange])
 
   const submit = form.handleSubmit(
     async values => {

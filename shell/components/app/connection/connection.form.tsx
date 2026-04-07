@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, forwardRef, useImperativeHandle } from "react"
+import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -189,43 +189,48 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
     })
   }, [connection, form])
 
-  const pending: PendingState = {
-    save: upsertConnection.isPending,
-    test: testConnection.isPending,
-  }
-
   useEffect(() => {
-    onPendingChange?.(pending)
-  }, [pending.save, pending.test, onPendingChange])
-
-  const submit = () =>
-    new Promise<boolean>(resolve => {
-      form.handleSubmit(
-        async values => {
-          const data = values as FormOutput
-          try {
-            await upsertConnection.mutateAsync(data as any)
-            toast.success(t("saved"))
-            resolve(true)
-          } catch (e: any) {
-            toast.error(e?.message ?? t("unknown_error"))
-            resolve(false)
-          }
-        },
-        () => resolve(false)
-      )()
+    onPendingChange?.({
+      save: upsertConnection.isPending,
+      test: testConnection.isPending,
     })
+  }, [upsertConnection.isPending, testConnection.isPending, onPendingChange])
 
-  const testConn = form.handleSubmit(async values => {
-    const data = values as FormOutput
-    try {
-      await testConnection.mutateAsync(data as any)
-      toast.success(t("conn_success"))
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
-      toast.error(t("conn_failed"), { description: msg })
-    }
-  })
+  const submit = useCallback(
+    () =>
+      new Promise<boolean>(resolve => {
+        form.handleSubmit(
+          async values => {
+            const data = values as FormOutput
+            try {
+              await upsertConnection.mutateAsync(data as any)
+              toast.success(t("saved"))
+              resolve(true)
+            } catch (e: any) {
+              toast.error(e?.message ?? t("unknown_error"))
+              resolve(false)
+            }
+          },
+          () => resolve(false)
+        )()
+      }),
+    [form, t, upsertConnection]
+  )
+
+  const testConn = useCallback(
+    () =>
+      form.handleSubmit(async values => {
+        const data = values as FormOutput
+        try {
+          await testConnection.mutateAsync(data as any)
+          toast.success(t("conn_success"))
+        } catch (e: any) {
+          const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
+          toast.error(t("conn_failed"), { description: msg })
+        }
+      })(),
+    [form, t, testConnection]
+  )
 
   useImperativeHandle(
     ref,
