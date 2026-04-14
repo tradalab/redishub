@@ -38,6 +38,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"client:load-key-detail": func(ctx context.Context, args client.LoadKeyDetailLogicArgs) (interface{}, error) {
 			return client.NewClientLoadKeyDetailLogic(ctx, svcCtx).ClientLoadKeyDetailLogic(args)
 		},
+		"client:load-key-value-page": func(ctx context.Context, args client.LoadKeyValuePageLogicArgs) (interface{}, error) {
+			return client.NewClientLoadKeyValuePageLogic(ctx, svcCtx).ClientLoadKeyValuePageLogic(args)
+		},
 		"client:key-create": func(ctx context.Context, args client.KeyCreateLogicArgs) (interface{}, error) {
 			return client.NewClientKeyCreateLogic(ctx, svcCtx).ClientKeyCreateLogic(args)
 		},

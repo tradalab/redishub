@@ -3,6 +3,7 @@
 import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/kibo-ui/table"
 import { ColumnDef } from "@tanstack/react-table"
 import { HashType } from "@/types/hash.type"
+import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { Button } from "@/components/ui/button"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
@@ -23,7 +24,7 @@ type KeyDetailHashProps = {
   databaseId: string
   databaseIdx: number
   selectedKey: string
-  data: HashType[]
+  reloadToken: number
   reload: () => void
 }
 
@@ -32,6 +33,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingField, setDeletingField] = useState<string | null>(null)
   const confirm = useConfirm()
+  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "hash", props.reloadToken)
 
   const columns: ColumnDef<HashType>[] = [
     {
@@ -183,7 +185,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
           </DrawerContent>
         </Drawer>
       </div>
-      <TableProvider columns={columns} data={props.data}>
+      <TableProvider columns={columns} data={items as HashType[]}>
         <TableHeader>
           {({ headerGroup }) => (
             <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
@@ -199,6 +201,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
           )}
         </TableBody>
       </TableProvider>
+      <div ref={sentinelRef} className="h-4" />
     </>
   )
 }

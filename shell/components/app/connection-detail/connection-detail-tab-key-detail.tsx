@@ -5,7 +5,6 @@ import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyDetailHash } from "@/components/app/key-detail/key-detail-hash"
-import { HashType } from "@/types/hash.type"
 import { KeyDetailList } from "@/components/app/key-detail/key-detail-list"
 import { KeyDetailSet } from "@/components/app/key-detail/key-detail-set"
 import { KeyDetailZset } from "@/components/app/key-detail/key-detail-zset"
@@ -34,6 +33,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   const [data, setData] = useState<string | undefined>("")
   const [kind, setKind] = useState<string | undefined>()
   const [ttl, setTtl] = useState<number | undefined>()
+  const [reloadToken, setReloadToken] = useState<number>(0)
   const confirm = useConfirm()
 
   const [newKeyName, setNewKeyName] = useState<string | undefined>()
@@ -72,21 +72,6 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
             setData(val)
             break
           }
-          case "list":
-            setData(value)
-            break
-          case "hash":
-            setData(value)
-            break
-          case "set":
-            setData(value)
-            break
-          case "zset":
-            setData(value)
-            break
-          case "stream":
-            setData(value)
-            break
           case "rejson-rl":
             setData(value)
             break
@@ -112,6 +97,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   const reload = () => {
     load(selectedKey)
+    setReloadToken(t => t + 1)
   }
 
   useEffect(() => {
@@ -183,6 +169,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           kind={kind}
           selectedKey={selectedKey}
           value={data}
+          reloadToken={reloadToken}
           loading={loading}
           setLoading={setLoading}
           reload={reload}
@@ -200,80 +187,26 @@ type ViewKeyDataProps = {
   setLoading: (value: boolean) => void
   value: any
   kind?: string
+  reloadToken: number
   reload: () => void
 }
 
-function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, loading, setLoading, reload }: ViewKeyDataProps) {
+function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reloadToken, loading, setLoading, reload }: ViewKeyDataProps) {
   switch (kind) {
     case "string":
       return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} />
     case "json":
       return <CodeEditor value={value} language="json" autoFormat={true} defaultHeight={400} options={{ readOnly: true, minimap: { enabled: false } }} />
     case "list":
-      if (!Array.isArray(value)) {
-        return null
-      }
-      return (
-        <KeyDetailList
-          databaseId={databaseId}
-          databaseIdx={databaseIdx}
-          selectedKey={selectedKey}
-          reload={reload}
-          data={value?.map((item: string, idx: number) => ({ id: idx, value: item }))}
-        />
-      )
+      return <KeyDetailList databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
     case "hash":
-      if (typeof value !== "object") {
-        return null
-      }
-      return (
-        <KeyDetailHash
-          databaseId={databaseId}
-          databaseIdx={databaseIdx}
-          selectedKey={selectedKey}
-          reload={reload}
-          data={Object.entries(value)?.map(([k, v], index) => ({ id: index, key: k, value: v }) as HashType)}
-        />
-      )
+      return <KeyDetailHash databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
     case "set":
-      if (!Array.isArray(value)) {
-        return null
-      }
-      return (
-        <KeyDetailSet
-          databaseId={databaseId}
-          databaseIdx={databaseIdx}
-          selectedKey={selectedKey}
-          reload={reload}
-          data={value?.map((item: string, idx: number) => ({ id: idx, value: item }))}
-        />
-      )
+      return <KeyDetailSet databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
     case "zset":
-      if (!Array.isArray(value)) {
-        return null
-      }
-      return (
-        <KeyDetailZset
-          databaseId={databaseId}
-          databaseIdx={databaseIdx}
-          selectedKey={selectedKey}
-          reload={reload}
-          data={value?.map((item: any, idx: number) => ({ id: idx, member: item?.Member, score: item?.Score }))}
-        />
-      )
+      return <KeyDetailZset databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
     case "stream":
-      if (!Array.isArray(value)) {
-        return null
-      }
-      return (
-        <KeyDetailStream
-          databaseId={databaseId}
-          databaseIdx={databaseIdx}
-          selectedKey={selectedKey}
-          reload={reload}
-          data={value?.map((item: any) => ({ id: item?.ID, value: JSON.stringify(item?.Values || {}) }))}
-        />
-      )
+      return <KeyDetailStream databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
     case "rejson-rl":
       return <div></div>
     default:

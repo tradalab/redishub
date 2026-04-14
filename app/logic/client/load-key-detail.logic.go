@@ -21,6 +21,7 @@ type LoadKeyDetailLogicResult struct {
 	Value interface{}   `json:"value"`
 	Kind  string        `json:"kind"`
 	Ttl   time.Duration `json:"ttl"`
+	Total int64         `json:"total"`
 }
 
 type ClientLoadKeyDetailLogic struct {
@@ -43,6 +44,7 @@ func (l *ClientLoadKeyDetailLogic) ClientLoadKeyDetailLogic(params LoadKeyDetail
 
 	var value interface{}
 	var kind string
+	var total int64
 	var key = params.Key
 
 	kind, err = cli.Rdb.Type(l.ctx, key).Result()
@@ -64,19 +66,19 @@ func (l *ClientLoadKeyDetailLogic) ClientLoadKeyDetailLogic(params LoadKeyDetail
 		str, err = cli.Rdb.Get(l.ctx, key).Result()
 		value = util.EncodeRedisKey(str)
 	case "list":
-		value, err = cli.Rdb.LRange(l.ctx, key, 0, -1).Result()
+		total, err = cli.Rdb.LLen(l.ctx, key).Result()
 	case "hash":
-		value, err = cli.Rdb.HGetAll(l.ctx, key).Result()
+		total, err = cli.Rdb.HLen(l.ctx, key).Result()
 	case "set":
-		value, err = cli.Rdb.SMembers(l.ctx, key).Result()
+		total, err = cli.Rdb.SCard(l.ctx, key).Result()
 	case "zset":
-		value, err = cli.Rdb.ZRangeWithScores(l.ctx, key, 0, -1).Result()
+		total, err = cli.Rdb.ZCard(l.ctx, key).Result()
 	case "stream":
-		value, err = cli.Rdb.XRange(l.ctx, key, "-", "+").Result()
-	case "json":
-	case "rejson":
+		total, err = cli.Rdb.XLen(l.ctx, key).Result()
 	case "rejson-rl":
 		value, err = cli.Rdb.JSONGet(l.ctx, key).Result()
+	case "json", "rejson":
+		// handled as string by the client
 	}
 
 	if err != nil {
@@ -88,5 +90,6 @@ func (l *ClientLoadKeyDetailLogic) ClientLoadKeyDetailLogic(params LoadKeyDetail
 		Value: value,
 		Kind:  strings.ToLower(kind),
 		Ttl:   ttl,
+		Total: total,
 	}, nil
 }

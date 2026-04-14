@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/kibo-ui/table"
 import { ColumnDef } from "@tanstack/react-table"
 import { StreamType } from "@/types/stream.type"
@@ -23,7 +24,7 @@ type Props = {
   databaseId: string
   databaseIdx: number
   selectedKey: string
-  data: StreamType[]
+  reloadToken: number
   reload: () => void
 }
 
@@ -37,6 +38,7 @@ export function KeyDetailStream(props: Props) {
 
   const [loading, setLoading] = useState(false)
   const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
+  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "stream", props.reloadToken)
 
   const columns: ColumnDef<StreamType>[] = [
     {
@@ -183,7 +185,7 @@ export function KeyDetailStream(props: Props) {
         </DrawerContent>
       </Drawer>
 
-      <TableProvider columns={columns} data={props.data}>
+      <TableProvider columns={columns} data={items as StreamType[]}>
         <TableHeader>
           {({ headerGroup }) => (
             <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
@@ -199,6 +201,7 @@ export function KeyDetailStream(props: Props) {
           )}
         </TableBody>
       </TableProvider>
+      <div ref={sentinelRef} className="h-4" />
     </>
   )
 }

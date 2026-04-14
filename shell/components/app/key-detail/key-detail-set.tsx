@@ -3,6 +3,7 @@
 import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/kibo-ui/table"
 import { ColumnDef } from "@tanstack/react-table"
 import { SetType } from "@/types/set.type"
+import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,7 +24,7 @@ type KeyDetailSetProps = {
   databaseId: string
   databaseIdx: number
   selectedKey: string
-  data: SetType[]
+  reloadToken: number
   reload: () => void
 }
 
@@ -32,6 +33,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
   const confirm = useConfirm()
+  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "set", props.reloadToken)
 
   const columns: ColumnDef<SetType>[] = [
     {
@@ -178,7 +180,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
           </DrawerContent>
         </Drawer>
       </div>
-      <TableProvider columns={columns} data={props.data}>
+      <TableProvider columns={columns} data={items as SetType[]}>
         <TableHeader>
           {({ headerGroup }) => (
             <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
@@ -194,6 +196,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
           )}
         </TableBody>
       </TableProvider>
+      <div ref={sentinelRef} className="h-4" />
     </>
   )
 }

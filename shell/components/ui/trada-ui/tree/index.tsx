@@ -193,9 +193,11 @@ export const TreeNode = ({ nodeId: providedNodeId, level = 0, isLast = false, pa
   )
 }
 
-export type TreeNodeTriggerProps = HTMLAttributes<HTMLDivElement>
+export type TreeNodeTriggerProps = HTMLAttributes<HTMLDivElement> & {
+  expandOnClick?: boolean
+}
 
-export const TreeNodeTrigger = ({ children, className, onClick, ...props }: TreeNodeTriggerProps) => {
+export const TreeNodeTrigger = ({ children, className, onClick, expandOnClick = false, ...props }: TreeNodeTriggerProps) => {
   const { selectedIds, handleSelection, toggleExpanded, indent } = useTree()
   const { nodeId, level } = useTreeNode()
   const isSelected = selectedIds.includes(nodeId)
@@ -211,6 +213,7 @@ export const TreeNodeTrigger = ({ children, className, onClick, ...props }: Tree
       style={{ paddingLeft: level * (indent ?? 0) + 8 }}
       onClick={e => {
         handleSelection(nodeId, e.ctrlKey || e.metaKey)
+        if (expandOnClick) toggleExpanded(nodeId)
         onClick?.(e)
       }}
       onDoubleClick={e => {

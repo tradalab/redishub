@@ -15,7 +15,7 @@ import {
   LayoutGridIcon,
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
-import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
@@ -49,12 +49,14 @@ export function SidebarBrowser() {
   const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
 
   const [isBuildingTree, setIsBuildingTree] = useState(false)
+  const userHasScrolled = useRef(false)
 
   useEffect(() => {
     loadInfo()
   }, [selectedDb, selectedDbIdx])
 
   useEffect(() => {
+    userHasScrolled.current = false
     reload()
   }, [selectedDb, selectedDbIdx])
 
@@ -301,6 +303,13 @@ export function SidebarBrowser() {
                     <Virtuoso
                       className="h-full w-full"
                       data={flattenedData}
+                      onScroll={() => {
+                        userHasScrolled.current = true
+                      }}
+                      endReached={() => {
+                        if (!userHasScrolled.current) return
+                        loadMore()
+                      }}
                       itemContent={(index, item) => (
                         <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} connectionName={currentConnection?.name} />
                       )}
@@ -333,7 +342,7 @@ function RenderTreeItem({ item, deleteKey, connectionName }: { item: FlattenedTr
 
   return (
     <TreeNode nodeId={item.id} isLast={item.isLast} level={item.depth} parentPath={item.parentPath}>
-      <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item" onClick={item.isGroup ? undefined : selectKey}>
+      <TreeNodeTrigger className="cursor-default px-1 py-1.5 group/item" expandOnClick={item.isGroup} onClick={item.isGroup ? undefined : selectKey}>
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel title={item.name}>
