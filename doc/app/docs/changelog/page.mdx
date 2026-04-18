@@ -1,5 +1,24 @@
 # Changelog
 
+---
+
+## [1.10.0]
+
+### 🚀 Features
+
+- **ui:** Add table view mode for keys (#32)
+- **ui:** Add server info sidebar
+- **pubsub:** Add Redis Pub/Sub support (#34)
+- **core:** Auto-load keys on scroll
+- **deps:** Update Scorix to v0.3.0
+
+### 🐛 Fixes
+
+- **ui:** Fix overflow and scroll issues
+- **connection:** Fix connection group update creating duplicate groups
+
+---
+
 ## [1.9.0]
 
 ### 🚀 Features
@@ -37,7 +56,7 @@
 ---
 
 ## [1.7.0]
-    
+
 ### 🚀 Features
 
 - **connection:** Enhanced Sentinel support with separate Master/Sentinel credentials and grouping
