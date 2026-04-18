@@ -10,7 +10,7 @@
 - **ui:** Add server info sidebar
 - **pubsub:** Add Redis Pub/Sub support (#34)
 - **core:** Auto-load keys on scroll
-- **deps:** Update Scorix to v0.3.0
+- **deps:** Update Scorix to v0.3.0 (system tray, single instance, background running)
 
 ### 🐛 Fixes
 
