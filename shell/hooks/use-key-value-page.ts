@@ -60,14 +60,7 @@ function mapItems(rawItems: any[], kind: string, offset: number): PageItem[] {
   }
 }
 
-export function useKeyValuePage(
-  connectionId: string,
-  databaseIdx: number,
-  selectedKey: string,
-  kind: string,
-  reloadToken: number,
-  pageSize: number = 200
-) {
+export function useKeyValuePage(connectionId: string, databaseIdx: number, selectedKey: string, kind: string, reloadToken: number, pageSize: number = 200) {
   const [state, dispatch] = useReducer(reducer, {
     items: [],
     cursor: "0",
@@ -76,11 +69,13 @@ export function useKeyValuePage(
   })
 
   const itemCountRef = useRef(0)
-  itemCountRef.current = state.items.length
+  const stateRef = useRef(state)
 
   // Keep latest state in a ref so scroll/post-load callbacks always read current values
-  const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => {
+    itemCountRef.current = state.items.length
+    stateRef.current = state
+  }, [state])
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
   const wasLoadingRef = useRef(false)
@@ -89,17 +84,14 @@ export function useKeyValuePage(
     async (cursor: string) => {
       dispatch({ type: "LOAD_START" })
       try {
-        const result = await scorix.invoke<{ items: any[]; next_cursor: string; has_more: boolean }>(
-          "client:load-key-value-page",
-          {
-            connection_id: connectionId,
-            database_index: databaseIdx,
-            key: selectedKey,
-            kind,
-            cursor,
-            page_size: pageSize,
-          }
-        )
+        const result = await scorix.invoke<{ items: any[]; next_cursor: string; has_more: boolean }>("client:load-key-value-page", {
+          connection_id: connectionId,
+          database_index: databaseIdx,
+          key: selectedKey,
+          kind,
+          cursor,
+          page_size: pageSize,
+        })
         const offset = kind === "list" ? 0 : itemCountRef.current
         const mapped = mapItems(result.items || [], kind, offset)
         dispatch({

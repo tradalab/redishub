@@ -33,18 +33,16 @@ export function useSettings(options?: { silent?: boolean }) {
         const k = sqlEscape(key)
         const v = sqlEscape(val)
 
-        const result = await scorix.invoke<SettingDO[]>(
-          "mod:gorm:Query",
-          {sql:
-          `
+        const result = await scorix.invoke<SettingDO[]>("mod:gorm:Query", {
+          sql: `
             INSERT INTO "setting" (key, val)
             VALUES ('${k}', '${v}') ON CONFLICT (key)
           DO
             UPDATE SET
               val = EXCLUDED.val
               RETURNING *
-          `}
-        )
+          `,
+        })
 
         const updated = result?.[0]
         if (!updated) return

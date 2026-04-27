@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { toast } from "sonner"
-import { Form } from "@/components/ui/form"
+import { Form } from "@/components/ui/trada-ui/form"
 import { useTranslation } from "react-i18next"
 
 import { Panel } from "@/components/ui/trada-ui/panel"

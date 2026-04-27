@@ -1,6 +1,6 @@
 "use client"
 
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
 
 export interface ProxyDO {
@@ -34,7 +34,7 @@ export function useUpsertProxy() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: QUERY_KEY})
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 }
@@ -44,10 +44,10 @@ export function useDeleteProxy() {
   return useMutation({
     mutationFn: async (id: string) => {
       const sql = `DELETE FROM proxy WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", {sql})
+      await scorix.invoke("mod:gorm:Query", { sql })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: QUERY_KEY})
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 }
