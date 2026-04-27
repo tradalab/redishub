@@ -1,4 +1,4 @@
 export type StreamType = {
-  id: any,
-  value: any,
+  id: any
+  value: any
 }

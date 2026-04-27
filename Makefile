@@ -11,7 +11,7 @@ SHELL_DIST  := $(SHELL_DIR)/dist
 # ─── Default target ──────────────────────────────────────────────────────────
 help:
 	@echo ""
-	@echo "  RedisHub — available commands"
+	@echo "  RedisHub - available commands"
 	@echo ""
 	@echo "  Development"
 	@echo "    make dev               Build frontend then run the Go app"
@@ -101,10 +101,10 @@ _ensure-embed:
 	fi
 
 _ensure-win-res:
-	@if [ "$$(go env GOOS)" = "windows" ]; then \
-		echo "==> Generating Windows icon resource..."; \
-		go run github.com/akavel/rsrc@latest -ico assets/icon.ico -o app_windows.syso; \
-	fi
+ifeq ($(OS),Windows_NT)
+	@echo "==> Generating Windows icon resource..."
+	go run github.com/akavel/rsrc@latest -ico assets/icon.ico -o app_windows.syso
+endif
 
 # ─── Redis (Docker) ──────────────────────────────────────────────────────────
 

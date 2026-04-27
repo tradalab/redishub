@@ -1,4 +1,4 @@
-import {ConnectionDO} from "@/types/connection.do"
+import { ConnectionDO } from "@/types/connection.do"
 
 export type GroupDO = {
   id: string
