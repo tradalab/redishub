@@ -152,5 +152,7 @@
   "pubsub_unsubscribe": "Unsubscribe",
   "pubsub_pause_scroll_desc": "Pause auto-scrolling",
   "pubsub_resume_scroll_desc": "Resume auto-scrolling",
-  "pubsub_clear_all_desc": "Clear all messages"
+  "pubsub_clear_all_desc": "Clear all messages",
+  "compact_mode": "Compact Mode",
+  "compact_mode_desc": "Reduce spacing for higher density UI"
 }

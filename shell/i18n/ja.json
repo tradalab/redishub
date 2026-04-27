@@ -152,5 +152,7 @@
   "pubsub_unsubscribe": "購読解除",
   "pubsub_pause_scroll_desc": "自動スクロールを停止",
   "pubsub_resume_scroll_desc": "自動スクロールを再開",
-  "pubsub_clear_all_desc": "メッセージをすべてクリア"
+  "pubsub_clear_all_desc": "メッセージをすべてクリア",
+  "compact_mode": "コンパクトモード",
+  "compact_mode_desc": "余白を小さくして、より多くの情報を表示します"
 }

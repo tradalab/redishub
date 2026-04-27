@@ -47,10 +47,10 @@ export function TabBar() {
   }
 
   return (
-    <div className="flex items-center border-b bg-muted/30 h-11 shrink-0 overflow-hidden w-full group/tabbar">
+    <div className="flex items-center border-b bg-muted/30 shrink-0 overflow-hidden w-full group/tabbar" style={{ height: "var(--tab-height)" }}>
       {/* Scroll container */}
       <ScrollArea type="hover" className="flex-1 min-w-0 overflow-hidden [&_[data-orientation=vertical]]:hidden" onWheel={handleWheel}>
-        <div className="flex h-11 items-center gap-0 w-max">
+        <div className="flex items-center gap-0 w-max" style={{ height: "var(--tab-height)" }}>
           {tabs.map(tab => {
             const Icon = IconMap[tab.type] || Database
             const isActive = activeTabId === tab.id
@@ -63,12 +63,13 @@ export function TabBar() {
                     onClick={() => setActiveTabId(tab.id)}
                     title={tab.title}
                     className={cn(
-                      "group relative flex items-center h-11 min-w-[140px] max-w-[240px] px-3 gap-2 border-r cursor-pointer transition-colors select-none shrink-0",
+                      "group relative flex items-center min-w-[140px] max-w-[240px] px-3 gap-2 border-r cursor-pointer transition-colors select-none shrink-0",
                       isActive
                         ? "bg-background border-t-2 border-t-primary"
                         : "bg-transparent border-t-2 border-t-transparent text-muted-foreground hover:bg-muted/50",
                       tab.pinned && "min-w-[100px] bg-primary/5"
                     )}
+                    style={{ height: "var(--tab-height)" }}
                   >
                     <div className="relative shrink-0">
                       <Icon className={cn("size-3.5", isActive ? "text-primary" : "")} />
@@ -140,7 +141,7 @@ export function TabBar() {
       </ScrollArea>
 
       {/* Tab Overflow Dropdown */}
-      <div className="shrink-0 flex items-center px-1 border-l bg-muted/30 h-11">
+      <div className="shrink-0 flex items-center px-1 border-l bg-muted/30" style={{ height: "var(--tab-height)" }}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="size-8 rounded-sm shrink-0">

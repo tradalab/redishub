@@ -34,6 +34,9 @@ interface AppContextType {
 
   language: string | undefined
   setLanguage: (val: string) => void
+
+  compactMode: boolean
+  setCompactMode: (val: boolean) => void
 }
 
 const queryClient = new QueryClient({
@@ -55,6 +58,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
   const [language, setLanguage] = useSetting("language")
+  const [compact, setCompact] = useSetting("compact_mode")
+  const compactMode = compact === "true"
 
   const { tabs, activeTabId, addTab } = useTabStore()
   const [lastSyncTabId, setLastSyncTabId] = useState<string | undefined>()
@@ -62,6 +67,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language])
+
+  useEffect(() => {
+    if (compactMode) {
+      document.documentElement.setAttribute("data-compact", "true")
+    } else {
+      document.documentElement.removeAttribute("data-compact")
+    }
+  }, [compactMode])
 
   useEffect(() => {
     if (!activeTabId || activeTabId === lastSyncTabId) return
@@ -148,6 +161,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             disconnect,
             language,
             setLanguage,
+            compactMode,
+            setCompactMode: (val: boolean) => setCompact(val ? "true" : "false"),
           }}
         >
           <UpdaterProvider>
