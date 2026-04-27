@@ -191,3 +191,32 @@ Run `make redis-init-cluster` after `make redis-up`. The cluster requires one-ti
 
 **Port conflict**
 Edit port mappings in `dev/docker-compose-*.yaml` and update connection settings in the app.
+
+---
+
+## Contributors
+
+Thanks goes to these amazing people:
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/atdevten">
+        <img src="https://github.com/atdevten.png" width="100px;" alt="atdevten"/><br />
+        <sub><b>atdevten</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/0xtrungnq">
+        <img src="https://github.com/0xtrungnq.png" width="100px;" alt="0xtrungnq"/><br />
+        <sub><b>0xtrungnq</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/0xtrada">
+        <img src="https://github.com/0xtrada.png" width="100px;" alt="0xtrada"/><br />
+        <sub><b>0xtrada</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
