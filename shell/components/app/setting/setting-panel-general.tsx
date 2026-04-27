@@ -19,7 +19,7 @@ export function SettingPanelGeneral() {
   const { checkUpdate, fullUpdate, newVersion, loading } = useUpdater()
   const { theme, setTheme } = useTheme()
   const [checked, setChecked] = useState(false)
-  const { language, setLanguage } = useAppContext()
+  const { language, setLanguage, compactMode, setCompactMode } = useAppContext()
   const [autoupdate, setAutoupdate] = useSetting("autoupdate")
 
   const languages = [
@@ -67,6 +67,18 @@ export function SettingPanelGeneral() {
               </SelectGroup>
             </SelectContent>
           </Select>
+        </Field>
+      </FieldSet>
+      <FieldSeparator />
+      <FieldSet>
+        <Field>
+          <FieldLabel>{t("compact_mode")}</FieldLabel>
+          <Field orientation="horizontal">
+            <Checkbox id="compactmode-checkbox" name="compactmode-checkbox" checked={compactMode} onCheckedChange={val => setCompactMode(!!val)} />
+            <Label htmlFor="compactmode-checkbox" className="font-normal">
+              {t("compact_mode_desc")}
+            </Label>
+          </Field>
         </Field>
       </FieldSet>
       <FieldSeparator />

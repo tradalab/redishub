@@ -173,7 +173,7 @@ export function SidebarBrowser() {
 
   return (
     <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
-      <SidebarHeader className="gap-2 border-b p-2">
+      <SidebarHeader className="gap-2 border-b" style={{ padding: "var(--sidebar-header-p)" }}>
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
             <div className="text-foreground text-sm font-semibold truncate" title={currentConnection?.name || t("browser")}>
