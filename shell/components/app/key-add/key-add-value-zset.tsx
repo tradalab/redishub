@@ -1,7 +1,7 @@
 import { useFieldArray } from "react-hook-form"
 import type { UseFormReturn } from "react-hook-form"
 import { cn } from "@/lib/utils"
-import { FormControl, FormField, FormItem } from "@/components/ui/form"
+import { FormControl, FormField, FormItem } from "@/components/ui/trada-ui/form"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ArrowDownIcon, ArrowUpIcon, EllipsisVerticalIcon, Trash } from "lucide-react"
 import { GridInput } from "@/components/x/grid-input"

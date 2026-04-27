@@ -1,5 +1,5 @@
-import {ConnectionDO} from "@/types/connection.do"
-import {SshKindEnum} from "@/types/ssh-kind.enum"
+import { ConnectionDO } from "@/types/connection.do"
+import { SshKindEnum } from "@/types/ssh-kind.enum"
 
 export type SshDO = {
   id: string

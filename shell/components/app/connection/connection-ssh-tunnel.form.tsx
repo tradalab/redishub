@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useSsh } from "@/components/app/ssh/ssh.context"

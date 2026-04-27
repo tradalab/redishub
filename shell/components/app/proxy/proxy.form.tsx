@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next"
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react"
 import { toast } from "sonner"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUpsertProxy, useDeleteProxy, ProxyDO } from "@/hooks/api/proxy.api"

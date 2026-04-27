@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 
 export const useTimestamp = () => {
-  const [timestamp, setTimestamp] = useState(Date.now())
+  const [timestamp, setTimestamp] = useState(() => Date.now())
 
   useEffect(() => {
     const interval = setInterval(() => {

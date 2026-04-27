@@ -3,7 +3,7 @@
 import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { useTranslation } from "react-i18next"
 import { GroupDO } from "@/types/group.do"
 import { useUpsertGroup } from "@/hooks/api/group.api"

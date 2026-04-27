@@ -9,7 +9,7 @@ import (
 	scorix "github.com/tradalab/scorix/kernel"
 )
 
-//go:embed .scorix/dist/*
+//go:embed all:.scorix/dist
 var embeddedPublic embed.FS
 
 //go:embed assets/icon.ico

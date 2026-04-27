@@ -29,15 +29,11 @@ export const useTabStore = create<TabState>((set, get) => ({
   tabs: [],
   activeTabId: undefined,
 
-  addTab: (tabData) => {
+  addTab: tabData => {
     const { tabs } = get()
     // Check if tab already exists
     const existingTab = tabs.find(
-      (t) =>
-        t.type === tabData.type &&
-        t.connectionId === tabData.connectionId &&
-        t.databaseIdx === tabData.databaseIdx &&
-        t.key === tabData.key
+      t => t.type === tabData.type && t.connectionId === tabData.connectionId && t.databaseIdx === tabData.databaseIdx && t.key === tabData.key
     )
 
     if (existingTab) {
@@ -50,10 +46,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     const newTabs = [...tabs, newTab]
 
     // Keep pinned tabs at the beginning
-    const sortedTabs = [
-      ...newTabs.filter((t) => t.pinned),
-      ...newTabs.filter((t) => !t.pinned),
-    ]
+    const sortedTabs = [...newTabs.filter(t => t.pinned), ...newTabs.filter(t => !t.pinned)]
 
     set({
       tabs: sortedTabs,
@@ -63,18 +56,15 @@ export const useTabStore = create<TabState>((set, get) => ({
 
   updateTab: (id, updates) => {
     const { tabs } = get()
-    const newTabs = tabs.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    const newTabs = tabs.map(t => (t.id === id ? { ...t, ...updates } : t))
     // Re-sort if pinned status changed
-    const sortedTabs = [
-      ...newTabs.filter((t) => t.pinned),
-      ...newTabs.filter((t) => !t.pinned),
-    ]
+    const sortedTabs = [...newTabs.filter(t => t.pinned), ...newTabs.filter(t => !t.pinned)]
     set({ tabs: sortedTabs })
   },
 
-  removeTab: (id) => {
+  removeTab: id => {
     const { tabs, activeTabId } = get()
-    const newTabs = tabs.filter((t) => t.id !== id)
+    const newTabs = tabs.filter(t => t.id !== id)
     let newActiveId = activeTabId
 
     if (activeTabId === id) {
@@ -88,29 +78,26 @@ export const useTabStore = create<TabState>((set, get) => ({
     set({ tabs: newTabs, activeTabId: newActiveId })
   },
 
-  setActiveTabId: (id) => set({ activeTabId: id }),
+  setActiveTabId: id => set({ activeTabId: id }),
 
-  togglePin: (id) => {
+  togglePin: id => {
     const { tabs } = get()
-    const newTabs = tabs.map((t) => (t.id === id ? { ...t, pinned: !t.pinned } : t))
-    const sortedTabs = [
-      ...newTabs.filter((t) => t.pinned),
-      ...newTabs.filter((t) => !t.pinned),
-    ]
+    const newTabs = tabs.map(t => (t.id === id ? { ...t, pinned: !t.pinned } : t))
+    const sortedTabs = [...newTabs.filter(t => t.pinned), ...newTabs.filter(t => !t.pinned)]
     set({ tabs: sortedTabs })
   },
 
-  closeOthers: (id) => {
+  closeOthers: id => {
     const { tabs } = get()
-    const newTabs = tabs.filter((t) => t.id === id || t.pinned)
+    const newTabs = tabs.filter(t => t.id === id || t.pinned)
     set({ tabs: newTabs, activeTabId: id })
   },
 
   closeAll: () => {
     const { tabs, activeTabId } = get()
-    const pinnedTabs = tabs.filter((t) => t.pinned)
+    const pinnedTabs = tabs.filter(t => t.pinned)
     let newActiveId = activeTabId
-    if (activeTabId && !pinnedTabs.find((t) => t.id === activeTabId)) {
+    if (activeTabId && !pinnedTabs.find(t => t.id === activeTabId)) {
       newActiveId = pinnedTabs.length > 0 ? pinnedTabs[0].id : undefined
     }
     set({ tabs: pinnedTabs, activeTabId: newActiveId })

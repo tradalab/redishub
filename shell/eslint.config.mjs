@@ -1,24 +1,15 @@
-import { dirname } from "path"
-import { fileURLToPath } from "url"
-import { FlatCompat } from "@eslint/eslintrc"
+import { defineConfig, globalIgnores } from "eslint/config"
+import nextVitals from "eslint-config-next/core-web-vitals"
+import prettier from "eslint-config-prettier"
 import prettierPlugin from "eslint-plugin-prettier"
 import prettierConfig from "./.prettierrc.json" with { type: "json" }
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
-
 /** @type {import("eslint").Linter.FlatConfig[]} */
-const eslintConfig = [
-  // Base ESLint config (Next.js + TypeScript)
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // Prettier integration
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  prettier,
   {
-    name: "prettier-integration",
+    name: "trada-ui-custom",
     plugins: {
       prettier: prettierPlugin,
     },
@@ -27,8 +18,14 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "off",
       "react/display-name": "off",
       "@typescript-eslint/no-unused-vars": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/incompatible-library": "off",
+      "react-hooks/immutability": "off",
     },
   },
-]
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**", "dist/**", ".scorix/**"]),
+])
 
 export default eslintConfig

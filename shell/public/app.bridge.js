@@ -1,4 +1,4 @@
-(function() {
+;(function () {
   const ScorixAppBridge = {
     _pending: new Map(), // id -> { resolve, reject, onChunk }
     _events: new Map(),
@@ -152,4 +152,4 @@
     window.__scorix__ipc_receive = msg => ScorixAppBridge._receive(msg)
     window.__scorix__ipc_resolve = msg => ScorixAppBridge._receive(msg)
   }
-})();
+})()
