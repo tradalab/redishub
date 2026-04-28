@@ -154,5 +154,12 @@
   "pubsub_resume_scroll_desc": "Resume auto-scrolling",
   "pubsub_clear_all_desc": "Clear all messages",
   "compact_mode": "Compact Mode",
-  "compact_mode_desc": "Reduce spacing for higher density UI"
+  "compact_mode_desc": "Reduce spacing for higher density UI",
+  "monitor": "Monitor",
+  "monitor_start": "Start Monitor",
+  "monitor_stop": "Stop Monitor",
+  "monitor_desc": "Stream every command processed by the Redis server in real-time.",
+  "monitor_warning": "MONITOR command can degrade Redis performance by up to 50% under heavy load. Use with caution in production.",
+  "monitor_click_start": "Click Start to begin monitoring...",
+  "waiting": "Waiting..."
 }

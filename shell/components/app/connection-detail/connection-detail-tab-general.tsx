@@ -38,7 +38,7 @@ type SummaryCardProps = {
 function SummaryCard({ title, value, icon: Icon, colorClass, extra }: SummaryCardProps) {
   return (
     <Card className="shadow-none border-none bg-transparent">
-      <CardContent className="p-0 flex items-center gap-3">
+      <CardContent className="py-0 px-2 flex items-center gap-3">
         <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", colorClass)}>
           <Icon size={20} />
         </div>

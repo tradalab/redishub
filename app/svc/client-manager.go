@@ -110,7 +110,7 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *do.ConnectionDO, 
 		DialTimeout:     time.Duration(cfg.DialTimeout) * time.Second,
 		DisableIdentity: true,
 		IdentitySuffix:  "redishub_",
-		PoolSize:        1,
+		PoolSize:        10,
 	}
 
 	if cfg.SshEnable {

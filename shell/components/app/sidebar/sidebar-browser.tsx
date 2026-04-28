@@ -13,6 +13,7 @@ import {
   DatabaseIcon,
   RadioIcon,
   LayoutGridIcon,
+  MonitorIcon,
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
@@ -221,6 +222,18 @@ export function SidebarBrowser() {
                 addTab({
                   type: "pubsub",
                   title: "Pub/Sub",
+                  connectionId: selectedDb!,
+                  connectionName: currentConnection?.name,
+                  databaseIdx: selectedDbIdx,
+                })
+              }
+            />
+            <MonitorIcon
+              className="h-4 w-4 cursor-pointer"
+              onClick={() =>
+                addTab({
+                  type: "monitor",
+                  title: "Monitor",
                   connectionId: selectedDb!,
                   connectionName: currentConnection?.name,
                   databaseIdx: selectedDbIdx,
