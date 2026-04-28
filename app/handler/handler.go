@@ -8,6 +8,7 @@ import (
 	"github.com/tradalab/rdms/app/logic/client"
 	"github.com/tradalab/rdms/app/logic/conn"
 	"github.com/tradalab/rdms/app/logic/key"
+	"github.com/tradalab/rdms/app/logic/monitor"
 	"github.com/tradalab/rdms/app/logic/proxy"
 	"github.com/tradalab/rdms/app/logic/pubsub"
 	"github.com/tradalab/rdms/app/logic/ssh"
@@ -72,6 +73,16 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		},
 		"pubsub:publish": func(ctx context.Context, args pubsub.PublishLogicArgs) (interface{}, error) {
 			return pubsub.NewPubsubLogic(ctx, svcCtx).Publish(args)
+		},
+		// monitor
+		"monitor:start": func(ctx context.Context, args monitor.MonitorLogicArgs) (interface{}, error) {
+			return monitor.NewMonitorLogic(ctx, svcCtx).Start(args)
+		},
+		"monitor:stop": func(ctx context.Context, args monitor.MonitorLogicArgs) (interface{}, error) {
+			return monitor.NewMonitorLogic(ctx, svcCtx).Stop(args)
+		},
+		"monitor:status": func(ctx context.Context, args monitor.MonitorLogicArgs) (interface{}, error) {
+			return monitor.NewMonitorLogic(ctx, svcCtx).Status(args)
 		},
 		// key
 		"key:hash-field-del": func(ctx context.Context, args key.KeyHashFieldDelLogicArgs) (interface{}, error) {

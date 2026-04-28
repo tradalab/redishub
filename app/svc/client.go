@@ -16,6 +16,11 @@ type Client struct {
 	PubSub       *redis.PubSub
 	PubSubActive bool
 	PubSubMu     sync.Mutex
+	Monitor       *redis.MonitorCmd
+	MonitorConn   *redis.Conn
+	MonitorCancel context.CancelFunc
+	MonitorActive bool
+	MonitorMu     sync.Mutex
 }
 
 func NewClient(rdb redis.UniversalClient, cfg *do.ConnectionDO, dbIdx int) *Client {

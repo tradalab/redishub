@@ -9,6 +9,7 @@ import { ConnectionDetailTabKeyDetail } from "@/components/app/connection-detail
 import { ConnectionDetailTabSlowQuery } from "@/components/app/connection-detail/connection-detail-tab-slow-query"
 import { ConnectionDetailTabPubSub } from "@/components/app/connection-detail/connection-detail-tab-pubsub"
 import { ConnectionDetailTabKeyList } from "@/components/app/connection-detail/connection-detail-tab-key-list"
+import { ConnectionDetailTabMonitor } from "@/components/app/connection-detail/connection-detail-tab-monitor"
 
 export default function Page() {
   const { selectedDb } = useAppContext()
@@ -29,6 +30,7 @@ export default function Page() {
             )}
             {activeTab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
             {activeTab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
+            {activeTab.type === "monitor" && <ConnectionDetailTabMonitor connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
             {activeTab.type === "key-list" && <ConnectionDetailTabKeyList connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
           </>
         ) : (
