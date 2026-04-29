@@ -44,7 +44,8 @@
 
       this._setStatus("connecting")
       this._initPromise = new Promise((resolve, reject) => {
-        this._url = this._options.url || `ws://${window.location.host}/ipc`
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+        this._url = this._options.url || `${protocol}//${window.location.host}/ipc`
         console.debug("Scorix WebBridge: Connecting to", this._url)
         this._socket = new WebSocket(this._url)
 

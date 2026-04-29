@@ -15,21 +15,21 @@ FROM node-base AS next-deps
 ARG SHELL_DIR=shell
 
 COPY ${SHELL_DIR}/package.json \
-     ${SHELL_DIR}/yarn.lock* \
-     ${SHELL_DIR}/package-lock.json* \
-     ${SHELL_DIR}/pnpm-lock.yaml* \
-     ${SHELL_DIR}/.npmrc* \
-     ./
+    ${SHELL_DIR}/yarn.lock* \
+    ${SHELL_DIR}/package-lock.json* \
+    ${SHELL_DIR}/pnpm-lock.yaml* \
+    ${SHELL_DIR}/.npmrc* \
+    ./
 
 RUN set -eux; \
     if [ -f yarn.lock ]; then \
-        yarn install --frozen-lockfile; \
+    yarn install --frozen-lockfile; \
     elif [ -f package-lock.json ]; then \
-        npm ci; \
+    npm ci; \
     elif [ -f pnpm-lock.yaml ]; then \
-        corepack enable pnpm && pnpm install --frozen-lockfile; \
+    corepack enable pnpm && pnpm install --frozen-lockfile; \
     else \
-        echo "No lockfile found" && exit 1; \
+    echo "No lockfile found" && exit 1; \
     fi
 
 
@@ -49,17 +49,19 @@ COPY ${ENV_FILE} .env.production
 
 RUN set -eux; \
     if [ -f yarn.lock ]; then \
-        yarn build; \
+    yarn build; \
     elif [ -f package-lock.json ]; then \
-        npm run build; \
+    npm run build; \
     elif [ -f pnpm-lock.yaml ]; then \
-        corepack enable pnpm && pnpm run build; \
+    corepack enable pnpm && pnpm run build; \
     else \
-        echo "No lockfile found" && exit 1; \
+    echo "No lockfile found" && exit 1; \
     fi
 
 # 4. Go + Web builder
-FROM ghcr.io/tradalab/scorix-base-linux:latest AS web-builder
+FROM golang:1.26-alpine AS web-builder
+
+RUN apk add --no-cache gcc musl-dev
 
 WORKDIR /workspace
 
@@ -74,7 +76,7 @@ COPY . .
 COPY --from=next-builder /app/dist /workspace/.scorix/dist
 
 # Build image
-RUN CGO_ENABLED=0 GOOS=linux go build -tags server -ldflags "-s -w" -o /workspace/redishub .
+RUN CGO_ENABLED=1 GOOS=linux go build -tags server -ldflags "-s -w" -o /workspace/redishub .
 
 
 # 5. Final Runner

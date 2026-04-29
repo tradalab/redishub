@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"os"
 
 	"github.com/tradalab/rdms/app/handler"
 	"github.com/tradalab/rdms/app/setup"
@@ -19,9 +20,15 @@ var icon []byte
 var configFile []byte
 
 func main() {
+	// Determine config option: prefer external etc/app.yaml if it exists
+	configOption := scorix.WithConfigData(configFile)
+	if _, err := os.Stat("etc/app.yaml"); err == nil {
+		configOption = scorix.WithConfigFile("etc/app.yaml")
+	}
+
 	app := scorix.MustNew(
 		[]scorix.InitOption{
-			scorix.WithConfigData(configFile),
+			configOption,
 		},
 		scorix.WithAssets(embeddedPublic, ".scorix/dist"),
 	)
