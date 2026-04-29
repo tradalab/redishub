@@ -9,6 +9,7 @@
   "checking": "確認中...",
   "confirm_delete": "削除しますか？",
   "confirm_delete_desc": "{{obj_name}} {{obj_key}} を削除します。この操作は元に戻せません。",
+  "confirm_delete_folder_desc": "接頭辞 {{prefix}} を持つすべてのキーを削除しますか？この操作は元に戻せません。",
   "connect": "接続",
   "connections": "接続",
   "conn_not_exist": "接続が存在しません",
@@ -161,5 +162,16 @@
   "monitor_desc": "Redisサーバーで処理されたすべてのコマンドをリアルタイムでストリーミングします。",
   "monitor_warning": "MONITORコマンドは高負荷時にRedisのパフォーマンスを最大50%低下させる可能性があります。本番環境では注意して使用してください。",
   "monitor_click_start": "開始をクリックして監視を開始します...",
-  "waiting": "待機中..."
+  "waiting": "待機中...",
+  "confirm_delete_all_title": "すべて削除しますか？",
+  "confirm_delete_all_desc": "接頭辞 \"{{prefix}}\" に一致するすべてのキー（プレビューに表示されていないものを含む）を削除します。この操作は元に戻せません。",
+  "search_preview_placeholder": "プレビューリスト内で検索...",
+  "preview_list": "プレビューリスト",
+  "keys_loaded": "{{count}} 個のキーを読み込み済み",
+  "scanning": "スキャン中...",
+  "no_keys_found": "キーが見つかりません",
+  "no_matches_in_preview": "プレビューリストに一致する項目がありません",
+  "delete_preview_count": "プレビューを削除 ({{count}})",
+  "delete_everything": "すべて削除",
+  "deleting": "削除中..."
 }

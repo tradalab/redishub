@@ -60,6 +60,12 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"client:keys-metadata": func(ctx context.Context, args client.KeysMetadataLogicArgs) (interface{}, error) {
 			return client.NewClientKeysMetadataLogic(ctx, svcCtx).ClientKeysMetadataLogic(args)
 		},
+		"client:keys-delete-by-prefix": func(ctx context.Context, args client.KeysDeleteByPrefixLogicArgs) (interface{}, error) {
+			return client.NewClientKeysDeleteByPrefixLogic(ctx, svcCtx).ClientKeysDeleteByPrefixLogic(args)
+		},
+		"client:keys-scan-by-prefix": func(ctx context.Context, args client.KeysScanByPrefixLogicArgs) (interface{}, error) {
+			return client.NewClientKeysDeleteByPrefixLogic(ctx, svcCtx).ClientKeysScanByPrefixLogic(args)
+		},
 		// conn
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)

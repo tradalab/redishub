@@ -15,15 +15,16 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
   // core function
 
   const loadKeys = useCallback(
-    async (count = DEFAULT_COUNT, loadAll = false) => {
-      if (dbState.isLoading) return
+    async (count = DEFAULT_COUNT, options: { loadAll?: boolean; reset?: boolean } = {}) => {
+      if (dbState.isLoading && !options.reset) return
 
       dispatch({ type: "LOAD_KEYS_START", redisId, dbId })
 
       try {
-        let cursor = dbState.cursor ?? "0"
-        let mergedKeys = loadAll ? [...dbState.keys] : [...dbState.keys]
+        let cursor = options.reset ? "0" : (dbState.cursor ?? "0")
+        let mergedKeys = options.reset ? [] : [...dbState.keys]
         let nextCursor: string | null = cursor
+        const loadAll = options.loadAll ?? false
 
         do {
           const res: { keys: string[]; cursor: string } = await scorix.invoke<{ keys: string[]; cursor: string }>("key:load", {
@@ -42,7 +43,11 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
 
           if (!loadAll) break
         } while (nextCursor && loadAll)
-        dispatch({ type: "LOAD_KEYS_SUCCESS", redisId, dbId, keys: mergedKeys, cursor: nextCursor })
+
+        // Ensure keys are unique
+        const uniqueKeys = Array.from(new Set(mergedKeys))
+
+        dispatch({ type: "LOAD_KEYS_SUCCESS", redisId, dbId, keys: uniqueKeys, cursor: nextCursor })
       } catch (err) {
         const msg = err instanceof Error ? err.message : "Unknown error"
         toast.error(msg)
@@ -58,18 +63,18 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
 
   const reload = useCallback(() => {
     dispatch({ type: "RESET_KEYS_BEFORE_LOAD", redisId, dbId, pattern: "*" })
-    return loadKeys(keySize, false)
+    return loadKeys(keySize, { reset: true })
   }, [redisId, dbId, keySize, loadKeys, dispatch])
 
   const loadMore = useCallback(() => {
     if (!dbState.cursor) return
-    return loadKeys(keySize, false)
+    return loadKeys(keySize, { loadAll: false })
   }, [dbState.cursor, keySize, loadKeys])
 
   const loadAll = useCallback(() => {
     if (!dbState.cursor) return
-    return loadKeys(keySize, true)
-  }, [keySize, loadKeys])
+    return loadKeys(keySize, { loadAll: true })
+  }, [dbState.cursor, keySize, loadKeys])
 
   // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
   // update
@@ -107,6 +112,58 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     }
   }
 
+  const scanByPrefix = async (prefix: string, cursor: number = 0, limit: number = 1000) => {
+    try {
+      const res = await scorix.invoke<{ keys: string[]; next_cursor: number }>("client:keys-scan-by-prefix", {
+        connection_id: redisId,
+        database_index: dbId,
+        prefix,
+        cursor,
+        limit,
+      })
+      return { keys: res.keys, nextCursor: res.next_cursor }
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg)
+      return { keys: [], nextCursor: 0 }
+    }
+  }
+
+  const deleteByPrefix = async (prefix: string, keys?: string[]) => {
+    const toastId = toast.loading(`Deleting keys...`)
+    try {
+      let cleanup = () => { }
+      if (!keys || keys.length === 0) {
+        cleanup = scorix.on(`client:keys-delete-progress:${redisId}`, (data: any) => {
+          if (data.prefix === prefix) {
+            toast.loading(`Deleting keys with prefix: ${prefix}... (${data.deleted} deleted)`, { id: toastId })
+          }
+        })
+      }
+
+      await scorix.invoke("client:keys-delete-by-prefix", {
+        connection_id: redisId,
+        database_index: dbId,
+        prefix: prefix,
+        keys: keys || [],
+      })
+
+      cleanup()
+
+      if (keys && keys.length > 0) {
+        dispatch({ type: "DELETE_KEYS", redisId, dbId, keys })
+      } else {
+        dispatch({ type: "DELETE_BY_PREFIX", redisId, dbId, prefix })
+      }
+
+      toast.success(`Successfully deleted keys`, { id: toastId })
+      reload()
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
+      toast.error(msg, { id: toastId })
+    }
+  }
+
   return {
     keys: dbState.keys,
     cursor: dbState.cursor,
@@ -120,5 +177,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     updateKey,
     addKey,
     deleteKey,
+    deleteByPrefix,
+    scanByPrefix,
   }
 }
