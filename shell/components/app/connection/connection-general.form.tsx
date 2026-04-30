@@ -268,7 +268,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                 }}
               />
             </div>
-            <FormDescription className="text-[10px] leading-tight mt-1 opacity-70">{t("sentinel_auth_help")}</FormDescription>
+            <p className="text-[10px] text-muted-foreground leading-tight mt-1 opacity-70">{t("sentinel_auth_help")}</p>
           </div>
         </div>
       )}
@@ -351,7 +351,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
             }}
           />
         </div>
-        <FormDescription className="text-[11px] leading-tight">{t("master_credentials_help")}</FormDescription>
+        <p className="text-[11px] text-muted-foreground leading-tight">{t("master_credentials_help")}</p>
       </div>
     </div>
   )

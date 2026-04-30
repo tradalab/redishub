@@ -151,49 +151,79 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
               />
             )}
             {kindValue == KeyKindEnum.LIST && (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
-                  <KeyAddValueList form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="value_list"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                    <FormControl>
+                      <KeyAddValueList form={form} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             {kindValue == KeyKindEnum.HASH && (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
-                  <KeyAddValueHash form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="value_hash"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                    <FormControl>
+                      <KeyAddValueHash form={form} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             {kindValue == KeyKindEnum.SET && (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
-                  <KeyAddValueSet form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="value_set"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                    <FormControl>
+                      <KeyAddValueSet form={form} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             {kindValue == KeyKindEnum.ZSET && (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
-                  <KeyAddValueZset form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="value_zset"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                    <FormControl>
+                      <KeyAddValueZset form={form} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             {kindValue == KeyKindEnum.STREAM && (
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
-                  <KeyAddValueStream form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="value_stream"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="flex items-center justify-between">Value</FormLabel>
+                    <FormControl>
+                      <KeyAddValueStream form={form} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             <DialogFooter>
               <DialogClose asChild>
