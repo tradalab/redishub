@@ -34,7 +34,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
             count,
           })
 
-          mergedKeys = [...mergedKeys, ...res.keys]
+          mergedKeys = [...mergedKeys, ...(res.keys || [])]
           nextCursor = res.cursor
 
           if (nextCursor === "0") {
@@ -121,7 +121,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
         cursor,
         limit,
       })
-      return { keys: res.keys, nextCursor: res.next_cursor }
+      return { keys: res.keys || [], nextCursor: res.next_cursor }
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
