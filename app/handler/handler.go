@@ -66,6 +66,9 @@ func RegisterHandlers(svcCtx *svc.ServiceContext) {
 		"client:keys-scan-by-prefix": func(ctx context.Context, args client.KeysScanByPrefixLogicArgs) (interface{}, error) {
 			return client.NewClientKeysDeleteByPrefixLogic(ctx, svcCtx).ClientKeysScanByPrefixLogic(args)
 		},
+		"client:search-keys": func(ctx context.Context, args client.SearchKeysLogicArgs) (interface{}, error) {
+			return client.NewClientSearchKeysLogic(ctx, svcCtx).ClientSearchKeysLogic(args)
+		},
 		// conn
 		"conn:test": func(ctx context.Context, args conn.ConnTestLogicArgs) (interface{}, error) {
 			return conn.NewConnTestLogic(ctx, svcCtx).ConnTestLogic(args)

@@ -20,21 +20,24 @@ type ConsoleConnectLogicArgs struct {
 }
 
 type ConsoleConnectLogic struct {
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
+	ctx       context.Context
+	svcCtx    *svc.ServiceContext
+	cancelMap map[string]context.CancelFunc
 }
 
 type CmdArgs struct {
+	Id      string `json:"id"`
 	Command string `json:"command"`
 }
 
 type CmdResult struct {
+	Id     string `json:"id"`
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
 }
 
 func NewConsoleConnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ConsoleConnectLogic {
-	return &ConsoleConnectLogic{ctx: ctx, svcCtx: svcCtx}
+	return &ConsoleConnectLogic{ctx: ctx, svcCtx: svcCtx, cancelMap: make(map[string]context.CancelFunc)}
 }
 
 func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs) (any, error) {
@@ -46,16 +49,32 @@ func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs
 	eventIn := "console:input:" + params.ConnectionId
 	eventOut := "console:output:" + params.ConnectionId
 
+	l.svcCtx.App.Evt().On("console:cancel:"+params.ConnectionId, func(ctx context.Context, args struct {
+		Id string `json:"id"`
+	}) {
+		if cancel, ok := l.cancelMap[args.Id]; ok {
+			cancel()
+			delete(l.cancelMap, args.Id)
+		}
+	})
+
 	l.svcCtx.App.Evt().On(eventIn, func(ctx context.Context, cmdArgs CmdArgs) {
 		cmds := SplitCmd(cmdArgs.Command)
 		if len(cmds) == 0 || cmds[0] == "" {
 			return
 		}
 
+		cmdCtx, cancel := context.WithCancel(context.Background())
+		l.cancelMap[cmdArgs.Id] = cancel
+		defer func() {
+			cancel()
+			delete(l.cancelMap, cmdArgs.Id)
+		}()
+
 		args := lo.ToAnySlice(cmds)
-		result, err := cli.Rdb.Do(context.Background(), args...).Result()
+		result, err := cli.Rdb.Do(cmdCtx, args...).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
-			l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Stderr: err.Error()})
+			l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Id: cmdArgs.Id, Stderr: err.Error()})
 			return
 		}
 
@@ -68,9 +87,7 @@ func (l *ConsoleConnectLogic) ConsoleConnectLogic(params ConsoleConnectLogicArgs
 			}
 		}
 
-		// TODO: handler monitor command
-
-		l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Stdout: AnyToString(result)})
+		l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, CmdResult{Id: cmdArgs.Id, Stdout: AnyToString(result)})
 	})
 
 	return nil, nil
