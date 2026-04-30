@@ -15,6 +15,7 @@ import { ProxyProvider } from "@/components/app/proxy/proxy.provider"
 import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 import { GroupProvider } from "@/components/app/group/group.provider"
 import { UpdaterProvider } from "@/components/app/updater/updater.provider"
+import { useConnectionInfoStore } from "@/stores/connection-info.store"
 
 interface AppContextType {
   selectedTab: string
@@ -135,6 +136,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     try {
       await scorix.invoke("client:disconnect", { connection_id: database.id })
+      useConnectionInfoStore.getState().clearInfo(database.id)
       setSelectedDb(undefined)
       setSelectedDbIdx(0)
       toast.success("Disconnected!")

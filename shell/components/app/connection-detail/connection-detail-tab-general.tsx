@@ -1,18 +1,42 @@
 "use client"
 
 import { toast } from "sonner"
-import { useEffect, useState, useMemo, useCallback } from "react"
-import { parseRedisInfo } from "@/lib/utils"
+import { useEffect, useState, useMemo } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import { Spinner } from "@/components/ui/spinner"
-import { Server, Users, Zap, Save, Activity, Network, Cpu, Box, Share2, Key, Database, ChevronLeft, ChevronRight, Info, LucideIcon } from "lucide-react"
+import {
+  Server,
+  Users,
+  Zap,
+  Save,
+  Activity,
+  Network,
+  Cpu,
+  Box,
+  Share2,
+  Key,
+  Database,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  LucideIcon,
+  RefreshCw,
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useConnectionInfoStore } from "@/stores/connection-info.store"
+import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
   Server,
@@ -38,7 +62,7 @@ type SummaryCardProps = {
 function SummaryCard({ title, value, icon: Icon, colorClass, extra }: SummaryCardProps) {
   return (
     <Card className="shadow-none border-none bg-transparent">
-      <CardContent className="py-0 px-2 flex items-center gap-3">
+      <CardContent className="py-0 px-2 flex items-center gap-2">
         <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", colorClass)}>
           <Icon size={20} />
         </div>
@@ -56,36 +80,29 @@ function SummaryCard({ title, value, icon: Icon, colorClass, extra }: SummaryCar
 
 export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
-  const [info, setInfo] = useState<Record<string, Record<string, any>> | undefined>()
-  const [loading, setLoading] = useState<boolean>(false)
+  const key = `${connectionId}:${databaseIdx}`
+  const { infos, autoRefreshConfigs, fetchInfo, toggleAutoRefresh } = useConnectionInfoStore()
+
+  const connectionInfo = infos[key]
+  const info = connectionInfo?.info
+  const loading = connectionInfo?.loading
+  const autoRefresh = autoRefreshConfigs[key]
+
   const [activeSection, setActiveSection] = useState<string>("Server")
   const [collapsed, setCollapsed] = useState<boolean>(false)
 
-  const general = useCallback(
-    async (id: string) => {
-      if (!id) return
-
-      setLoading(true)
-      try {
-        const res = await scorix.invoke<{ info: string; total_db: number }>("client:general", { connection_id: id, database_index: databaseIdx })
-        const parsedInfo = parseRedisInfo(res.info) as Record<string, Record<string, any>>
-        setInfo(parsedInfo)
-        if (parsedInfo && !parsedInfo[activeSection]) {
-          setActiveSection(Object.keys(parsedInfo)[0] || "Server")
-        }
-      } catch (e: any) {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-        toast.error(msg)
-      } finally {
-        setLoading(false)
-      }
-    },
-    [databaseIdx, t, activeSection]
-  )
+  useEffect(() => {
+    fetchInfo(connectionId, databaseIdx).catch(e => {
+      const msg = e instanceof Error ? e.message : t("unknown_error")
+      toast.error(msg)
+    })
+  }, [connectionId, databaseIdx, fetchInfo, t])
 
   useEffect(() => {
-    general(connectionId)
-  }, [connectionId, general])
+    if (info && !info[activeSection]) {
+      setActiveSection(Object.keys(info)[0] || "Server")
+    }
+  }, [info, activeSection])
 
   const summaryMetrics = useMemo(() => {
     if (!info) return null
@@ -107,7 +124,22 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
     }
   }, [info, databaseIdx])
 
-  if (loading) {
+  const handleManualRefresh = () => {
+    fetchInfo(connectionId, databaseIdx, true).catch(e => {
+      const msg = e instanceof Error ? e.message : t("unknown_error")
+      toast.error(msg)
+    })
+  }
+
+  const handleToggleAutoRefresh = (checked: boolean) => {
+    toggleAutoRefresh(connectionId, databaseIdx, checked, autoRefresh?.interval)
+  }
+
+  const handleIntervalChange = (interval: number) => {
+    toggleAutoRefresh(connectionId, databaseIdx, !!autoRefresh?.enabled, interval)
+  }
+
+  if (loading && !info) {
     return (
       <div className="h-full w-full flex justify-center items-center">
         <Spinner />
@@ -123,8 +155,8 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
 
   return (
     <div className="flex h-full w-full bg-background overflow-hidden relative text-sm">
-      <div className={cn("flex flex-col border-r bg-muted/30 transition-all duration-300 ease-in-out shrink-0 overflow-hidden", collapsed ? "w-14" : "w-56")}>
-        <div className="p-3 flex items-center justify-between">
+      <div className={cn("flex flex-col border-r bg-muted/30 transition-all duration-300 ease-in-out shrink-0 overflow-hidden", collapsed ? "w-12.5" : "w-56")}>
+        <div className="p-2 flex items-center justify-between">
           {!collapsed && <span className="font-semibold text-xs px-1 opacity-70 uppercase tracking-wider">Sections</span>}
           <Button variant="ghost" size="icon" className="h-8 w-8 ml-auto" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -141,7 +173,10 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
                   <TooltipTrigger asChild>
                     <Button
                       variant={isActive ? "secondary" : "ghost"}
-                      className={cn("w-full justify-start gap-3 px-3 h-9", isActive && "bg-secondary/70 font-medium")}
+                      className={cn(
+                        "w-full justify-start gap-2 px-2 h-9",
+                        isActive && "bg-secondary/70 font-medium"
+                      )}
                       onClick={() => setActiveSection(section)}
                     >
                       <Icon size={16} className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
@@ -157,7 +192,7 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
       </div>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 border-b bg-muted/10 shrink-0">
+        <div className="p-2 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-2 border-b bg-muted/10 shrink-0">
           <SummaryCard title={t("Memory")} value={summaryMetrics.memory} icon={Zap} colorClass="bg-blue-500/10 text-blue-500" />
           <SummaryCard title={t("Keys (DB " + databaseIdx + ")")} value={summaryMetrics.keys} icon={Database} colorClass="bg-green-500/10 text-green-500" />
           <SummaryCard title={t("Clients")} value={summaryMetrics.clients} icon={Users} colorClass="bg-amber-500/10 text-amber-500" />
@@ -175,22 +210,51 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
         </div>
 
         <div className="flex-1 overflow-auto p-0">
-          <div className="flex items-center p-3 gap-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b border-transparent">
-            {activeSection && (
-              <>
-                {(() => {
-                  const Icon = SECTION_ICONS[activeSection] || Info
-                  return <Icon size={18} className="text-primary" />
-                })()}
-                <h2 className="text-base font-semibold">{activeSection}</h2>
-                <Badge variant="secondary" className="ml-2 font-normal text-[10px] h-5 opacity-70">
-                  {Object.keys(info[activeSection] || {}).length} Fields
-                </Badge>
-              </>
-            )}
+          <div className="flex items-center justify-between p-2 gap-2 sticky top-0 bg-background/80 backdrop-blur-sm z-10 border-b">
+            <div className="flex items-center gap-2">
+              {activeSection && (
+                <>
+                  {(() => {
+                    const Icon = SECTION_ICONS[activeSection] || Info
+                    return <Icon size={18} className="text-primary" />
+                  })()}
+                  <h2 className="text-base font-semibold">{activeSection}</h2>
+                  <Badge variant="secondary" className="ml-2 font-normal text-[10px] h-5 opacity-70">
+                    {Object.keys(info[activeSection] || {}).length} Fields
+                  </Badge>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 bg-muted/50 rounded-md px-2.5 h-8">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("Auto")}</span>
+                <Select
+                  value={String((autoRefresh?.interval || 10000) / 1000)}
+                  onValueChange={val => handleIntervalChange(Number(val) * 1000)}
+                >
+                  <SelectTrigger className="h-6 w-[56px] border-none bg-transparent shadow-none focus:ring-0 text-xs px-1 hover:bg-muted transition-colors font-medium">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5s</SelectItem>
+                    <SelectItem value="10">10s</SelectItem>
+                    <SelectItem value="30">30s</SelectItem>
+                    <SelectItem value="60">60s</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="h-4 w-[1px] bg-muted-foreground/20 mx-0.5" />
+                <Switch checked={!!autoRefresh?.enabled} onCheckedChange={handleToggleAutoRefresh} className="scale-75" />
+              </div>
+
+              <Button variant="outline" size="sm" className="h-8 gap-2 min-w-[90px]" onClick={handleManualRefresh} disabled={loading}>
+                <RefreshCw size={14} className={cn(loading && "animate-spin")} />
+                <span>{t("Refresh")}</span>
+              </Button>
+            </div>
           </div>
 
-          <div className="px-4 pb-4">
+          <div className="px-2 pb-2 mt-2">
             <div className="rounded-lg border bg-card overflow-hidden">
               <Table>
                 <TableHeader>
