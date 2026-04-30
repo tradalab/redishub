@@ -9,6 +9,7 @@
   "checking": "Checking...",
   "confirm_delete": "Delete this item?",
   "confirm_delete_desc": "Delete {{obj_name}} {{obj_key}}? This action cannot be undone.",
+  "confirm_delete_folder_desc": "Delete all keys with prefix {{prefix}}? This action cannot be undone.",
   "connect": "Connect",
   "connections": "Connections",
   "conn_not_exist": "connection does not exist",
@@ -161,5 +162,16 @@
   "monitor_desc": "Stream every command processed by the Redis server in real-time.",
   "monitor_warning": "MONITOR command can degrade Redis performance by up to 50% under heavy load. Use with caution in production.",
   "monitor_click_start": "Click Start to begin monitoring...",
-  "waiting": "Waiting..."
+  "waiting": "Waiting...",
+  "confirm_delete_all_title": "Delete Everything?",
+  "confirm_delete_all_desc": "This will delete ALL keys matching prefix \"{{prefix}}\", including those not shown in the preview. This action cannot be undone.",
+  "search_preview_placeholder": "Search in preview list...",
+  "preview_list": "Preview List",
+  "keys_loaded": "{{count}} keys loaded",
+  "scanning": "Scanning...",
+  "no_keys_found": "No keys found",
+  "no_matches_in_preview": "No matches in preview list",
+  "delete_preview_count": "Delete Preview ({{count}})",
+  "delete_everything": "Delete Everything",
+  "deleting": "Deleting..."
 }

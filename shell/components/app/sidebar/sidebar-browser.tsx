@@ -33,6 +33,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 import { useTabStore } from "@/stores/tab.store"
+import { BrowserBulkDeleteDialog } from "@/components/app/browser-bulk-delete-dialog"
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
@@ -42,12 +43,18 @@ export function SidebarBrowser() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [dbs, setDbs] = useState<any[]>([])
   const confirm = useConfirm()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletePrefix, setDeletePrefix] = useState("")
 
   const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
   const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
-  const { keys, isLoading, loadMore, loadAll, reload, deleteKey } = useRedisKeys(selectedDb || "", selectedDbIdx, currentConnection?.key_size)
+  const { keys, isLoading, loadMore, loadAll, reload, deleteKey, deleteByPrefix, scanByPrefix } = useRedisKeys(
+    selectedDb || "",
+    selectedDbIdx,
+    currentConnection?.key_size
+  )
 
   const [isBuildingTree, setIsBuildingTree] = useState(false)
   const userHasScrolled = useRef(false)
@@ -74,16 +81,27 @@ export function SidebarBrowser() {
     return () => clearTimeout(timer)
   }, [keys])
 
-  const handleDelete = async (key: string) => {
+  const handleDelete = async (item: TreeItem) => {
     if (isLoading) return
+
+    const isGroup = item.isGroup
+    const prefix = isGroup ? item.id.replace("group__", "") + ":" : item.id
+
+    if (isGroup) {
+      setDeletePrefix(prefix)
+      setDeleteDialogOpen(true)
+      return
+    }
+
     const ok = await confirm({
       title: t("confirm_delete"),
-      description: t("confirm_delete_desc", { obj_name: "key", obj_key: key }),
+      description: t("confirm_delete_desc", { obj_name: "key", obj_key: item.id }),
       confirmText: t("delete"),
       danger: true,
     })
+
     if (ok) {
-      await deleteKey(key)
+      await deleteKey(item.id)
     }
   }
 
@@ -334,11 +352,26 @@ export function SidebarBrowser() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <BrowserBulkDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        prefix={deletePrefix}
+        onScan={scanByPrefix}
+        onConfirm={keys => deleteByPrefix(deletePrefix, keys)}
+      />
     </Sidebar>
   )
 }
 
-function RenderTreeItem({ item, deleteKey, connectionName }: { item: FlattenedTreeItem; deleteKey: (key: string) => Promise<void>; connectionName?: string }) {
+function RenderTreeItem({
+  item,
+  deleteKey,
+  connectionName,
+}: {
+  item: FlattenedTreeItem
+  deleteKey: (item: TreeItem) => Promise<void>
+  connectionName?: string
+}) {
   const { selectedDb, selectedDbIdx } = useAppContext()
   const { addTab } = useTabStore()
 
@@ -367,7 +400,7 @@ function RenderTreeItem({ item, deleteKey, connectionName }: { item: FlattenedTr
   )
 }
 
-const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (key: string) => Promise<void> }) => {
+const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (item: TreeItem) => Promise<void> }) => {
   const { t } = useTranslation()
   return (
     <DropdownMenu>
@@ -381,9 +414,8 @@ const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (key: st
           className="gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
           onClick={async e => {
             e.stopPropagation()
-            await deleteKey(item.id)
+            await deleteKey(item)
           }}
-          disabled={item.isGroup}
         >
           <Trash2Icon className="h-4 w-4 text-red-600" />
           {t("delete")}

@@ -22,6 +22,8 @@ type Action =
   | { type: "UPDATE_KEY"; redisId: string; dbId: number; oldKey: string; newKey: string }
   | { type: "ADD_KEY"; redisId: string; dbId: number; key: string }
   | { type: "DELETE_KEY"; redisId: string; dbId: number; key: string }
+  | { type: "DELETE_KEYS"; redisId: string; dbId: number; keys: string[] }
+  | { type: "DELETE_BY_PREFIX"; redisId: string; dbId: number; prefix: string }
 
 const createDBState = (): DBKeyState => ({
   keys: [],
@@ -113,6 +115,31 @@ function redisKeysReducer(state: KeyState, action: Action): KeyState {
           [dbId]: {
             ...dbState,
             keys: dbState.keys.filter(k => k !== action.key),
+          },
+        },
+      }
+
+    case "DELETE_KEYS":
+      const keysToRemove = new Set(action.keys)
+      return {
+        ...state,
+        [redisId]: {
+          ...currentRedis,
+          [dbId]: {
+            ...dbState,
+            keys: dbState.keys.filter(k => !keysToRemove.has(k)),
+          },
+        },
+      }
+
+    case "DELETE_BY_PREFIX":
+      return {
+        ...state,
+        [redisId]: {
+          ...currentRedis,
+          [dbId]: {
+            ...dbState,
+            keys: dbState.keys.filter(k => !k.startsWith(action.prefix)),
           },
         },
       }
