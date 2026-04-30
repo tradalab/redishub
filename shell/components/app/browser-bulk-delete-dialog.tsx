@@ -48,8 +48,8 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
     try {
       while (true) {
         const result = await onScan(prefix, currentCursor)
-        newKeys = [...newKeys, ...result.keys]
-        totalCollected += result.keys.length
+        newKeys = [...newKeys, ...(result.keys || [])]
+        totalCollected += (result.keys || []).length
         currentCursor = result.nextCursor
         
         if (totalCollected >= 1000 || currentCursor === 0) {
@@ -78,7 +78,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
     try {
       while (currentCursor !== 0) {
         const result = await onScan(prefix, currentCursor)
-        setKeys(prev => [...prev, ...result.keys])
+        setKeys(prev => [...prev, ...(result.keys || [])])
         currentCursor = result.nextCursor
         setScanCursor(currentCursor)
         if (!open) break
