@@ -2,6 +2,26 @@
 
 ---
 
+## [1.11.0]
+
+### 🚀 Features
+
+- **monitor:** Add real-time Redis MONITOR support with performance warnings (#71)
+- **ui:** Add Compact Mode for higher density layout (#69)
+- **command:** Upgrade Command Palette with smart suggestions, persistent history, and safety confirmations for dangerous commands (#81)
+- **keys:** Add bulk delete keys by prefix (#74)
+- **connection:** Add manual and auto-refresh controls for connection details (#76)
+- **core:** Upgrade to Next.js 15 and Shadcn UI (#68)
+- **docker:** Support multi-platform web docker builds (#73)
+
+### 🐛 Fixes
+
+- **editor:** Stabilize code editor behavior and focus
+- **ui:** Fix crash in key creation dialog
+- **ui:** Fix handling of empty keys in tree view
+
+---
+
 ## [1.10.0]
 
 ### 🚀 Features
