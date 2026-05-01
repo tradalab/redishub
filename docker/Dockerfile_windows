@@ -34,6 +34,8 @@ COPY ${SHELL_DIR}/ ./
 # Explicit env copy
 COPY ${ENV_FILE} .env.production
 
+RUN New-Item -ItemType Directory -Force -Path public/monaco-editor; Copy-Item -Path node_modules/monaco-editor/min/vs -Destination public/monaco-editor/vs -Recurse -Force
+
 RUN if (Test-Path pnpm-lock.yaml) { \
         corepack enable pnpm; pnpm run build; \
     } elseif (Test-Path yarn.lock) { \

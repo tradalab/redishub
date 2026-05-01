@@ -47,6 +47,8 @@ COPY ${SHELL_DIR}/ ./
 # Explicit env copy
 COPY ${ENV_FILE} .env.production
 
+RUN mkdir -p public/monaco-editor && cp -r node_modules/monaco-editor/min/vs public/monaco-editor/vs
+
 RUN set -eux; \
     if [ -f yarn.lock ]; then \
     yarn build; \

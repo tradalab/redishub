@@ -3,6 +3,8 @@
         redis-up redis-down redis-status redis-logs redis-init-cluster \
         clean
 
+SHELL := bash
+
 # ─── Paths ───────────────────────────────────────────────────────────────────
 SHELL_DIR   := shell
 SCORIX_DIST := .scorix/dist
@@ -46,9 +48,9 @@ help:
 ## Full dev cycle: build frontend → inject into Go embed dir → run app
 dev: shell-build _ensure-win-res
 	@echo "==> Injecting frontend into .scorix/dist"
-	@rm -rf $(SCORIX_DIST)
-	@mkdir -p $(SCORIX_DIST)
-	@cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
+	rm -rf $(SCORIX_DIST)
+	mkdir -p $(SCORIX_DIST)
+	cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
 	@echo "==> Running Go app"
 	go run .
 
@@ -71,13 +73,16 @@ shell-install:
 ## Build the full production binary for the current platform
 build: shell-build
 	@echo "==> Injecting frontend into .scorix/dist"
-	@rm -rf $(SCORIX_DIST)
-	@mkdir -p $(SCORIX_DIST)
-	@cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
+	rm -rf $(SCORIX_DIST)
+	mkdir -p $(SCORIX_DIST)
+	cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
 	bash scripts/build.sh
 
 ## Build the frontend only
 shell-build:
+	@echo "==> Preparing monaco-editor assets"
+	mkdir -p $(SHELL_DIR)/public/monaco-editor
+	cp -R $(SHELL_DIR)/node_modules/monaco-editor/min/vs $(SHELL_DIR)/public/monaco-editor/
 	cd $(SHELL_DIR) && pnpm build
 
 # ─── Quality ─────────────────────────────────────────────────────────────────
@@ -95,6 +100,8 @@ lint-go: _ensure-embed
 _ensure-embed:
 	@if [ ! -d "$(SCORIX_DIST)" ]; then \
 		echo "==> .scorix/dist missing — building frontend first"; \
+		mkdir -p $(SHELL_DIR)/public/monaco-editor; \
+		cp -R $(SHELL_DIR)/node_modules/monaco-editor/min/vs $(SHELL_DIR)/public/monaco-editor/; \
 		cd $(SHELL_DIR) && pnpm build; \
 		mkdir -p ../$(SCORIX_DIST); \
 		cp -R dist/. ../$(SCORIX_DIST)/; \

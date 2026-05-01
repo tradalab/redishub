@@ -1,8 +1,18 @@
-import Editor, { EditorProps, OnMount } from "@monaco-editor/react"
+"use client"
+
+import Editor, { EditorProps, OnMount, loader } from "@monaco-editor/react"
 import React, { useRef, useCallback, useState, useEffect } from "react"
 import { useTheme } from "next-themes"
-import * as monaco from "monaco-editor"
+import type * as monaco from "monaco-editor"
 import { debounce } from "lodash"
+
+if (typeof window !== "undefined") {
+  loader.config({
+    paths: {
+      vs: "/monaco-editor/vs",
+    },
+  })
+}
 
 type CodeEditorProps = EditorProps & {
   className?: string
