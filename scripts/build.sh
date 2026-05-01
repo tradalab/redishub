@@ -14,7 +14,7 @@ cd "$PROJECT_ROOT"
 
 APP_NAME="RedisHub"
 APP_MANUFACTURER="TradaLab"
-APP_DESC="Modern Redis Client - Fast, lightweight, and cross-platform"
+APP_DESC="Professional Redis Command Center - High-performance desktop & web client for managing and monitoring Redis."
 VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
 
 ####################################################################################################

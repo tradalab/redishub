@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "RedisHub",
-  description: "Modern Redis Client - Fast, lightweight, and cross-platform",
+  description: "Professional Redis Command Center - High-performance desktop & web client for managing and monitoring Redis.",
   manifest: "/manifest.json",
   icons: {
     icon: [
