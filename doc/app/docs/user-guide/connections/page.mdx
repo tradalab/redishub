@@ -70,3 +70,19 @@ Access these settings under the **Optional** tab for fine-grained control:
 Essential for environments where Redis nodes report internal, unreachable IPs (e.g., Docker or AWS ElastiCache behind NAT).
 - **Mapping**: Define rules to translate internal `ip:port` to host-reachable `ip:port`.
 - **Syntax**: `internal:port=external:port`, one entry per line.
+73: 
+74: ## Server Information
+75: 
+76: Once connected, RedisHub provides a detailed **Server Info** sidebar (accessible by clicking the information icon next to the database selector).
+77: 
+78: ### Real-time Statistics
+79: Monitor critical server metrics at a glance:
+80: - **Memory Usage**: RSS, Peak Memory, and Fragmentation Ratio.
+81: - **Clients**: Number of connected clients and blocked clients.
+82: - **Persistence**: Last save time and RDB/AOF status.
+83: - **Stats**: Total commands processed and instantaneous OPS (Operations Per Second).
+84: 
+85: ### Refresh Controls
+86: Keep your server data up-to-date with flexible refresh options:
+87: - **Manual Refresh**: Click the refresh icon to fetch the latest server info immediately.
+88: - **Auto-Refresh**: Enable auto-refresh (default: 10s) to keep the metrics flowing without manual intervention. You can configure the refresh interval to balance between real-time data and server load.

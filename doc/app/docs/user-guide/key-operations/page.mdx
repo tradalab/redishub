@@ -36,5 +36,6 @@ Browse stream entries with their IDs and field-value pairs.
 
 ## Common Actions
 - **Delete Key**: Remove a key from the database.
+- **Bulk Delete**: Delete multiple keys at once by specifying a prefix. This is much faster than deleting keys individually and is optimized to avoid blocking the Redis server.
 - **Rename Key**: Safely rename keys.
 - **Set TTL**: Set or update the expiration time (Time To Live) for a key.

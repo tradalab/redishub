@@ -28,35 +28,53 @@ RedisHub is built to handle many active connections simultaneously:
 
 Starting with version 1.9.0, RedisHub can be deployed as a central web application. This is ideal for teams that want a shared Redis management console accessible from any browser without installing native clients on every machine.
 
-### Enabling Web Mode
-
-To switch RedisHub from a desktop application to a web server, modify the `mode` setting in your `etc/app.yaml`:
-
-```yaml
-# etc/app.yaml
-mode: web
-
-web:
-  host: 0.0.0.0 # Listen on all interfaces
-  port: 8080    # The port to serve the UI
-```
-
-### Key Benefits
-
-- **Centralized Accessibility**: Host RedisHub on a internal server (e.g., behind a VPN) for the entire team to access.
-- **Proxy Compatibility**: Works seamlessly with HTTP/SOCKS5 proxies for secure backend communication.
-- **Persistent Sessions**: Maintain open connections and browser tabs across different machines when accessing the web UI.
+For detailed instructions on how to configure and deploy the web version, please refer to our **[Web Mode Deployment Guide](/docs/user-guide/web-mode)**.
 
 ## Managing Tabs
 
 - **Closing Tabs**: Click the **x** icon on a tab to close it. This will safely terminate the UI context for that connection.
 - **Reordering**: Drag and drop tabs to organize your workspace according to your current workflow.
 
-### Advanced Tab Management
+## Specialized Tools
+
+RedisHub includes several specialized tools to help you monitor and debug your Redis instances.
+
+### Monitor
+The **Monitor** tool (available via the sidebar) streams every command processed by the Redis server in real-time.
+- **Real-time Visibility**: See exactly what commands are hitting your server.
+- **Filtering**: Filter the stream by keyword to find specific operations.
+- **Caution**: The `MONITOR` command can degrade Redis performance by up to 50% under heavy load. Use with caution in production environments.
+
+### Command Console (Palette)
+Press `Ctrl+K` (or `Cmd+K`) to open the **Command Palette**. This major upgrade provides a powerful CLI-like experience within the app:
+- **Smart Suggestions**: Real-time auto-complete for all major Redis commands as you type. It includes syntax hints and short summaries for each command.
+- **Safety First (Confirmations)**: Dangerous commands (like `FLUSHALL`, `FLUSHDB`, `SHUTDOWN`) now require explicit confirmation before execution to prevent accidental data loss.
+- **Command Registry**: Access built-in documentation links to Redis.io for every command directly from the palette.
+- **Persistent History**: Your command history is saved across sessions and connections, allowing you to quickly cycle through previous commands using the Up/Down arrow keys.
+
+### Pub/Sub
+The **Pub/Sub** tab allows you to subscribe to Redis channels and patterns.
+- **Message Streaming**: View incoming messages in real-time.
+- **Multiple Subscriptions**: Subscribe to multiple channels or patterns (e.g., `events:*`) simultaneously.
+
+### Slow Query
+Identify performance bottlenecks by inspecting the Redis Slow Log.
+- **Execution Time**: See exactly how long slow commands took to execute.
+- **Client Info**: Identify which client triggered the slow command.
+
+## Advanced Tab Management
 Maximize your productivity with specialized tab controls:
 - **Pinning**: Right-click a tab and select **Pin Tab**. Pinned tabs are moved to the left and take up less space, keeping your most important connections always visible.
 - **Bulk Closing**: Right-click any tab to access bulk management actions:
     - **Close Others**: Quickly close all tabs except the currently selected one.
     - **Close All**: Clear your entire workspace in one action.
+
+## UI Customization
+
+### Compact Mode
+For users who prefer high-density layouts, RedisHub offers a **Compact Mode**.
+- **Increased Density**: Reduces padding and margins across the entire UI.
+- **More Data**: See more keys and server information on the screen at once.
+- **Toggle**: Enable it via the settings icon in the bottom-left corner of the sidebar.
 
 ![Tab Context Menu](/assets/en/tab-context-menu.png)

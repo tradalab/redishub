@@ -1,0 +1,132 @@
+# Web Mode Deployment
+
+RedisHub can be deployed as a centralized web application. This allows your team to access a shared Redis management console from any browser without installing native clients on every machine.
+
+## How it Works
+
+When running in **Web Mode**, RedisHub starts a built-in HTTP server that serves the UI and handles Redis operations on the backend. All connection profiles and settings are stored in a centralized database (`app.dat`) on the server.
+
+## Configuration
+
+The primary way to configure Web Mode is through the `etc/app.yaml` file.
+
+```yaml
+# etc/app.yaml
+mode: web
+
+web:
+  host: 0.0.0.0 # Listen on all interfaces
+  port: 8080    # The port to serve the UI
+```
+
+### Environment Variables
+
+You can also use environment variables to override these settings, which is ideal for Docker deployments:
+
+- `SCORIX_MODE`: Set to `web` to enable web mode.
+- `SCORIX_WEB_HOST`: The IP address to bind the server (e.g., `0.0.0.0`).
+- `SCORIX_WEB_PORT`: The port to listen on (default `8080`).
+
+---
+
+## Deployment with Docker
+
+Using Docker is the recommended way to deploy RedisHub in web mode.
+
+### 1. Run via Docker CLI
+
+```bash
+docker run -d \
+  --name redishub \
+  -p 8080:8080 \
+  -v redishub_data:/root/.local/share/RedisHub \
+  -e SCORIX_MODE=web \
+  ghcr.io/tradalab/redishub-web:latest
+```
+
+### 2. Using Docker Compose
+
+Create a `docker-compose.yaml` file (based on `examples/docker-compose-web.yml`):
+
+```yaml
+services:
+  redishub:
+    image: ghcr.io/tradalab/redishub-web:latest
+    container_name: redishub
+    ports:
+      - "8080:8080"
+    environment:
+      - SCORIX_MODE=web
+      - SCORIX_WEB_HOST=0.0.0.0
+      - SCORIX_WEB_PORT=8080
+    volumes:
+      - redishub_data:/root/.local/share/RedisHub
+    restart: unless-stopped
+
+volumes:
+  redishub_data:
+```
+
+---
+
+## Data Persistence
+
+RedisHub uses a SQLite database (`app.dat`) to store your connections, groups, and settings. 
+
+> [!IMPORTANT]
+> In the official Docker image, data is stored in `/root/.local/share/RedisHub`. You **must** mount a volume to this path to ensure your data is persisted across container restarts.
+
+---
+
+## Reverse Proxy & WebSockets
+
+When running RedisHub behind a reverse proxy (like Nginx, Caddy, or Traefik), you **must** configure it to handle WebSocket connections correctly for the `/ipc` path. 
+
+RedisHub uses WebSockets for real-time communication between the frontend and the backend.
+
+### Nginx Example
+
+```nginx
+location / {
+    proxy_pass http://localhost:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+
+# Critical: WebSocket support for /ipc
+location /ipc {
+    proxy_pass http://localhost:8080/ipc;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header Host $host;
+}
+```
+
+### Caddy Example
+
+Caddy handles WebSockets automatically, so a simple `reverse_proxy` directive is usually enough:
+
+```caddy
+example.com {
+    reverse_proxy localhost:8080
+}
+```
+
+---
+
+## Security Recommendations
+
+### Network Isolation
+If possible, deploy RedisHub within your internal network or a VPN-protected VPC. Avoid exposing the Web UI directly to the public internet without additional security layers.
+
+---
+
+## Manual Deployment
+
+If you prefer to run the binary directly on a Linux server:
+
+1. Download the latest Linux binary from the [Releases](https://github.com/tradalab/redishub/releases) page.
+2. Create an `etc/app.yaml` with `mode: web`.
+3. Ensure the user running the binary has write permissions to the application directory (for `app.dat`).
+4. Run the binary: `./redishub`

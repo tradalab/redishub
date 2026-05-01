@@ -9,21 +9,23 @@ export default function Page() {
           <h1 className="text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             <span className="text-indigo-500 dark:text-indigo-400">RedisHub</span>
             <br />
-            Modern Redis Client
+            Modern Redis Client for Desktop & Web
           </h1>
 
-          <p className="mt-6 max-w-xl text-lg text-neutral-600 dark:text-neutral-400">Fast, lightweight, and cross-platform.</p>
+          <p className="mt-6 max-w-xl text-lg text-neutral-600 dark:text-neutral-400">
+            A professional, high-performance command center for your Redis ecosystem. Available as a native desktop app or a centralized web service.
+          </p>
 
           <div className="mt-8 flex gap-4">
             <Link href="/download" className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500 transition">
-              Download
+              Download Desktop
             </Link>
 
             <Link
-              href="https://github.com/tradalab/redishub"
-              className="rounded-lg bg-neutral-200 px-6 py-3 font-medium text-neutral-900 hover:bg-neutral-300 transition dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700"
+              href="/docs/user-guide/web-mode"
+              className="rounded-lg border border-indigo-600 px-6 py-3 font-medium text-indigo-600 hover:bg-indigo-50 transition dark:text-indigo-400 dark:border-indigo-400 dark:hover:bg-indigo-950/30"
             >
-              View on GitHub
+              Deploy Web
             </Link>
           </div>
         </div>
@@ -41,9 +43,9 @@ export default function Page() {
       <section className="grid gap-6 md:grid-cols-3">
         <Feature title="Optimized for Redis" desc="A smooth and intuitive workflow designed specifically for Redis data exploration and management." />
         <Feature title="Modern UI Experience" desc="Clean, elegant, and responsive interface built with contemporary UI patterns." />
-        <Feature title="Cross-Platform" desc="Runs consistently on major operating systems with a native-feeling shell." />
+        <Feature title="Hybrid Deployment" desc="Run it as a native app on Windows, macOS, and Linux, or deploy via Docker as a web service." />
         <Feature title="Key Explorer" desc="Browse, view, and edit keys with structured navigation and real-time updates." />
-        <Feature title="Lightweight & Fast" desc="Minimal overhead, instant startup, and efficient performance for everyday use." />
+        <Feature title="Real-time Monitoring" desc="Stream live commands with the Monitor tool and track server health at a glance." />
         <Feature title="Developer Friendly" desc="Simple, predictable, and built with a focus on productivity and clarity." />
       </section>
     </main>
