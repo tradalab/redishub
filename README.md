@@ -1,6 +1,6 @@
 # RedisHub
-2: 
-3: RedisHub is a powerful, professional command center for the Redis ecosystem. Built for performance and reliability, it is available as a **Native Desktop Client** for Windows, macOS, and Linux, or as a **Centralized Web Application** for teams.
+
+RedisHub is a powerful, professional command center for the Redis ecosystem. Built for performance and reliability, it is available as a **Native Desktop Client** for Windows, macOS, and Linux, or as a **Centralized Web Application** for teams.
 
 ## 📺 Showcase
 
