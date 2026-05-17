@@ -28,7 +28,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useConnectionInfoStore } from "@/stores/connection-info.store"
+import { useConnectionGeneral } from "@/hooks/api/client.api"
+import { parseRedisInfo } from "@/lib/utils"
 import { Switch } from "@/components/ui/switch"
 import {
   Select,
@@ -80,23 +81,29 @@ function SummaryCard({ title, value, icon: Icon, colorClass, extra }: SummaryCar
 
 export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
-  const key = `${connectionId}:${databaseIdx}`
-  const { infos, autoRefreshConfigs, fetchInfo, toggleAutoRefresh } = useConnectionInfoStore()
-
-  const connectionInfo = infos[key]
-  const info = connectionInfo?.info
-  const loading = connectionInfo?.loading
-  const autoRefresh = autoRefreshConfigs[key]
 
   const [activeSection, setActiveSection] = useState<string>("Server")
   const [collapsed, setCollapsed] = useState<boolean>(false)
+  const [autoEnabled, setAutoEnabled] = useState<boolean>(false)
+  const [refreshInterval, setRefreshInterval] = useState<number>(10000)
+
+  const query = useConnectionGeneral(connectionId, databaseIdx, {
+    refetchInterval: autoEnabled ? refreshInterval : false,
+  })
 
   useEffect(() => {
-    fetchInfo(connectionId, databaseIdx).catch(e => {
-      const msg = e instanceof Error ? e.message : t("unknown_error")
+    if (query.error) {
+      const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
       toast.error(msg)
-    })
-  }, [connectionId, databaseIdx, fetchInfo, t])
+    }
+  }, [query.error, t])
+
+  const info = useMemo(() => {
+    if (!query.data?.info) return undefined
+    return parseRedisInfo(query.data.info) as Record<string, Record<string, any>>
+  }, [query.data?.info])
+
+  const loading = query.isLoading || query.isFetching
 
   useEffect(() => {
     if (info && !info[activeSection]) {
@@ -125,18 +132,15 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
   }, [info, databaseIdx])
 
   const handleManualRefresh = () => {
-    fetchInfo(connectionId, databaseIdx, true).catch(e => {
-      const msg = e instanceof Error ? e.message : t("unknown_error")
-      toast.error(msg)
-    })
+    query.refetch()
   }
 
   const handleToggleAutoRefresh = (checked: boolean) => {
-    toggleAutoRefresh(connectionId, databaseIdx, checked, autoRefresh?.interval)
+    setAutoEnabled(checked)
   }
 
-  const handleIntervalChange = (interval: number) => {
-    toggleAutoRefresh(connectionId, databaseIdx, !!autoRefresh?.enabled, interval)
+  const handleIntervalChange = (next: number) => {
+    setRefreshInterval(next)
   }
 
   if (loading && !info) {
@@ -230,7 +234,7 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
               <div className="flex items-center gap-2 bg-muted/50 rounded-md px-2.5 h-8">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("Auto")}</span>
                 <Select
-                  value={String((autoRefresh?.interval || 10000) / 1000)}
+                  value={String(refreshInterval / 1000)}
                   onValueChange={val => handleIntervalChange(Number(val) * 1000)}
                 >
                   <SelectTrigger className="h-6 w-[56px] border-none bg-transparent shadow-none focus:ring-0 text-xs px-1 hover:bg-muted transition-colors font-medium">
@@ -244,7 +248,7 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
                   </SelectContent>
                 </Select>
                 <div className="h-4 w-[1px] bg-muted-foreground/20 mx-0.5" />
-                <Switch checked={!!autoRefresh?.enabled} onCheckedChange={handleToggleAutoRefresh} className="scale-75" />
+                <Switch checked={autoEnabled} onCheckedChange={handleToggleAutoRefresh} className="scale-75" />
               </div>
 
               <Button variant="outline" size="sm" className="h-8 gap-2 min-w-[90px]" onClick={handleManualRefresh} disabled={loading}>

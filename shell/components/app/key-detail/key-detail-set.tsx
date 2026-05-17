@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
-import scorix from "@/lib/scorix"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { useSetMemberDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
@@ -34,6 +35,8 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
   const confirm = useConfirm()
   const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "set", props.reloadToken)
+  const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
+  const delMutation = useSetMemberDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<SetType>[] = [
     {
@@ -101,13 +104,18 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
   })
 
   const submit = form.handleSubmit(async values => {
+    setLoading(true)
     try {
-      await scorix.invoke("client:key-value-update", {
+      await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.SET,
-        key_value_set: values.value_set,
+        key: props.selectedKey,
+        kind: KeyKindEnum.SET,
+        ttl: -1,
+        value_string: "",
+        value_json: "",
+        value_set: values.value_set,
+        value_stream: { id: "", values: "" },
       })
       toast.success(t("updated"))
       props.reload()
@@ -123,7 +131,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
     if (deletingMember) return
     setDeletingMember(member)
     try {
-      await scorix.invoke("key:set-member-del", {
+      await delMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key: props.selectedKey,

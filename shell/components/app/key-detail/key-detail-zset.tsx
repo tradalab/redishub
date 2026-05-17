@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
-import scorix from "@/lib/scorix"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { useZsetMemberDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
@@ -34,6 +35,8 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
   const confirm = useConfirm()
   const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "zset", props.reloadToken)
+  const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
+  const delMutation = useZsetMemberDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<ZsetType>[] = [
     {
@@ -106,13 +109,18 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   })
 
   const submit = form.handleSubmit(async values => {
+    setLoading(true)
     try {
-      await scorix.invoke("client:key-value-update", {
+      await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.ZSET,
-        key_value_zset: values.value_zset,
+        key: props.selectedKey,
+        kind: KeyKindEnum.ZSET,
+        ttl: -1,
+        value_string: "",
+        value_json: "",
+        value_zset: values.value_zset,
+        value_stream: { id: "", values: "" },
       })
       toast.success(t("updated"))
       props.reload()
@@ -128,7 +136,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
     if (deletingMember) return
     setDeletingMember(member)
     try {
-      await scorix.invoke("key:zset-member-del", {
+      await delMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key: props.selectedKey,

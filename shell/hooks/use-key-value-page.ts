@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useReducer, useRef } from "react"
-import scorix from "@/lib/scorix"
+import { useEffect, useMemo, useRef } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useKeyValuePageQuery } from "@/hooks/api/client.api"
 import { HashType } from "@/types/hash.type"
 import { ListType } from "@/types/list.type"
 import { SetType } from "@/types/set.type"
@@ -9,39 +10,6 @@ import { ZsetType } from "@/types/zset.type"
 import { StreamType } from "@/types/stream.type"
 
 type PageItem = HashType | ListType | SetType | ZsetType | StreamType
-
-type State = {
-  items: PageItem[]
-  cursor: string
-  hasMore: boolean
-  isLoading: boolean
-}
-
-type Action =
-  | { type: "RESET"; cursor: string }
-  | { type: "LOAD_START" }
-  | { type: "LOAD_SUCCESS"; items: PageItem[]; nextCursor: string; hasMore: boolean }
-  | { type: "LOAD_ERROR" }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "RESET":
-      return { items: [], cursor: action.cursor, hasMore: true, isLoading: false }
-    case "LOAD_START":
-      return { ...state, isLoading: true }
-    case "LOAD_SUCCESS":
-      return {
-        items: [...state.items, ...action.items],
-        cursor: action.nextCursor,
-        hasMore: action.hasMore,
-        isLoading: false,
-      }
-    case "LOAD_ERROR":
-      return { ...state, isLoading: false, hasMore: false }
-    default:
-      return state
-  }
-}
 
 function mapItems(rawItems: any[], kind: string, offset: number): PageItem[] {
   switch (kind) {
@@ -60,60 +28,43 @@ function mapItems(rawItems: any[], kind: string, offset: number): PageItem[] {
   }
 }
 
-export function useKeyValuePage(connectionId: string, databaseIdx: number, selectedKey: string, kind: string, reloadToken: number, pageSize: number = 200) {
-  const [state, dispatch] = useReducer(reducer, {
-    items: [],
-    cursor: "0",
-    hasMore: true,
-    isLoading: false,
-  })
+export function useKeyValuePage(
+  connectionId: string,
+  databaseIdx: number,
+  selectedKey: string,
+  kind: string,
+  reloadToken: number,
+  pageSize: number = 200
+) {
+  const qc = useQueryClient()
+  const query = useKeyValuePageQuery(connectionId, databaseIdx, selectedKey, kind, pageSize)
 
-  const itemCountRef = useRef(0)
-  const stateRef = useRef(state)
-
-  // Keep latest state in a ref so scroll/post-load callbacks always read current values
+  // Force refresh when reloadToken changes
   useEffect(() => {
-    itemCountRef.current = state.items.length
-    stateRef.current = state
-  }, [state])
+    if (reloadToken === 0) return
+    qc.invalidateQueries({ queryKey: ["redis-key-value-page", connectionId, databaseIdx, selectedKey, kind] })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadToken])
 
+  const items = useMemo<PageItem[]>(() => {
+    const pages = query.data?.pages ?? []
+    const out: PageItem[] = []
+    let offset = 0
+    for (const page of pages) {
+      const mapped = mapItems(page.items ?? [], kind, kind === "list" ? 0 : offset)
+      out.push(...mapped)
+      offset += mapped.length
+    }
+    return out
+  }, [query.data, kind])
+
+  const isLoading = query.isLoading || query.isFetchingNextPage
+  const hasMore = !!query.hasNextPage
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-  const wasLoadingRef = useRef(false)
+  const stateRef = useRef({ hasMore, isLoading })
+  stateRef.current = { hasMore, isLoading }
+  const fetchNextPage = query.fetchNextPage
 
-  const loadPage = useCallback(
-    async (cursor: string) => {
-      dispatch({ type: "LOAD_START" })
-      try {
-        const result = await scorix.invoke<{ items: any[]; next_cursor: string; has_more: boolean }>("client:load-key-value-page", {
-          connection_id: connectionId,
-          database_index: databaseIdx,
-          key: selectedKey,
-          kind,
-          cursor,
-          page_size: pageSize,
-        })
-        const offset = kind === "list" ? 0 : itemCountRef.current
-        const mapped = mapItems(result.items || [], kind, offset)
-        dispatch({
-          type: "LOAD_SUCCESS",
-          items: mapped,
-          nextCursor: result.next_cursor,
-          hasMore: result.has_more,
-        })
-      } catch {
-        dispatch({ type: "LOAD_ERROR" })
-      }
-    },
-    [connectionId, databaseIdx, selectedKey, kind, pageSize]
-  )
-
-  // Reset and load first page when key/connection/kind/reloadToken changes
-  useEffect(() => {
-    dispatch({ type: "RESET", cursor: "0" })
-    loadPage("0")
-  }, [selectedKey, kind, reloadToken, loadPage])
-
-  // Scroll listener: auto-load next page when sentinel is near the bottom of the scroll container
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -122,11 +73,10 @@ export function useKeyValuePage(connectionId: string, databaseIdx: number, selec
       if (!stateRef.current.hasMore || stateRef.current.isLoading) return
       const rect = sentinel.getBoundingClientRect()
       if (rect.top < window.innerHeight + 200) {
-        loadPage(stateRef.current.cursor)
+        fetchNextPage()
       }
     }
 
-    // Find the nearest scrollable ancestor to listen on
     let scrollEl: Element | null = sentinel.parentElement
     while (scrollEl && scrollEl !== document.documentElement) {
       const { overflow, overflowY } = window.getComputedStyle(scrollEl)
@@ -138,40 +88,28 @@ export function useKeyValuePage(connectionId: string, databaseIdx: number, selec
     const scrollTarget: EventTarget = scrollEl && scrollEl !== document.documentElement ? scrollEl : window
 
     scrollTarget.addEventListener("scroll", check, { passive: true })
-    // Initial check: sentinel may already be visible without any scroll
     const raf = requestAnimationFrame(check)
-
     return () => {
       scrollTarget.removeEventListener("scroll", check)
       cancelAnimationFrame(raf)
     }
-  }, [loadPage])
+  }, [fetchNextPage])
 
-  // Post-load check: after each page completes, re-check if sentinel is still visible
-  // (scroll listener only fires on user scroll, not on data changes)
+  // After each page load, re-check if sentinel still visible — scroll handler only fires on user scroll.
+  const wasLoadingRef = useRef(false)
   useEffect(() => {
-    const justFinishedLoading = wasLoadingRef.current && !state.isLoading
-    wasLoadingRef.current = state.isLoading
-
+    const justFinishedLoading = wasLoadingRef.current && !isLoading
+    wasLoadingRef.current = isLoading
     if (!justFinishedLoading) return
-
     const raf = requestAnimationFrame(() => {
-      const current = stateRef.current
-      if (!current.hasMore || current.isLoading) return
+      if (!stateRef.current.hasMore || stateRef.current.isLoading) return
       const sentinel = sentinelRef.current
       if (!sentinel) return
       const rect = sentinel.getBoundingClientRect()
-      if (rect.top < window.innerHeight) {
-        loadPage(current.cursor)
-      }
+      if (rect.top < window.innerHeight) fetchNextPage()
     })
     return () => cancelAnimationFrame(raf)
-  }, [state.isLoading, loadPage])
+  }, [isLoading, fetchNextPage])
 
-  return {
-    items: state.items,
-    isLoading: state.isLoading,
-    hasMore: state.hasMore,
-    sentinelRef,
-  }
+  return { items, isLoading, hasMore, sentinelRef }
 }

@@ -4,8 +4,9 @@ import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
+import { system } from "@/api"
 import { cn } from "@/lib/utils"
-import { useSetting } from "@/hooks/use-setting"
+import { useSetting } from "@/hooks/api/setting.api"
 import { Spinner } from "@/components/ui/spinner"
 import { UpdaterContext } from "./updater.context"
 
@@ -48,8 +49,8 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   const fullUpdate = useCallback(async () => {
     setLoading(true)
     try {
-      const info: { platform: string } = await scorix.invoke("system:info", {})
-      if (info.platform === "linux" || info.platform === "darwin") {
+      const info = await system.info({})
+      if (info.os === "linux" || info.os === "darwin") {
         await scorix.invoke("mod:browser:OpenUrl", { url: "https://github.com/tradalab/redishub/releases" })
         return
       }

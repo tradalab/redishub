@@ -1,13 +1,13 @@
 "use client"
 
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react"
+import { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
-import scorix from "@/lib/scorix"
 import { ConnectionReq as ConnectionDO } from "@/types"
-import { useSetting } from "@/hooks/use-setting"
+import { useSetting } from "@/hooks/api/setting.api"
+import { useConnect, useDisconnect } from "@/hooks/api/client.api"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/components/app/ssh/ssh.provider"
 import { TlsProvider } from "@/components/app/tls/tls.provider"
@@ -15,7 +15,6 @@ import { ProxyProvider } from "@/components/app/proxy/proxy.provider"
 import { ConnectionProvider } from "@/components/app/connection/connection.provider"
 import { GroupProvider } from "@/components/app/group/group.provider"
 import { UpdaterProvider } from "@/components/app/updater/updater.provider"
-import { useConnectionInfoStore } from "@/stores/connection-info.store"
 
 interface AppContextType {
   selectedTab: string
@@ -54,6 +53,16 @@ const queryClient = new QueryClient({
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  return (
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={queryClient}>
+        <AppContextInner>{children}</AppContextInner>
+      </QueryClientProvider>
+    </I18nextProvider>
+  )
+}
+
+function AppContextInner({ children }: { children: ReactNode }) {
   const [selectedTab, setSelectedTab] = useState<string>("/connections")
   const [selectedDb, setSelectedDb] = useState<string | undefined>()
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
@@ -64,6 +73,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const { tabs, activeTabId, addTab } = useTabStore()
   const [lastSyncTabId, setLastSyncTabId] = useState<string | undefined>()
+
+  const connectMutation = useConnect()
+  const disconnectMutation = useDisconnect()
 
   useEffect(() => {
     i18n.changeLanguage(language)
@@ -89,19 +101,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [activeTabId, tabs, lastSyncTabId])
 
   const connect = async (database: ConnectionDO | undefined, dbIdx: number) => {
-    if (!database) {
-      return
-    }
+    if (!database) return
     setLoading(true)
     try {
-      await scorix.invoke("client:connect", {
-        connection_id: database.id,
-        database_index: dbIdx,
-      })
+      await connectMutation.mutateAsync({ connection_id: database.id, database_index: dbIdx })
       setSelectedDbIdx(dbIdx)
       setSelectedDb(database.id)
       setSelectedTab("/browser")
-
       addTab({
         type: "general",
         title: database.name || "General",
@@ -109,7 +115,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         connectionName: database.name,
         databaseIdx: dbIdx,
       })
-
       return {}
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
@@ -131,12 +136,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const disconnect = async (database: ConnectionDO | undefined) => {
-    if (!database) {
-      return
-    }
+    if (!database) return
     try {
-      await scorix.invoke("client:disconnect", { connection_id: database.id })
-      useConnectionInfoStore.getState().clearInfo(database.id)
+      await disconnectMutation.mutateAsync({ connection_id: database.id, database_index: 0 })
       setSelectedDb(undefined)
       setSelectedDbIdx(0)
       toast.success("Disconnected!")
@@ -147,40 +149,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <I18nextProvider i18n={i18n}>
-      <QueryClientProvider client={queryClient}>
-        <AppContext.Provider
-          value={{
-            selectedTab,
-            setSelectedTab,
-            selectedDb,
-            setSelectedDb,
-            selectedDbIdx,
-            setSelectedDbIdx,
-            loading,
-            setLoading,
-            connect,
-            disconnect,
-            language,
-            setLanguage,
-            compactMode,
-            setCompactMode: (val: boolean) => setCompact(val ? "true" : "false"),
-          }}
-        >
-          <UpdaterProvider>
-            <SshProvider>
-              <TlsProvider>
-                <ProxyProvider>
-                  <ConnectionProvider>
-                    <GroupProvider>{children}</GroupProvider>
-                  </ConnectionProvider>
-                </ProxyProvider>
-              </TlsProvider>
-            </SshProvider>
-          </UpdaterProvider>
-        </AppContext.Provider>
-      </QueryClientProvider>
-    </I18nextProvider>
+    <AppContext.Provider
+      value={{
+        selectedTab,
+        setSelectedTab,
+        selectedDb,
+        setSelectedDb,
+        selectedDbIdx,
+        setSelectedDbIdx,
+        loading,
+        setLoading,
+        connect,
+        disconnect,
+        language,
+        setLanguage,
+        compactMode,
+        setCompactMode: (val: boolean) => setCompact(val ? "true" : "false"),
+      }}
+    >
+      <UpdaterProvider>
+        <SshProvider>
+          <TlsProvider>
+            <ProxyProvider>
+              <ConnectionProvider>
+                <GroupProvider>{children}</GroupProvider>
+              </ConnectionProvider>
+            </ProxyProvider>
+          </TlsProvider>
+        </SshProvider>
+      </UpdaterProvider>
+    </AppContext.Provider>
   )
 }
 

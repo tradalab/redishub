@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import scorix from "@/lib/scorix"
+import { usePubSubMessages, usePubSubPublish, usePubSubSubscribe, usePubSubUnsubscribe } from "@/hooks/api/pubsub.api"
 import { Plus, Send, Trash2, Ban, Play, Pause, Radio } from "lucide-react"
 
 interface PubsubMessage {
@@ -34,95 +34,86 @@ export function ConnectionDetailTabPubSub({ connectionId, databaseIdx }: { conne
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  const subscribeMutation = usePubSubSubscribe()
+  const unsubscribeMutation = usePubSubUnsubscribe()
+  const publishMutation = usePubSubPublish()
+
+  const subscribeChannel = useCallback(
+    async (channel: string) => {
+      if (!channel || channels.includes(channel)) return
+      try {
+        await subscribeMutation.mutateAsync({
+          connection_id: connectionId,
+          database_index: databaseIdx,
+          channels: [channel],
+        })
+        setChannels(prev => [...prev, channel])
+        setNewChannelItem("")
+        setPublishChannel(channel)
+      } catch (err) {
+        console.error("Subscribe failed:", err)
+      }
+    },
+    [channels, connectionId, databaseIdx, subscribeMutation]
+  )
+
+  const unsubscribeChannel = useCallback(
+    async (channel: string) => {
+      try {
+        await unsubscribeMutation.mutateAsync({
+          connection_id: connectionId,
+          database_index: databaseIdx,
+          channels: [channel],
+        })
+        setChannels(prev => prev.filter(c => c !== channel))
+        setPublishChannel(prev => (prev === channel ? "" : prev))
+      } catch (err) {
+        console.error("Unsubscribe failed:", err)
+      }
+    },
+    [connectionId, databaseIdx, unsubscribeMutation]
+  )
+
   useEffect(() => {
     if (isSubscribeAll) {
       subscribeChannel("*")
     } else {
       unsubscribeChannel("*")
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSubscribeAll])
-
-  const subscribeChannel = async (channel: string) => {
-    if (!channel || channels.includes(channel)) return
-
-    try {
-      await scorix.invoke("pubsub:subscribe", {
-        connection_id: connectionId,
-        database_index: databaseIdx,
-        channels: [channel],
-      })
-      setChannels(prev => [...prev, channel])
-      setNewChannelItem("")
-      setPublishChannel(channel)
-    } catch (err: any) {
-      console.error("Subscribe failed:", err)
-    }
-  }
-
-  const unsubscribeChannel = async (channel: string) => {
-    try {
-      await scorix.invoke("pubsub:unsubscribe", {
-        connection_id: connectionId,
-        database_index: databaseIdx,
-        channels: [channel],
-      })
-      setChannels(prev => prev.filter(c => c !== channel))
-      if (publishChannel === channel) {
-        setPublishChannel("")
-      }
-    } catch (err: any) {
-      console.error("Unsubscribe failed:", err)
-    }
-  }
 
   const handlePublish = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!publishChannel || !publishMessage) return
-
     try {
-      await scorix.invoke("pubsub:publish", {
+      await publishMutation.mutateAsync({
         connection_id: connectionId,
         database_index: databaseIdx,
         channel: publishChannel,
         message: publishMessage,
       })
       setPublishMessage("")
-    } catch (err: any) {
+    } catch (err) {
       console.error("Publish failed:", err)
     }
   }
 
-  useEffect(() => {
-    const eventName = `pubsub:message:${connectionId}`
-
-    const offPromise = scorix.on(eventName, (payload: any, error: string) => {
-      if (error) {
-        console.error("PubSub IPC Error:", error)
-        return
+  const onMessage = useCallback((payload: any) => {
+    setMessages(prev => {
+      const newMsg: PubsubMessage = {
+        channel: payload.channel,
+        message: payload.message,
+        pattern: payload.pattern,
+        time: Date.now(),
       }
-
-      setMessages(prev => {
-        const newMsg: PubsubMessage = {
-          channel: payload.channel,
-          message: payload.message,
-          pattern: payload.pattern,
-          time: Date.now(),
-        }
-
-        const updated = [...prev, newMsg]
-        if (updated.length > MAX_MESSAGES) {
-          return updated.slice(updated.length - MAX_MESSAGES)
-        }
-        return updated
-      })
+      const updated = [...prev, newMsg]
+      if (updated.length > MAX_MESSAGES) return updated.slice(updated.length - MAX_MESSAGES)
+      return updated
     })
+  }, [])
 
-    return () => {
-      Promise.resolve(offPromise).then(off => {
-        if (typeof off === "function") off()
-      })
-    }
-  }, [connectionId])
+  usePubSubMessages(connectionId, onMessage)
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {

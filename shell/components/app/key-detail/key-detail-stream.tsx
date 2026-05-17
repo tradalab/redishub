@@ -5,7 +5,8 @@ import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/trada-ui/table"
 import { ColumnDef } from "@tanstack/react-table"
 import { StreamType } from "@/types/stream.type"
-import scorix from "@/lib/scorix"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { useStreamEntryDel } from "@/hooks/api/key.api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PlusIcon, Trash2Icon } from "lucide-react"
@@ -39,6 +40,8 @@ export function KeyDetailStream(props: Props) {
   const [loading, setLoading] = useState(false)
   const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
   const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "stream", props.reloadToken)
+  const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
+  const delMutation = useStreamEntryDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<StreamType>[] = [
     {
@@ -104,14 +107,20 @@ export function KeyDetailStream(props: Props) {
   const submit = form.handleSubmit(async values => {
     setLoading(true)
     try {
-      await scorix.invoke("client:key-value-update", {
+      const entries = Object.fromEntries(
+        (values.value_stream ?? []).filter((i: any) => i?.field !== "").map((i: any) => [i?.field, i?.value])
+      )
+      await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.STREAM,
-        key_value_stream: {
+        key: props.selectedKey,
+        kind: KeyKindEnum.STREAM,
+        ttl: -1,
+        value_string: "",
+        value_json: "",
+        value_stream: {
           id: "*",
-          value: Object.fromEntries(values.value_stream?.filter((i: any) => i?.field !== "")?.map((i: any) => [i?.field, i?.value])),
+          values: JSON.stringify(entries),
         },
       })
 
@@ -130,7 +139,7 @@ export function KeyDetailStream(props: Props) {
     if (deletingEntry) return
     setDeletingEntry(id)
     try {
-      await scorix.invoke("key:stream-entry-del", {
+      await delMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key: props.selectedKey,

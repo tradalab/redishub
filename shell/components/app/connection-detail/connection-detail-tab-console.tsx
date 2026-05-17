@@ -3,7 +3,7 @@
 import "@xterm/xterm/css/xterm.css"
 import React, { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import scorix from "@/lib/scorix"
+import { client } from "@/api"
 import { useTranslation } from "react-i18next"
 import { useTheme } from "next-themes"
 import { defaultEngine } from "@/lib/command/engine"
@@ -160,11 +160,12 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         }
 
         try {
-          const { keys } = await scorix.invoke<{ keys: string[] }>("client:search-keys", {
+          const { keys } = await client.searchkeys({
             connection_id: connectionId,
             database_index: databaseIdx,
             prefix: query,
-            count: 20
+            count: 20,
+            cursor: "",
           })
           const list = (keys || []).map(k => ({ value: k, type: "key" as const }))
           updateAc({ open: list.length > 0, x: pos.x, y: pos.y, direction: pos.direction, query, list, index: 0 })
@@ -274,7 +275,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       fitAddon.fit()
 
       try {
-        await scorix.invoke("client:console-connect", { connection_id: connectionId, database_index: databaseIdx })
+        await client.consoleconnect({ connection_id: connectionId, database_index: databaseIdx })
         term?.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         termPrompt()
         setStatus("connected")

@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useEffect, useRef, useState, useMemo } from "react"
+import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import scorix from "@/lib/scorix"
+import { useMonitorActive, useMonitorEvents, useMonitorStart, useMonitorStop } from "@/hooks/api/monitor.api"
 import { Trash2, Play, Pause, Activity, Search, RefreshCcwIcon } from "lucide-react"
 
 interface MonitorMessage {
@@ -20,103 +20,53 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 	const { t } = useTranslation()
 	const [messages, setMessages] = useState<MonitorMessage[]>([])
 	const [autoScroll, setAutoScroll] = useState(true)
-	const [isMonitoring, setIsMonitoring] = useState(false)
-	const [isLoading, setIsLoading] = useState(false)
 	const [filterKeyword, setFilterKeyword] = useState("")
 	const scrollRef = useRef<HTMLDivElement>(null)
+
+	const startMutation = useMonitorStart()
+	const stopMutation = useMonitorStop()
+	const isMonitoring = useMonitorActive(connectionId, databaseIdx)
+	const isLoading = startMutation.isPending || stopMutation.isPending
+
+	const startMonitor = useCallback(async () => {
+		try {
+			await startMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx })
+		} catch (err) {
+			console.error("Monitor start failed:", err)
+		}
+	}, [startMutation, connectionId, databaseIdx])
+
+	const stopMonitor = useCallback(async () => {
+		try {
+			await stopMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx })
+		} catch (err) {
+			console.error("Monitor stop failed:", err)
+		}
+	}, [stopMutation, connectionId, databaseIdx])
 
 	useEffect(() => {
 		startMonitor()
 		return () => {
 			stopMonitor()
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [connectionId])
 
-	const startMonitor = async () => {
-		setIsLoading(true)
-		try {
-			await scorix.invoke("monitor:start", {
-				connection_id: connectionId,
-				database_index: databaseIdx,
-			})
-		} catch (err: any) {
-			console.error("Monitor start failed:", err)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const stopMonitor = async () => {
-		setIsLoading(true)
-		try {
-			await scorix.invoke("monitor:stop", {
-				connection_id: connectionId,
-				database_index: databaseIdx,
-			})
-		} catch (err: any) {
-			console.error("Monitor stop failed:", err)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	useEffect(() => {
-		const eventName = `monitor:message:${connectionId}`
-		const statusEvent = `monitor:status:${connectionId}`
-
-		const offPromise = scorix.on(eventName, (payload: any, error: string) => {
-			if (error) {
-				console.error("Monitor IPC Error:", error)
-				return
-			}
-
-			setMessages(prev => {
-				const newMsg: MonitorMessage = {
-					time: Date.now(),
-					message: payload,
-				}
-
-				const updated = [...prev, newMsg]
-				if (updated.length > MAX_MESSAGES) {
-					return updated.slice(updated.length - MAX_MESSAGES)
-				}
-				return updated
-			})
+	const onMessage = useCallback((payload: any) => {
+		setMessages(prev => {
+			const updated = [...prev, { time: Date.now(), message: payload }]
+			if (updated.length > MAX_MESSAGES) return updated.slice(updated.length - MAX_MESSAGES)
+			return updated
 		})
+	}, [])
 
-		const offStatusPromise = scorix.on(statusEvent, (active: any) => {
-			setIsMonitoring(!!active)
-		})
-
-		const checkStatus = async () => {
-			try {
-				const active = await scorix.invoke("monitor:status", {
-					connection_id: connectionId,
-					database_index: databaseIdx,
-				})
-				setIsMonitoring(!!active)
-			} catch (err) {
-				console.error("Failed to check monitor status:", err)
-			}
-		}
-
-		checkStatus()
-
-		return () => {
-			Promise.resolve(offPromise).then(off => {
-				if (typeof off === "function") off()
-			})
-			Promise.resolve(offStatusPromise).then(off => {
-				if (typeof off === "function") off()
-			})
-		}
-	}, [connectionId])
+	useMonitorEvents(connectionId, { onMessage })
 
 	const filteredMessages = useMemo(() => {
 		if (!filterKeyword) return messages
 		const lowKeyword = filterKeyword.toLowerCase()
 		return messages.filter(msg => {
-			const content = typeof msg.message === 'string' ? msg.message : JSON.stringify(msg.message)
+			const content = typeof msg.message === "string" ? msg.message : JSON.stringify(msg.message)
 			return content.toLowerCase().includes(lowKeyword)
 		})
 	}, [messages, filterKeyword])
@@ -156,7 +106,7 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 							<Input
 								placeholder={t("filter")}
 								value={filterKeyword}
-								onChange={(e) => setFilterKeyword(e.target.value)}
+								onChange={e => setFilterKeyword(e.target.value)}
 								className="h-7 w-full pl-7 text-[11px] bg-muted/20"
 							/>
 						</div>
@@ -178,20 +128,12 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 							) : (
 								<Play className="h-3 w-3 text-green-500" />
 							)}
-							<span className="hidden lg:inline ml-1">
-								{isLoading ? t("waiting") : isMonitoring ? t("monitor_stop") : t("monitor_start")}
-							</span>
+							<span className="hidden lg:inline ml-1">{isLoading ? t("waiting") : isMonitoring ? t("monitor_stop") : t("monitor_start")}</span>
 						</Button>
 
 						<Separator orientation="vertical" className="h-7 mx-0.5 sm:mx-1" />
 
-						<Button
-							variant="destructive"
-							size="sm"
-							className="h-7 text-xs px-2 flex-shrink-0"
-							onClick={() => setMessages([])}
-							title={t("pubsub_clear")}
-						>
+						<Button variant="destructive" size="sm" className="h-7 text-xs px-2 flex-shrink-0" onClick={() => setMessages([])} title={t("pubsub_clear")}>
 							<Trash2 className="h-3 w-3" />
 							<span className="hidden lg:inline ml-1">{t("pubsub_clear")}</span>
 						</Button>
@@ -203,14 +145,8 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 							onClick={() => setAutoScroll(!autoScroll)}
 							title={autoScroll ? t("pubsub_pause_scroll_desc") : t("pubsub_resume_scroll_desc")}
 						>
-							{autoScroll ? (
-								<Pause className="h-3 w-3 text-primary" />
-							) : (
-								<Play className="h-3 w-3" />
-							)}
-							<span className="hidden lg:inline ml-1">
-								{autoScroll ? t("pubsub_pause_scroll") : t("pubsub_auto_scroll")}
-							</span>
+							{autoScroll ? <Pause className="h-3 w-3 text-primary" /> : <Play className="h-3 w-3" />}
+							<span className="hidden lg:inline ml-1">{autoScroll ? t("pubsub_pause_scroll") : t("pubsub_auto_scroll")}</span>
 						</Button>
 					</div>
 				</div>
@@ -219,7 +155,9 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 					{isMonitoring && (
 						<div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-[10px] text-yellow-600 dark:text-yellow-500 flex items-center gap-2">
 							<Activity className="h-3 w-3 shrink-0" />
-							<span>{t("monitor_desc")} {t("monitor_warning")}</span>
+							<span>
+								{t("monitor_desc")} {t("monitor_warning")}
+							</span>
 						</div>
 					)}
 					{messages.length === 0 ? (
@@ -229,16 +167,9 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 						</div>
 					) : (
 						filteredMessages.map((msg, idx) => (
-							<div
-								key={idx}
-								className="flex gap-3 hover:bg-muted/50 py-0.5 px-1 rounded transition-colors break-all"
-							>
-								<span className="text-muted-foreground shrink-0 opacity-70">
-									[{formatTime(msg.time)}]
-								</span>
-								<span className="text-foreground">
-									{typeof msg.message === 'string' ? msg.message : JSON.stringify(msg.message)}
-								</span>
+							<div key={idx} className="flex gap-3 hover:bg-muted/50 py-0.5 px-1 rounded transition-colors break-all">
+								<span className="text-muted-foreground shrink-0 opacity-70">[{formatTime(msg.time)}]</span>
+								<span className="text-foreground">{typeof msg.message === "string" ? msg.message : JSON.stringify(msg.message)}</span>
 							</div>
 						))
 					)}
