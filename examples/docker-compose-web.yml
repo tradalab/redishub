@@ -1,10 +1,10 @@
 services:
-  redishub:
+  redisui:
     image: ghcr.io/tradalab/redishub-web:latest
     ports:
       - "8080:8080"
     volumes:
-      - redishub_data:/root/.local/share/RedisHub
+      - redisui_data:/root/.local/share/RedisHub
     environment:
       - SCORIX_MODE=web
       - SCORIX_WEB_HOST=0.0.0.0
@@ -12,4 +12,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  redishub_data:
+  redisui_data:

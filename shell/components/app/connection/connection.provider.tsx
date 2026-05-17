@@ -3,7 +3,7 @@
 import { ReactNode, useState } from "react"
 import { ConnectionContext } from "./connection.context"
 import { ConnectionDialog } from "./connection.dialog"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO } from "@/types"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
 
 export function ConnectionProvider({ children }: { children: ReactNode }) {

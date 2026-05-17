@@ -2,17 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
-import { TlsDO } from "@/types/tls.do"
+import { TlsReq as TlsDO, TlsListRes } from "@/types"
 
 const QUERY_KEY = ["tls-list"]
 
 export function useTlsList() {
-  return useQuery({
+  return useQuery<TlsDO[]>({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const sql = 'SELECT * FROM "tls" WHERE deleted_at IS NULL'
-      const data = await scorix.invoke<TlsDO[]>("mod:gorm:Query", { sql })
-      return data || []
+      const res = await scorix.invoke<TlsListRes>("tls:list", {})
+      return res.items || []
     },
   })
 }
@@ -35,8 +34,7 @@ export function useDeleteTls() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const sql = `DELETE FROM tls WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", { sql })
+      return scorix.invoke("tls:delete", { id })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })

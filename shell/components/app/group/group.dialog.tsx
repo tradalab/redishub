@@ -7,7 +7,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { GroupForm, GroupFormRef, PendingState } from "./group.form"
 import { Spinner } from "@/components/ui/spinner"
 import { SaveIcon } from "lucide-react"
-import { GroupDO } from "@/types/group.do"
+import { GroupItem as GroupDO } from "@/types"
 
 export type Props = {
   open: boolean

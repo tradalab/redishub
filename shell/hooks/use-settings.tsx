@@ -1,97 +1,45 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { SettingDO } from "@/types/setting.do"
-import scorix from "@/lib/scorix"
 import { toast } from "sonner"
+import { useSettingStore } from "@/stores/setting.store"
 
 export function useSettings(options?: { silent?: boolean }) {
   const { t } = useTranslation()
+  const settings = useSettingStore(s => s.settings)
+  const loading = useSettingStore(s => s.loading)
+  const fetch = useSettingStore(s => s.fetch)
+  const storeSet = useSettingStore(s => s.set)
 
-  const [settings, setSettings] = useState<SettingDO[]>([])
-  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    fetch()
+  }, [fetch])
 
-  const fetchSettings = useCallback(async () => {
-    setLoading(true)
-    try {
-      const sql = 'SELECT * FROM "setting" WHERE deleted_at IS NULL ORDER BY key'
-      const data = await scorix.invoke<SettingDO[]>("mod:gorm:Query", { sql })
-      setSettings(data || [])
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
+  const get = useCallback((key: string) => settings[key], [settings])
 
-  // ========= upsert =========
   const set = useCallback(
     async (key: string, val: string) => {
       try {
-        const k = sqlEscape(key)
-        const v = sqlEscape(val)
-
-        const result = await scorix.invoke<SettingDO[]>("mod:gorm:Query", {
-          sql: `
-            INSERT INTO "setting" (key, val)
-            VALUES ('${k}', '${v}') ON CONFLICT (key)
-          DO
-            UPDATE SET
-              val = EXCLUDED.val
-              RETURNING *
-          `,
-        })
-
-        const updated = result?.[0]
-        if (!updated) return
-
-        setSettings(prev => {
-          const idx = prev.findIndex(s => s?.key === key)
-          if (idx === -1) return [...prev, updated]
-          const next = [...prev]
-          next[idx] = updated
-          return next
-        })
-
+        const v = await storeSet(key, val)
         if (!options?.silent) {
           toast.success(t("updated"))
         }
-        return updated.val
+        return v
       } catch (e) {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
         toast.error(msg)
         throw e
       }
     },
-    [t]
+    [storeSet, options?.silent, t]
   )
-
-  const map = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const s of settings) {
-      m.set(s.key, s.val)
-    }
-    return m
-  }, [settings])
-
-  const get = useCallback((key: string) => map.get(key), [map])
-
-  useEffect(() => {
-    fetchSettings()
-  }, [fetchSettings])
 
   return {
     settings,
     loading,
-    refresh: fetchSettings,
-
+    refresh: fetch,
     get,
     set,
   }
-}
-
-function sqlEscape(v: string) {
-  return v.replace(/'/g, "''")
 }

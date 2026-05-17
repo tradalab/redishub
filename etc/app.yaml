@@ -32,7 +32,7 @@ security:
     notification: true
 
 logger:
-  level: debug
+  level: info # debug, info, warn, error
   format: console # console, json
   output: stdout # stdout, file, both
   file: logs/app.log
@@ -40,16 +40,16 @@ logger:
   max_age: 7 # days
 
 modules:
+  sqlx:
+    enabled: true
+    driver: sqlite3
+    dsn: app.dat
   systemtray:
     enabled: true
     title: RedisHub
     tooltip: RedisHub
   browser:
     enabled: true
-  gorm:
-    enabled: true
-    driver: sqlite
-    dsn: "app.dat"
   updater:
     enabled: true
     provider: github

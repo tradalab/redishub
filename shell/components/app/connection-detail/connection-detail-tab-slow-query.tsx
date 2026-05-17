@@ -23,11 +23,11 @@ export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { co
     if (!id) return
     setLoading(true)
     try {
-      const { logs } = await scorix.invoke<{ logs: any[] }>("client:get-slow-query", {
+      const { items } = await scorix.invoke<{ items: any[] }>("client:get-slow-query", {
         connection_id: id,
         database_index: databaseIdx,
       })
-      setLogs(logs)
+      setLogs(items)
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
@@ -63,17 +63,18 @@ export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { co
       <div className="flex-1 overflow-auto">
         <div className="flex flex-col">
           {logs.map((log, idx) => {
-            const duration = formatDuration(log?.Duration)
+            const duration = formatDuration(log?.duration)
+            const time = new Date(log?.timestamp * 1000).toLocaleString()
             return (
               <div
                 key={idx}
                 className="grid grid-cols-[200px_200px_100px_1fr] items-center gap-2 p-2 border-b border-border transition-colors hover:bg-muted/50 dark:hover:bg-muted/70"
               >
-                <div className="truncate">{log?.Time}</div>
-                <div className="truncate">{log?.ClientAddr}</div>
+                <div className="truncate" title={time}>{time}</div>
+                <div className="truncate">{log?.client_addr}</div>
                 <div className="truncate">{duration}</div>
-                <div className="truncate" title={log?.Args?.join?.("\n")}>
-                  {log?.Args?.join?.(" ")}
+                <div className="truncate" title={log?.command?.join?.("\n")}>
+                  {log?.command?.join?.(" ")}
                 </div>
               </div>
             )

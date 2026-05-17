@@ -3,17 +3,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
 import { v7 as uuidv7 } from "uuid"
-import { GroupDO } from "@/types/group.do"
+import { GroupItem as GroupDO, GroupListRes } from "@/types"
 
 const QUERY_KEY = ["group-list"]
 
 export function useGroupList() {
-  return useQuery({
+  return useQuery<GroupDO[]>({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const sql = 'SELECT * FROM "group" WHERE deleted_at IS NULL'
-      const data = await scorix.invoke<GroupDO[]>("mod:gorm:Query", { sql })
-      return data || []
+      const res = await scorix.invoke<GroupListRes>("group:list", {})
+      return res.items || []
     },
   })
 }
@@ -23,8 +22,10 @@ export function useUpsertGroup() {
   return useMutation({
     mutationFn: async (values: Partial<GroupDO>) => {
       const id = values.id ?? uuidv7()
-      const sql = `INSERT OR REPLACE INTO "group" (id, name) VALUES ('${id}', '${values.name ?? ""}')`
-      await scorix.invoke("mod:gorm:Query", { sql })
+      await scorix.invoke("group:upsert", {
+        id: id,
+        name: values.name ?? "",
+      })
       return id
     },
     onSuccess: () => {
@@ -37,8 +38,7 @@ export function useDeleteGroup() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const sql = `DELETE FROM "group" WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", { sql })
+      return scorix.invoke("group:delete", { id })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })

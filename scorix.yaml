@@ -1,0 +1,10 @@
+# Scorix Project Configuration
+name: github.com/tradalab/rdms
+proto: proto/app.proto
+shell:
+  type: nextjs
+  dir: shell
+  dist: .scorix/dist
+model:
+  schema: etc/schema.sql
+  dialect: sqlite

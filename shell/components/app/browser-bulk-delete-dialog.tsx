@@ -14,7 +14,7 @@ interface BrowserBulkDeleteDialogProps {
   onOpenChange: (open: boolean) => void
   prefix: string
   onConfirm: (keys: string[]) => Promise<void>
-  onScan: (prefix: string, cursor: number) => Promise<{ keys: string[]; nextCursor: number }>
+  onScan: (prefix: string, cursor: string) => Promise<{ keys: string[]; nextCursor: string }>
 }
 
 export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm, onScan }: BrowserBulkDeleteDialogProps) {
@@ -23,23 +23,23 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
   const [keys, setKeys] = useState<string[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [scanCursor, setScanCursor] = useState(0)
+  const [scanCursor, setScanCursor] = useState("0")
   const [filter, setFilter] = useState("")
 
   useEffect(() => {
     if (open && prefix) {
       setKeys([])
-      setScanCursor(0)
+      setScanCursor("0")
       setFilter("")
-      loadNextBatch(0)
+      loadNextBatch("0")
     } else {
       setKeys([])
-      setScanCursor(0)
+      setScanCursor("0")
       setIsScanning(false)
     }
   }, [open, prefix])
 
-  const loadNextBatch = async (cursor: number) => {
+  const loadNextBatch = async (cursor: string) => {
     setIsScanning(true)
     let currentCursor = cursor
     let totalCollected = 0
@@ -52,7 +52,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
         totalCollected += (result.keys || []).length
         currentCursor = result.nextCursor
         
-        if (totalCollected >= 1000 || currentCursor === 0) {
+        if (totalCollected >= 1000 || currentCursor === "0") {
           break
         }
         
@@ -76,7 +76,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
     setIsScanning(true)
     let currentCursor = scanCursor
     try {
-      while (currentCursor !== 0) {
+      while (currentCursor !== "0") {
         const result = await onScan(prefix, currentCursor)
         setKeys(prev => [...prev, ...(result.keys || [])])
         currentCursor = result.nextCursor
@@ -161,7 +161,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
                     <span className="text-[10px]">{t("scanning")}</span>
                   </div>
                 ) : (
-                  scanCursor !== 0 && (
+                  scanCursor !== "0" && (
                     <div className="flex items-center gap-2">
                       <Button size="sm" variant="ghost" className="h-6 text-[10px] px-1.5 font-normal hover:bg-primary/10 hover:text-primary" onClick={() => loadNextBatch(scanCursor)}>
                         <ChevronDownIcon className="h-3 w-3 mr-1" />

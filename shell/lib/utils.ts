@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { GroupDO } from "@/types/group.do"
-import { ConnectionDO } from "@/types/connection.do"
+import { GroupItem as GroupDO, ConnectionReq as ConnectionDO } from "@/types"
 import { TreeItem } from "@/components/app/tree"
 
 export function cn(...inputs: ClassValue[]) {
@@ -53,7 +52,7 @@ export function parseRedisInfo(infoText: string): InfoObject {
 }
 
 export const buildDbTree = (groups: GroupDO[], connections: ConnectionDO[]): TreeItem[] => {
-  const grouped = groups.map(g => ({
+  const grouped = groups.map((g: GroupDO) => ({
     id: g.id,
     name: g.name,
     isGroup: true,
@@ -61,8 +60,8 @@ export const buildDbTree = (groups: GroupDO[], connections: ConnectionDO[]): Tre
     level: 0,
     group: g,
     children: connections
-      .filter(c => c.group_id === g.id)
-      .map(c => ({
+      .filter((c: ConnectionDO) => c.group_id === g.id)
+      .map((c: ConnectionDO) => ({
         id: c.id,
         name: c.name,
         isGroup: false,
@@ -73,8 +72,8 @@ export const buildDbTree = (groups: GroupDO[], connections: ConnectionDO[]): Tre
   }))
 
   const ungrouped = connections
-    .filter(c => !c.group_id)
-    .map(c => ({
+    .filter((c: ConnectionDO) => !c.group_id)
+    .map((c: ConnectionDO) => ({
       id: c.id,
       name: c.name,
       isGroup: false,

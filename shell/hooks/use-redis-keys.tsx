@@ -4,15 +4,13 @@ import { useCallback } from "react"
 import { useRedisKeysContext } from "@/ctx/redis-keys.context"
 import scorix from "@/lib/scorix"
 import { toast } from "sonner"
+import { KeyLoadRes, ClientKeysScanByPrefixRes } from "@/types"
 
 const DEFAULT_COUNT = 10000
 
 export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number = DEFAULT_COUNT) {
   const { state, dispatch } = useRedisKeysContext()
   const dbState = state[redisId]?.[dbId] || { keys: [], cursor: null, isLoading: false, pattern: "" }
-
-  // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
-  // core function
 
   const loadKeys = useCallback(
     async (count = DEFAULT_COUNT, options: { loadAll?: boolean; reset?: boolean } = {}) => {
@@ -27,7 +25,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
         const loadAll = options.loadAll ?? false
 
         do {
-          const res: { keys: string[]; cursor: string } = await scorix.invoke<{ keys: string[]; cursor: string }>("key:load", {
+          const res: KeyLoadRes = await scorix.invoke<KeyLoadRes>("key:load", {
             connection_id: redisId,
             database_index: dbId,
             cursor: nextCursor,
@@ -44,7 +42,6 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
           if (!loadAll) break
         } while (nextCursor && loadAll)
 
-        // Ensure keys are unique
         const uniqueKeys = Array.from(new Set(mergedKeys))
 
         dispatch({ type: "LOAD_KEYS_SUCCESS", redisId, dbId, keys: uniqueKeys, cursor: nextCursor })
@@ -57,9 +54,6 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     },
     [dbState.cursor, dbState.isLoading, dbState.keys, redisId, dbId, dispatch]
   )
-
-  // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
-  // public method
 
   const reload = useCallback(() => {
     dispatch({ type: "RESET_KEYS_BEFORE_LOAD", redisId, dbId, pattern: "*" })
@@ -75,9 +69,6 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     if (!dbState.cursor) return
     return loadKeys(keySize, { loadAll: true })
   }, [dbState.cursor, keySize, loadKeys])
-
-  // ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// ////////// //////////
-  // update
 
   const updateKey = async (oldKey: string, newKey: string) => {
     try {
@@ -112,9 +103,9 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     }
   }
 
-  const scanByPrefix = async (prefix: string, cursor: number = 0, limit: number = 1000) => {
+  const scanByPrefix = async (prefix: string, cursor: string = "0", limit: number = 1000) => {
     try {
-      const res = await scorix.invoke<{ keys: string[]; next_cursor: number }>("client:keys-scan-by-prefix", {
+      const res = await scorix.invoke<ClientKeysScanByPrefixRes>("client:keys-scan-by-prefix", {
         connection_id: redisId,
         database_index: dbId,
         prefix,
@@ -125,7 +116,7 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
-      return { keys: [], nextCursor: 0 }
+      return { keys: [], nextCursor: "0" }
     }
   }
 
@@ -169,7 +160,6 @@ export function useRedisKeys(redisId: string, dbId: number = 0, keySize: number 
     cursor: dbState.cursor,
     isLoading: dbState.isLoading,
 
-    // public actions
     reload,
     loadMore,
     loadAll,

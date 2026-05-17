@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { SshDO } from "@/types/ssh.do"
+import { SshReq as SshDO } from "@/types"
 import { SshKindEnum } from "@/types/ssh-kind.enum"
 import { useDeleteSsh, useTestSsh, useUpsertSsh } from "@/hooks/api/ssh.api"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
@@ -43,7 +43,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
       port: ssh.port ?? 22,
       timeout: ssh.timeout ?? 60,
       username: ssh.username ?? "",
-      kind: ssh.kind ?? SshKindEnum.PASSWORD,
+      kind: (ssh.kind as SshKindEnum) ?? SshKindEnum.PASSWORD,
       password: ssh.password ?? "",
       private_key: ssh.private_key ?? "",
       passphrase: ssh.passphrase ?? "",

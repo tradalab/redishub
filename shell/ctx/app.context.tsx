@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
 import scorix from "@/lib/scorix"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO } from "@/types"
 import { useSetting } from "@/hooks/use-setting"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/components/app/ssh/ssh.provider"
@@ -30,8 +30,8 @@ interface AppContextType {
   loading: boolean
   setLoading: (state: boolean) => void
 
-  connect: (database: ConnectionDO | undefined, dbIdx: number) => Promise<{ total_db: number } | undefined>
-  disconnect: (database?: ConnectionDO) => Promise<void>
+  connect: (database: ConnectionDO | undefined, dbIdx: number) => Promise<any>
+  disconnect: (database: ConnectionDO | undefined) => Promise<void>
 
   language: string | undefined
   setLanguage: (val: string) => void
@@ -94,7 +94,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     setLoading(true)
     try {
-      const res = await scorix.invoke<{ total_db: number }>("client:connect", {
+      await scorix.invoke("client:connect", {
         connection_id: database.id,
         database_index: dbIdx,
       })
@@ -110,7 +110,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         databaseIdx: dbIdx,
       })
 
-      return res
+      return {}
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       if (msg == `client ${database.id}:${dbIdx} already exists`) {

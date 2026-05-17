@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { TlsDO } from "@/types/tls.do"
+import { TlsReq as TlsDO } from "@/types"
 import { useTlsList } from "@/hooks/api/tls.api"
 import { useTls } from "@/components/app/tls/tls.context"
 

@@ -3,7 +3,7 @@
 import { ReactNode, useState } from "react"
 import { ProxyContext } from "./proxy.context"
 import { ProxyDialog } from "./proxy.dialog"
-import { ProxyDO } from "@/hooks/api/proxy.api"
+import { ProxyReq as ProxyDO } from "@/types"
 
 export function ProxyProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)

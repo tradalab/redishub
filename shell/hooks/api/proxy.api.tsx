@@ -2,25 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
-
-export interface ProxyDO {
-  id: string
-  protocol: string
-  host: string
-  port: number
-  username?: string
-  password?: string
-}
+import { ProxyReq as ProxyDO, ProxyListRes } from "@/types"
 
 const QUERY_KEY = ["proxy-list"]
 
 export function useProxyList() {
-  return useQuery({
+  return useQuery<ProxyDO[]>({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const sql = 'SELECT * FROM "proxy" WHERE deleted_at IS NULL'
-      const data = await scorix.invoke<ProxyDO[]>("mod:gorm:Query", { sql })
-      return data || []
+      const res = await scorix.invoke<ProxyListRes>("proxy:list", {})
+      return res.items || []
     },
   })
 }
@@ -43,8 +34,7 @@ export function useDeleteProxy() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const sql = `DELETE FROM proxy WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", { sql })
+      return scorix.invoke("proxy:delete", { id })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })

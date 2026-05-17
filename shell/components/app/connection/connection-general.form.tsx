@@ -9,6 +9,7 @@ import { useGroupList } from "@/hooks/api/group.api"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
+import { GroupItem as GroupDO } from "@/types"
 
 export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
@@ -34,7 +35,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">{t("none")}</SelectItem>
-                      {groups?.map(e => (
+                      {groups?.map((e: GroupDO) => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.name}
                         </SelectItem>

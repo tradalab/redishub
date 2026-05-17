@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO } from "@/types"
 
 export type ConnectionContextType = {
   create: () => void

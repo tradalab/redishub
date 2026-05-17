@@ -24,7 +24,7 @@ import { Virtuoso } from "react-virtuoso"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO, ConnectionListRes, DbInfo } from "@/types"
 import scorix from "@/lib/scorix"
 import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { useConnectionList } from "@/hooks/api/connection.api"
@@ -41,7 +41,7 @@ export function SidebarBrowser() {
   const [keyword, setKeyword] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-  const [dbs, setDbs] = useState<any[]>([])
+  const [dbs, setDbs] = useState<DbInfo[]>([])
   const confirm = useConfirm()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletePrefix, setDeletePrefix] = useState("")
@@ -150,7 +150,7 @@ export function SidebarBrowser() {
       return
     }
     try {
-      const res = await scorix.invoke<{ databases: any[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
+      const res = await scorix.invoke<{ databases: DbInfo[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
       setDbs(res.databases || [])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
@@ -170,14 +170,13 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const databases = await scorix.invoke<ConnectionDO[]>("mod:gorm:Query", {
-        sql: `SELECT * FROM "connection" WHERE id = "${selectedDb}" AND deleted_at IS NULL`,
-      })
-      if (!databases || databases.length < 1) {
+      const res = await scorix.invoke<ConnectionListRes>("connection:list", {})
+      const conn = (res.items || []).find(c => c.id === selectedDb)
+      if (!conn) {
         toast.error(t("conn_not_exist"))
         return
       }
-      await connect(databases[0], idx)
+      await connect(conn, idx)
       setSelectedDbIdx(idx)
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
@@ -292,7 +291,7 @@ export function SidebarBrowser() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {dbs.map(db => (
+                {dbs.map((db: DbInfo) => (
                   <SelectItem key={db.index} value={db.index?.toString()}>
                     {db.name} {selectedDbIdx == db.index ? `(${keys.length}/${db.keys})` : `(${db.keys})`}
                   </SelectItem>
