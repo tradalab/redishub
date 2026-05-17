@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useEffect, useState, useCallback } from "react"
+import { ReactNode, useEffect, useMemo, useState } from "react"
 import { useTabStore } from "@/stores/tab.store"
 import { toast } from "sonner"
 import { CodeEditor } from "@/components/x/code-editor"
@@ -13,15 +13,13 @@ import { KeyDetailString } from "@/components/app/key-detail/key-detail-string"
 import { Input } from "@/components/ui/input"
 import { RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useAppContext } from "@/ctx/app.context"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Button } from "@/components/ui/button"
-import scorix from "@/lib/scorix"
-import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { useKeyDelete, useKeyDetail, useKeyNameUpdate, useKeyTtlUpdate } from "@/hooks/api/client.api"
 import { Spinner } from "@/components/ui/spinner"
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
 import { Label } from "@/components/ui/label"
@@ -30,82 +28,69 @@ import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 
 export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, selectedKey }: { connectionId: string; databaseIdx: number; selectedKey?: string }) {
   const { t } = useTranslation()
-  const [data, setData] = useState<string | undefined>("")
-  const [kind, setKind] = useState<string | undefined>()
-  const [ttl, setTtl] = useState<number | undefined>()
   const [reloadToken, setReloadToken] = useState<number>(0)
   const confirm = useConfirm()
 
   const [newKeyName, setNewKeyName] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { addTab, updateTab, removeTab, tabs, activeTabId } = useTabStore()
-  const { updateKey, deleteKey, isLoading } = useRedisKeys(connectionId || "", databaseIdx)
+  const { updateTab, removeTab, tabs, activeTabId } = useTabStore()
+  void tabs
 
-  const activeTab = tabs.find(t => t.id === activeTabId)
+  const query = useKeyDetail(connectionId, databaseIdx, selectedKey)
+  const detail = query.data
 
-  const load = useCallback(
-    async (selectedKey?: string) => {
-      if (!selectedKey) {
-        return
-      }
-      setNewKeyName(undefined)
-      setLoading(true)
+  const { kind, displayValue } = useMemo(() => {
+    if (!detail) return { kind: undefined as string | undefined, displayValue: undefined as string | undefined }
+    const k = detail.kind
+    const v = detail.value
+    if (k === "string" && typeof v === "string" && (v.startsWith("{") || v.startsWith("["))) {
       try {
-        const { value, kind, ttl } = await scorix.invoke<{ value: any; kind: string; ttl: number }>("client:load-key-detail", {
-          connection_id: connectionId,
-          database_index: databaseIdx,
-          key: selectedKey,
-        })
-        setTtl(ttl)
-        setKind(kind)
-        switch (kind) {
-          case "string": {
-            const val = value as string
-            if (val.startsWith("{") || val.startsWith("[")) {
-              try {
-                setData(JSON.stringify(JSON.parse(val), null, 2))
-                setKind("json")
-                return
-              } catch (_) {}
-            }
-            setData(val)
-            break
-          }
-          case "rejson-rl":
-            setData(value)
-            break
-        }
-      } catch (e: any) {
-        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-        toast.error(msg)
-      } finally {
-        setLoading(false)
-      }
-    },
-    [connectionId, databaseIdx, t]
-  )
+        return { kind: "json", displayValue: JSON.stringify(JSON.parse(v), null, 2) }
+      } catch {}
+    }
+    return { kind: k, displayValue: v }
+  }, [detail])
+
+  const ttl = detail?.ttl
+
+  const updateKeyMutation = useKeyNameUpdate(connectionId, databaseIdx)
+  const deleteKeyMutation = useKeyDelete(connectionId, databaseIdx)
+
+  useEffect(() => {
+    setNewKeyName(undefined)
+  }, [selectedKey])
+
+  useEffect(() => {
+    if (query.error) {
+      const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
+      toast.error(msg)
+    }
+  }, [query.error, t])
 
   const updateKeyName = async () => {
-    if (!newKeyName || !selectedKey || !activeTabId) {
-      return
-    }
-    updateKey(selectedKey, newKeyName).then(() => {
+    if (!newKeyName || !selectedKey || !activeTabId) return
+    try {
+      await updateKeyMutation.mutateAsync({
+        connection_id: connectionId,
+        database_index: databaseIdx,
+        current_name: selectedKey,
+        new_name: newKeyName,
+      })
       updateTab(activeTabId, { key: newKeyName, title: newKeyName })
-    })
+      toast.success(t("updated"))
+    } catch (e: any) {
+      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+    }
   }
 
   const reload = () => {
-    load(selectedKey)
+    query.refetch()
     setReloadToken(t => t + 1)
   }
 
-  useEffect(() => {
-    load(selectedKey)
-  }, [selectedKey, load])
-
   const handleDelete = async (key: string) => {
-    if (isLoading) return
+    if (deleteKeyMutation.isPending) return
     const ok = await confirm({
       title: t("confirm_delete"),
       description: t("confirm_delete_desc", { obj_name: "key", obj_key: selectedKey }),
@@ -113,11 +98,17 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
       danger: true,
     })
     if (ok && activeTabId) {
-      await deleteKey(key).then(() => removeTab(activeTabId))
+      try {
+        await deleteKeyMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx, key })
+        removeTab(activeTabId)
+        toast.success(t("deleted"))
+      } catch (e: any) {
+        toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      }
     }
   }
 
-  if (loading) {
+  if (query.isLoading) {
     return (
       <div className="h-full w-full flex justify-center items-center">
         <Spinner />
@@ -125,7 +116,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
     )
   }
 
-  if (!connectionId || !selectedKey || !ttl) {
+  if (!connectionId || !selectedKey || ttl === undefined) {
     return null
   }
 
@@ -148,13 +139,13 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           </Button>
         </ButtonGroup>
         <div className="flex gap-3.5 items-center justify-center">
-          <KeyTtlUpdateDialog reload={() => load(selectedKey)} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
+          <KeyTtlUpdateDialog reload={reload} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
             <div className="relative w-full cursor-pointer">
               <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
               <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
             </div>
           </KeyTtlUpdateDialog>
-          <Button size="icon-sm" variant="outline" onClick={() => load(selectedKey)}>
+          <Button size="icon-sm" variant="outline" onClick={reload}>
             <RefreshCcwIcon />
           </Button>
           <Button size="icon-sm" variant="outline" onClick={() => handleDelete(selectedKey)}>
@@ -168,7 +159,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           databaseIdx={databaseIdx}
           kind={kind}
           selectedKey={selectedKey}
-          value={data}
+          value={displayValue}
           reloadToken={reloadToken}
           loading={loading}
           setLoading={setLoading}
@@ -191,7 +182,7 @@ type ViewKeyDataProps = {
   reload: () => void
 }
 
-function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reloadToken, loading, setLoading, reload }: ViewKeyDataProps) {
+function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reloadToken, reload }: ViewKeyDataProps) {
   switch (kind) {
     case "string":
       return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} />
@@ -226,21 +217,21 @@ type KeyTtlUpdateDialogProps = {
 function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName, keyTtl }: KeyTtlUpdateDialogProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const ttlMutation = useKeyTtlUpdate(databaseId, databaseIdx)
 
   const form = useForm<any>({
-    defaultValues: {
-      ttl: keyTtl,
-    },
-    resolver: zodResolver(
-      z.object({
-        ttl: z.number().min(-1),
-      })
-    ),
+    defaultValues: { ttl: keyTtl },
+    resolver: zodResolver(z.object({ ttl: z.number().min(-1) })),
   })
 
   const submit = form.handleSubmit(async values => {
     try {
-      await scorix.invoke("client:key-ttl-update", { connection_id: databaseId, database_index: databaseIdx, key_name: keyName, key_ttl: values.ttl })
+      await ttlMutation.mutateAsync({
+        connection_id: databaseId,
+        database_index: databaseIdx,
+        key_name: keyName,
+        key_ttl: values.ttl,
+      })
       toast.success(t("updated"))
       setOpen(false)
       form.reset()

@@ -15,7 +15,8 @@ import { toast } from "sonner"
 import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { useState } from "react"
-import scorix from "@/lib/scorix"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { useHashFieldDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
@@ -34,6 +35,8 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   const [deletingField, setDeletingField] = useState<string | null>(null)
   const confirm = useConfirm()
   const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "hash", props.reloadToken)
+  const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
+  const delMutation = useHashFieldDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<HashType>[] = [
     {
@@ -106,13 +109,18 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   })
 
   const submit = form.handleSubmit(async values => {
+    setLoading(true)
     try {
-      await scorix.invoke("client:key-value-update", {
+      await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.HASH,
-        key_value_hash: values.value_hash,
+        key: props.selectedKey,
+        kind: KeyKindEnum.HASH,
+        ttl: -1,
+        value_string: "",
+        value_json: "",
+        value_hash: values.value_hash,
+        value_stream: { id: "", values: "" },
       })
       toast.success(t("updated"))
       props.reload()
@@ -128,7 +136,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
     if (deletingField) return
     setDeletingField(field)
     try {
-      await scorix.invoke("key:hash-field-del", {
+      await delMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key: props.selectedKey,

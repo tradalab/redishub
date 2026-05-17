@@ -16,7 +16,8 @@ import { KeyAddValueList } from "@/components/app/key-add/key-add-value-list"
 import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
-import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { KeyAddValueStream } from "@/components/app/key-add/key-add-value-stream"
 
@@ -24,7 +25,7 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const { selectedDb, selectedDbIdx } = useAppContext()
-  const { addKey } = useRedisKeys(selectedDb || "", selectedDbIdx)
+  const createMutation = useKeyCreate(selectedDb || "", selectedDbIdx)
 
   const form = useForm<any>({
     defaultValues: {
@@ -55,15 +56,25 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
 
   const submit = form.handleSubmit(async values => {
     if (values.kind == KeyKindEnum.STREAM) {
+      const entries = (values.value_stream ?? []).filter((i: any) => i?.field !== "").map((i: any) => [i?.field, i?.value])
       values.value_stream = {
         id: "*",
-        value: Object.fromEntries(values.value_stream?.filter((i: any) => i?.field !== "")?.map((i: any) => [i?.field, i?.value])),
+        values: JSON.stringify(Object.fromEntries(entries)),
       }
     }
-    addKey(values.key, values).then(() => {
+    try {
+      await createMutation.mutateAsync({
+        connection_id: selectedDb || "",
+        database_index: selectedDbIdx,
+        ...values,
+      })
+      toast.success(t("created"))
       setOpen(false)
       form.reset()
-    })
+    } catch (e: any) {
+      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      toast.error(msg)
+    }
   })
 
   const kindValue: KeyKindEnum = form.watch("kind")

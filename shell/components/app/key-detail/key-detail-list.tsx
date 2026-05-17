@@ -15,7 +15,8 @@ import { z } from "zod"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { toast } from "sonner"
 import { useState } from "react"
-import scorix from "@/lib/scorix"
+import { useKeyCreate } from "@/hooks/api/client.api"
+import { useListItemDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
@@ -34,6 +35,8 @@ export function KeyDetailList(props: KeyDetailListProps) {
   const [deletingIdx, setDeletingIdx] = useState<number | null>(null)
   const confirm = useConfirm()
   const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "list", props.reloadToken)
+  const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
+  const delMutation = useListItemDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<ListType>[] = [
     {
@@ -101,13 +104,18 @@ export function KeyDetailList(props: KeyDetailListProps) {
   })
 
   const submit = form.handleSubmit(async values => {
+    setLoading(true)
     try {
-      await scorix.invoke("client:key-value-update", {
+      await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.LIST,
-        key_value_list: values.value_list,
+        key: props.selectedKey,
+        kind: KeyKindEnum.LIST,
+        ttl: -1,
+        value_string: "",
+        value_json: "",
+        value_list: values.value_list,
+        value_stream: { id: "", values: "" },
       })
       toast.success(t("updated"))
       props.reload()
@@ -123,12 +131,12 @@ export function KeyDetailList(props: KeyDetailListProps) {
     if (deletingIdx) return
     setDeletingIdx(idx)
     try {
-      await scorix.invoke("key:list-item-del", {
+      await delMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
         key: props.selectedKey,
         value: value,
-        idx: idx,
+        index: idx,
       })
       toast.success(t("deleted"))
       props.reload()

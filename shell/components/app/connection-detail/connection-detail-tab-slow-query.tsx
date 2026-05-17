@@ -1,9 +1,9 @@
 "use client"
 
 import { toast } from "sonner"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import scorix from "@/lib/scorix"
+import { useSlowQuery } from "@/hooks/api/client.api"
 import { Spinner } from "@/components/ui/spinner"
 
 function formatDuration(us: number | string | undefined): string {
@@ -16,29 +16,16 @@ function formatDuration(us: number | string | undefined): string {
 
 export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
-  const [logs, setLogs] = useState<any[] | undefined>()
-  const [loading, setLoading] = useState<boolean>(false)
-
-  const get = async (id: string) => {
-    if (!id) return
-    setLoading(true)
-    try {
-      const { items } = await scorix.invoke<{ items: any[] }>("client:get-slow-query", {
-        connection_id: id,
-        database_index: databaseIdx,
-      })
-      setLogs(items)
-    } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const query = useSlowQuery(connectionId, databaseIdx)
+  const logs = query.data?.items
+  const loading = query.isLoading
 
   useEffect(() => {
-    get(connectionId)
-  }, [connectionId])
+    if (query.error) {
+      const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
+      toast.error(msg)
+    }
+  }, [query.error, t])
 
   if (loading) {
     return (

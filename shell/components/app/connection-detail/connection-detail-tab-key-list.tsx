@@ -1,6 +1,5 @@
 "use client"
 
-import { useRedisKeys } from "@/hooks/use-redis-keys"
 import { Input } from "@/components/ui/input"
 import { useState, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
@@ -8,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { RefreshCcwIcon, SearchIcon, Trash2Icon, Loader2Icon } from "lucide-react"
 import { Virtuoso } from "react-virtuoso"
-import scorix from "@/lib/scorix"
+import { useKeyDelete, useKeysList, useKeysMetadata } from "@/hooks/api/client.api"
 import { formatFileSize } from "@/lib/utils"
 import { useTabStore } from "@/stores/tab.store"
 
@@ -21,16 +20,24 @@ type KeyMetadata = {
 
 export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
-  const { keys, isLoading, reload, loadMore, deleteKey } = useRedisKeys(connectionId, databaseIdx)
+  const keysQuery = useKeysList(connectionId, databaseIdx)
+  const deleteMutation = useKeyDelete(connectionId, databaseIdx)
+  const metadataMutation = useKeysMetadata()
+
+  const keys = useMemo(() => {
+    const all = (keysQuery.data?.pages ?? []).flatMap(p => p.keys ?? [])
+    return Array.from(new Set(all))
+  }, [keysQuery.data])
+
+  const isLoading = keysQuery.isLoading || keysQuery.isFetching
+
   const { addTab } = useTabStore()
   const [filter, setFilter] = useState("")
   const [metadata, setMetadata] = useState<Record<string, KeyMetadata>>({})
   const [fetchingKeys, setFetchingKeys] = useState<Set<string>>(new Set())
   const [sortConfig, setSortConfig] = useState<{ key: keyof KeyMetadata; direction: "asc" | "desc" } | null>(null)
 
-  const filteredKeys = useMemo(() => {
-    return keys.filter(k => k.toLowerCase().includes(filter.toLowerCase()))
-  }, [keys, filter])
+  const filteredKeys = useMemo(() => keys.filter(k => k.toLowerCase().includes(filter.toLowerCase())), [keys, filter])
 
   const sortedKeys = useMemo(() => {
     const items = [...filteredKeys]
@@ -52,24 +59,21 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
   const fetchMetadata = useCallback(
     async (keysToFetch: string[]) => {
       if (keysToFetch.length === 0) return
-
       setFetchingKeys(prev => {
         const next = new Set(prev)
         keysToFetch.forEach(k => next.add(k))
         return next
       })
-
       try {
-        const { items } = await scorix.invoke<{ items: KeyMetadata[] }>("client:keys-metadata", {
+        const { items } = await metadataMutation.mutateAsync({
           connection_id: connectionId,
           database_index: databaseIdx,
           keys: keysToFetch,
         })
-
         setMetadata(prev => {
           const next = { ...prev }
           items?.forEach(m => {
-            next[m.key] = m
+            next[m.key] = m as KeyMetadata
           })
           return next
         })
@@ -83,7 +87,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
         })
       }
     },
-    [connectionId, databaseIdx]
+    [connectionId, databaseIdx, metadataMutation]
   )
 
   const rangeChanged = useCallback(
@@ -113,6 +117,21 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
       databaseIdx: databaseIdx,
       key: key,
     })
+  }
+
+  const reload = () => {
+    setMetadata({})
+    keysQuery.refetch()
+  }
+
+  const loadMore = () => {
+    if (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) {
+      keysQuery.fetchNextPage()
+    }
+  }
+
+  const deleteKey = (key: string) => {
+    deleteMutation.mutate({ connection_id: connectionId, database_index: databaseIdx, key })
   }
 
   const formatTtl = (ttlNs: number) => {
@@ -173,7 +192,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
               data={sortedKeys}
               rangeChanged={rangeChanged}
               endReached={loadMore}
-              itemContent={(index, key) => {
+              itemContent={(_index, key) => {
                 const meta = metadata[key]
                 return (
                   <div className="grid grid-cols-12 border-b last:border-0 hover:bg-muted/50 cursor-pointer group py-2" onClick={() => selectKey(key)}>

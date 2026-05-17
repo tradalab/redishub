@@ -24,9 +24,9 @@ import { Virtuoso } from "react-virtuoso"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ConnectionReq as ConnectionDO, ConnectionListRes, DbInfo } from "@/types"
-import scorix from "@/lib/scorix"
-import { useRedisKeys } from "@/hooks/use-redis-keys"
+import { ConnectionReq as ConnectionDO, DbInfo } from "@/types"
+import { client, connection } from "@/api"
+import { useKeyDelete, useKeysDeleteByPrefix, useKeysList } from "@/hooks/api/client.api"
 import { useConnectionList } from "@/hooks/api/connection.api"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
@@ -50,22 +50,69 @@ export function SidebarBrowser() {
   const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
-  const { keys, isLoading, loadMore, loadAll, reload, deleteKey, deleteByPrefix, scanByPrefix } = useRedisKeys(
-    selectedDb || "",
-    selectedDbIdx,
-    currentConnection?.key_size
-  )
+
+  const keysQuery = useKeysList(selectedDb || "", selectedDbIdx, { count: currentConnection?.key_size })
+  const keys = useMemo(() => {
+    const all = (keysQuery.data?.pages ?? []).flatMap(p => p.keys ?? [])
+    return Array.from(new Set(all))
+  }, [keysQuery.data])
+  const isLoading = keysQuery.isLoading || keysQuery.isFetching
+
+  const deleteMutation = useKeyDelete(selectedDb || "", selectedDbIdx)
+  const deleteByPrefixMutation = useKeysDeleteByPrefix(selectedDb || "", selectedDbIdx)
+
+  const reload = () => keysQuery.refetch()
+  const loadMore = () => {
+    if (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) keysQuery.fetchNextPage()
+  }
+  const loadAll = async () => {
+    while (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) {
+      await keysQuery.fetchNextPage()
+    }
+  }
+  const deleteKey = async (key: string) => {
+    try {
+      await deleteMutation.mutateAsync({ connection_id: selectedDb || "", database_index: selectedDbIdx, key })
+      toast.success(t("deleted"))
+    } catch (e: any) {
+      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+    }
+  }
+  const deleteByPrefix = async (prefix: string, keys?: string[]) => {
+    const toastId = toast.loading(t("deleting"))
+    try {
+      await deleteByPrefixMutation.mutateAsync({
+        prefix,
+        keys,
+        onProgress: data => {
+          toast.loading(`${t("deleting")} (${data.deleted})`, { id: toastId })
+        },
+      })
+      toast.success(t("deleted"), { id: toastId })
+    } catch (e: any) {
+      toast.error(e instanceof Error ? e.message : t("unknown_error"), { id: toastId })
+    }
+  }
+  const scanByPrefix = async (prefix: string, _cursor: string = "0", _limit: number = 1000) => {
+    try {
+      const res = await client.keysscanbyprefix({
+        connection_id: selectedDb || "",
+        database_index: selectedDbIdx,
+        prefix,
+        keys: [],
+      })
+      return { keys: res.keys || [], nextCursor: res.next_cursor }
+    } catch (e: any) {
+      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      return { keys: [], nextCursor: "0" }
+    }
+  }
 
   const [isBuildingTree, setIsBuildingTree] = useState(false)
   const userHasScrolled = useRef(false)
 
   useEffect(() => {
     loadInfo()
-  }, [selectedDb, selectedDbIdx])
-
-  useEffect(() => {
-    userHasScrolled.current = false
-    reload()
   }, [selectedDb, selectedDbIdx])
 
   useEffect(() => {
@@ -150,8 +197,8 @@ export function SidebarBrowser() {
       return
     }
     try {
-      const res = await scorix.invoke<{ databases: DbInfo[] }>("client:general", { connection_id: selectedDb, database_index: selectedDbIdx })
-      setDbs(res.databases || [])
+      const res = await client.general({ connection_id: selectedDb, database_index: selectedDbIdx })
+      setDbs((res.databases || []) as DbInfo[])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.error(msg)
@@ -170,7 +217,7 @@ export function SidebarBrowser() {
 
   const onChangeDbIdx = async (idx: number) => {
     try {
-      const res = await scorix.invoke<ConnectionListRes>("connection:list", {})
+      const res = await connection.list({})
       const conn = (res.items || []).find(c => c.id === selectedDb)
       if (!conn) {
         toast.error(t("conn_not_exist"))

@@ -9,7 +9,6 @@ import { Toaster } from "@/components/ui/sonner"
 import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/components/app/loading"
-import { RedisKeysProvider } from "@/ctx/redis-keys.context"
 import { ThemeProvider } from "next-themes"
 import { ConfirmProvider } from "@/components/ui/trada-ui/confirm/confirm-provider"
 import { ConnectionStatus } from "@/components/app/connection-status"
@@ -37,27 +36,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ConfirmProvider>
             <AppProvider>
-              <RedisKeysProvider>
-                <TooltipProvider delayDuration={0}>
-                  <SidebarProvider
-                    style={
-                      {
-                        "--sidebar-width": "360px",
-                      } as React.CSSProperties
-                    }
-                    open={true}
-                    defaultOpen={true}
-                  >
-                    <AppSidebar />
-                    <SidebarInset className="flex flex-col h-svh overflow-hidden">
-                      <div className="flex-1 min-h-0 flex flex-col">{children}</div>
-                      <Toaster />
-                      <Loading />
-                      <ConnectionStatus />
-                    </SidebarInset>
-                  </SidebarProvider>
-                </TooltipProvider>
-              </RedisKeysProvider>
+              <TooltipProvider delayDuration={0}>
+                <SidebarProvider
+                  style={
+                    {
+                      "--sidebar-width": "360px",
+                    } as React.CSSProperties
+                  }
+                  open={true}
+                  defaultOpen={true}
+                >
+                  <AppSidebar />
+                  <SidebarInset className="flex flex-col h-svh overflow-hidden">
+                    <div className="flex-1 min-h-0 flex flex-col">{children}</div>
+                    <Toaster />
+                    <Loading />
+                    <ConnectionStatus />
+                  </SidebarInset>
+                </SidebarProvider>
+              </TooltipProvider>
             </AppProvider>
           </ConfirmProvider>
         </ThemeProvider>
