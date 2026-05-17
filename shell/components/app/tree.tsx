@@ -1,5 +1,4 @@
-import { GroupDO } from "@/types/group.do"
-import { ConnectionDO } from "@/types/connection.do"
+import { GroupItem as GroupDO, ConnectionReq as ConnectionDO } from "@/types"
 
 export type TreeItem = {
   id: string
@@ -28,7 +27,7 @@ export function filterTree(items: TreeItem[], keyword: string): TreeItem[] {
 
   const lower = keyword.toLowerCase()
   return items
-    .map<TreeItem | null>(item => {
+    .map<TreeItem | null>((item: TreeItem) => {
       const nameMatch = item.name.toLowerCase().includes(lower)
       const filteredChildren: TreeItem[] | undefined = item.children ? filterTree(item.children, keyword) : undefined
       if (nameMatch || (filteredChildren && filteredChildren.length > 0)) {

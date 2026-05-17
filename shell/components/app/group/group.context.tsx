@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import { GroupDO } from "@/types/group.do"
+import { GroupItem as GroupDO } from "@/types"
 
 export type GroupContextType = {
   create: () => void

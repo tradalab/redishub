@@ -10,7 +10,8 @@ import { toast } from "sonner"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useUpsertProxy, useDeleteProxy, ProxyDO } from "@/hooks/api/proxy.api"
+import { useUpsertProxy, useDeleteProxy } from "@/hooks/api/proxy.api"
+import { ProxyReq as ProxyDO } from "@/types"
 
 const formSchema = z.object({
   id: z.string().optional(),

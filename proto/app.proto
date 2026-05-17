@@ -1,0 +1,520 @@
+syntax = "proto3";
+
+package rdms;
+
+// ─────────────────────────────────────────────
+// Shared / Common Messages
+// ─────────────────────────────────────────────
+
+message Empty {}
+
+// Connection DO (used for conn:test, ssh:test)
+message ConnectionReq {
+  string id                 = 1;
+  string mode               = 2;
+  string name               = 3;
+  string network            = 4;
+  string host               = 5;
+  int32  port               = 6;
+  string addrs              = 7;
+  string sentinel_master    = 8;
+  string sentinel_username  = 9;
+  string sentinel_password  = 10;
+  string sock               = 11;
+  string username           = 12;
+  string password           = 13;
+  string addr_mapping       = 14;
+  int64  exec_timeout       = 15;
+  int64  dial_timeout       = 16;
+  int64  key_size           = 17;
+  bool   ssh_enable         = 18;
+  string ssh_id             = 19;
+  bool   proxy_enable       = 20;
+  string proxy_id           = 21;
+  bool   tls_enable         = 22;
+  string tls_id             = 23;
+  SshReq ssh                = 24;
+  ProxyReq proxy            = 25;
+  TlsReq tls                = 26;
+  string group_id           = 27;
+  int32  last_db            = 28;
+}
+
+message SshReq {
+  string id          = 1;
+  string host        = 2;
+  int32  port        = 3;
+  string username    = 4;
+  string kind        = 5;
+  string password    = 6;
+  string private_key = 7;
+  string passphrase  = 8;
+  int64  timeout     = 9;
+}
+
+message TlsReq {
+  string id          = 1;
+  string name        = 2;
+  bool   use_sni     = 3;
+  string server_name = 4;
+  bool   verify      = 5;
+  bool   client_auth = 6;
+  string ca_cert     = 7;
+  string cert        = 8;
+  string key         = 9;
+}
+
+message ProxyReq {
+  string id       = 1;
+  string protocol = 2;
+  string host     = 3;
+  int32  port     = 4;
+  string username = 5;
+  string password = 6;
+}
+
+// ─────────────────────────────────────────────
+// Client Service Messages
+// ─────────────────────────────────────────────
+
+message ClientConnectReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+}
+
+message ClientDisconnectReq {
+  string connection_id = 1;
+  int32  database_index = 2;
+}
+
+message ClientGeneralReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+}
+
+message ClientGeneralRes {
+  string      info      = 1;
+  int32       total_db  = 2;
+  repeated DBInfo databases = 3;
+}
+
+message DBInfo {
+  int32  index   = 1;
+  string name    = 2;
+  int32  keys    = 3;
+  int32  expires = 4;
+  int64  avg_ttl = 5;
+}
+
+message ClientGetSlowQueryReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+}
+
+message ClientLoadAllKeysReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string prefix         = 3;
+  int64  count          = 4;
+  string cursor         = 5;
+}
+
+message ClientLoadAllKeysRes {
+  repeated string keys   = 1;
+  string          cursor = 2;
+}
+
+message ClientLoadKeyDetailReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+}
+
+message ClientLoadKeyValuePageReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string kind           = 4;
+  string cursor         = 5;
+  int64  page_size      = 6;
+}
+
+message ClientKeyCreateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string kind           = 4;
+  int64  ttl            = 5;
+  string value_string   = 6;
+  string value_json     = 7;
+  repeated string value_list = 8;
+  repeated KeyValue value_hash = 9;
+  repeated string value_set = 10;
+  repeated ZMember value_zset = 11;
+  StreamValue value_stream = 12;
+}
+
+message KeyValue {
+  string key = 1;
+  string value = 2;
+}
+
+message ZMember {
+  string member = 1;
+  double score = 2;
+}
+
+message StreamValue {
+  string id = 1;
+  string values = 2; // JSON string
+}
+
+message ClientKeyDeleteReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+}
+
+message ClientKeyNameUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string current_name   = 3;
+  string new_name       = 4;
+}
+
+message ClientKeyTtlUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key_name       = 3;
+  int64  key_ttl        = 4;
+}
+
+message ClientKeyValueUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string kind           = 4;
+  string value          = 5;
+}
+
+message ClientKeysMetadataReq {
+  string          connection_id  = 1;
+  int32           database_index = 2;
+  repeated string keys           = 3;
+}
+
+message ClientKeysDeleteByPrefixReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string prefix         = 3;
+  repeated string keys  = 4;
+}
+
+message ClientSearchKeysReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string prefix         = 3;
+  int64  count          = 4;
+  string cursor         = 5;
+}
+message ClientSearchKeysRes {
+  repeated string keys = 1;
+}
+
+message ClientGetSlowQueryRes {
+  repeated SlowQueryItem items = 1;
+}
+
+message SlowQueryItem {
+  int64           id          = 1;
+  int64           timestamp   = 2;
+  int64           duration    = 3;
+  repeated string command     = 4;
+  string          client_addr = 5;
+  string          client_name = 6;
+}
+
+message ClientLoadKeyDetailRes {
+  string key   = 1;
+  string value = 2;
+  string kind  = 3;
+  double ttl   = 4;
+  int64  total = 5;
+}
+
+message ClientLoadKeyValuePageRes {
+  repeated KeyValuePageItem items = 1;
+  string next_cursor = 2;
+  bool   has_more    = 3;
+}
+
+message KeyValuePageItem {
+  string field  = 1;
+  string value  = 2;
+  int64  index  = 3;
+  string member = 4;
+  double score  = 5;
+  string id     = 6;
+}
+
+message ClientKeysMetadataRes {
+  repeated KeyMetadata items = 1;
+}
+
+message KeyMetadata {
+  string key  = 1;
+  string type = 2;
+  int64  ttl  = 3;
+  int64  size = 4;
+}
+
+message ClientKeysDeleteByPrefixRes {
+  int32 total_deleted = 1;
+}
+
+message ClientKeysScanByPrefixRes {
+  repeated string keys = 1;
+  string next_cursor   = 2;
+}
+
+message KeyLoadRes {
+  repeated string keys = 1;
+  string cursor        = 2;
+}
+
+message MonitorStatusRes {
+  bool active = 1;
+}
+
+message SystemInfoRes {
+  string version = 1;
+  string os      = 2;
+  string arch    = 3;
+  string runtime = 4;
+}
+
+message ConnectionListRes {
+  repeated ConnectionReq items = 1;
+}
+
+message SshListRes {
+  repeated SshReq items = 1;
+}
+
+message ProxyListRes {
+  repeated ProxyReq items = 1;
+}
+
+message TlsListRes {
+  repeated TlsReq items = 1;
+}
+
+message GroupListRes {
+  repeated GroupItem items = 1;
+}
+
+message GroupItem {
+  string id         = 1;
+  string name       = 2;
+  int64  created_at = 3;
+  int64  updated_at = 4;
+}
+
+message GroupUpsertReq {
+  string id   = 1;
+  string name = 2;
+}
+
+message SettingListRes {
+  repeated SettingItem items = 1;
+}
+
+message SettingItem {
+  string key   = 1;
+  string value = 2;
+}
+
+message SettingSetReq {
+  string key   = 1;
+  string value = 2;
+}
+
+message SettingGetReq {
+  string key = 1;
+}
+
+message SettingGetRes {
+  string value = 1;
+}
+
+message IdReq {
+  string id = 1;
+}
+
+message UpsertRes {
+  string id = 1;
+}
+
+// ─────────────────────────────────────────────
+// Key Service Messages
+// ─────────────────────────────────────────────
+
+message KeyHashFieldDelReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string field          = 4;
+}
+
+message KeyListItemDelReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  int64  index          = 4;
+  string value          = 5;
+}
+
+message KeyLoadReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string cursor         = 4;
+  int64  count          = 5;
+}
+
+message KeySetMemberDelReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string member         = 4;
+}
+
+message KeyStreamEntryDelReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string entry_id       = 4;
+}
+
+message KeyZSetMemberDelReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string member         = 4;
+}
+
+// ─────────────────────────────────────────────
+// Monitor Service Messages
+// ─────────────────────────────────────────────
+
+message MonitorReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+}
+
+// ─────────────────────────────────────────────
+// PubSub Service Messages
+// ─────────────────────────────────────────────
+
+message PubSubSubscribeReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  repeated string channels = 3;
+}
+
+message PubSubPublishReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string channel        = 3;
+  string message        = 4;
+}
+
+// ─────────────────────────────────────────────
+// Services
+// ─────────────────────────────────────────────
+
+service client {
+  rpc Connect(ClientConnectReq) returns (Empty);
+  rpc ConsoleConnect(ClientConnectReq) returns (Empty);
+  rpc Disconnect(ClientDisconnectReq) returns (Empty);
+  rpc General(ClientGeneralReq) returns (ClientGeneralRes);
+  rpc GetSlowQuery(ClientGetSlowQueryReq) returns (ClientGetSlowQueryRes);
+  rpc LoadAllKeys(ClientLoadAllKeysReq) returns (ClientLoadAllKeysRes);
+  rpc LoadKeyDetail(ClientLoadKeyDetailReq) returns (ClientLoadKeyDetailRes);
+  rpc LoadKeyValuePage(ClientLoadKeyValuePageReq) returns (ClientLoadKeyValuePageRes);
+  rpc KeyCreate(ClientKeyCreateReq) returns (Empty);
+  rpc KeyDelete(ClientKeyDeleteReq) returns (Empty);
+  rpc KeyNameUpdate(ClientKeyNameUpdateReq) returns (Empty);
+  rpc KeyTtlUpdate(ClientKeyTtlUpdateReq) returns (Empty);
+  rpc KeyValueUpdate(ClientKeyValueUpdateReq) returns (Empty);
+  rpc KeysMetadata(ClientKeysMetadataReq) returns (ClientKeysMetadataRes);
+  rpc KeysDeleteByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysDeleteByPrefixRes);
+  rpc KeysScanByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysScanByPrefixRes);
+  rpc SearchKeys(ClientSearchKeysReq) returns (ClientSearchKeysRes);
+}
+
+service conn {
+  rpc Test(ConnectionReq) returns (Empty);
+}
+
+service key {
+  rpc HashFieldDel(KeyHashFieldDelReq) returns (Empty);
+  rpc ListItemDel(KeyListItemDelReq) returns (Empty);
+  rpc Load(KeyLoadReq) returns (KeyLoadRes);
+  rpc SetMemberDel(KeySetMemberDelReq) returns (Empty);
+  rpc StreamEntryDel(KeyStreamEntryDelReq) returns (Empty);
+  rpc ZSetMemberDel(KeyZSetMemberDelReq) returns (Empty);
+}
+
+service monitor {
+  rpc Start(MonitorReq) returns (Empty);
+  rpc Stop(MonitorReq) returns (Empty);
+  rpc Status(MonitorReq) returns (MonitorStatusRes);
+}
+
+service pubsub {
+  rpc Subscribe(PubSubSubscribeReq) returns (Empty);
+  rpc Unsubscribe(PubSubSubscribeReq) returns (Empty);
+  rpc Publish(PubSubPublishReq) returns (Empty);
+}
+
+service proxy {
+  rpc List(Empty) returns (ProxyListRes);
+  rpc Upsert(ProxyReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
+}
+
+service ssh {
+  rpc List(Empty) returns (SshListRes);
+  rpc Test(SshReq) returns (Empty);
+  rpc Upsert(SshReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
+}
+
+service tls {
+  rpc List(Empty) returns (TlsListRes);
+  rpc Upsert(TlsReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
+}
+
+service connection {
+  rpc List(Empty) returns (ConnectionListRes);
+  rpc Upsert(ConnectionReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
+}
+
+service system {
+  rpc Info(Empty) returns (SystemInfoRes);
+}
+
+service group {
+  rpc List(Empty) returns (GroupListRes);
+  rpc Upsert(GroupUpsertReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
+}
+
+service setting {
+  rpc List(Empty) returns (SettingListRes);
+  rpc Set(SettingSetReq) returns (Empty);
+  rpc Get(SettingGetReq) returns (SettingGetRes);
+}

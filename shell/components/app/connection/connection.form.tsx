@@ -14,7 +14,7 @@ import { ConnectionSshTunnelForm } from "@/components/app/connection/connection-
 import { ConnectionTlsForm } from "@/components/app/connection/connection-tls.form"
 import { ConnectionOptionalForm } from "@/components/app/connection/connection-optional.form"
 import { ConnectionProxyForm } from "@/components/app/connection/connection-proxy.form"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO } from "@/types"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
 import { useTestConnection, useUpsertConnection } from "@/hooks/api/connection.api"
 
@@ -161,10 +161,11 @@ interface Props {
 export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection, onPendingChange }, ref) => {
   const { t } = useTranslation()
 
+  const { mode, ...rest } = connection || {}
+
   const form = useForm<FormValues>({
     resolver: zodResolver(connectionSchema),
     defaultValues: {
-      mode: RedisModeEnum.STANDALONE,
       network: "tcp",
       port: 6379,
       exec_timeout: 60,
@@ -173,7 +174,8 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
       proxy_enable: false,
       ssh_enable: false,
       tls_enable: false,
-      ...connection,
+      ...rest,
+      mode: (mode as RedisModeEnum) || RedisModeEnum.STANDALONE,
     } as any,
   })
 
@@ -181,11 +183,13 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
   const testConnection = useTestConnection()
 
   useEffect(() => {
+    const { mode, ...rest } = connection || {}
     form.reset({
       proxy_enable: false,
       ssh_enable: false,
       tls_enable: false,
-      ...connection,
+      ...rest,
+      mode: (mode as RedisModeEnum) || RedisModeEnum.STANDALONE,
     })
   }, [connection, form])
 

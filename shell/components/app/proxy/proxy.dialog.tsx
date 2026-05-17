@@ -9,7 +9,8 @@ import { useRef, useState } from "react"
 import { v7 as uuidv7 } from "uuid"
 
 import { ProxyForm, ProxyFormRef, PendingState } from "./proxy.form"
-import { useProxyList, ProxyDO } from "@/hooks/api/proxy.api"
+import { useProxyList } from "@/hooks/api/proxy.api"
+import { ProxyReq as ProxyDO } from "@/types"
 
 interface ProxyDialogProps {
   open: boolean

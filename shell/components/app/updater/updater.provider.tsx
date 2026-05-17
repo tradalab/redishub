@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, useEffect, useState, useCallback } from "react"
+import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
@@ -99,19 +99,21 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
     })
   }, [newVersion, notes, t, loading, fullUpdate])
 
+  const checkUpdateRef = useRef(checkUpdate)
+  const popupRef = useRef(popup)
+  checkUpdateRef.current = checkUpdate
+  popupRef.current = popup
+
   useEffect(() => {
     if (autoupdate === "false") return
 
     const last = parseInt(lastCheck || "0")
-    const now = Date.now()
-    if (now - last < 24 * 60 * 60 * 1000) return
+    if (Date.now() - last < 24 * 60 * 60 * 1000) return
 
-    checkUpdate({ silent: true }).then(res => {
-      if (res) {
-        popup()
-      }
+    checkUpdateRef.current({ silent: true }).then(res => {
+      if (res) popupRef.current()
     })
-  }, [autoupdate, lastCheck, checkUpdate, popup])
+  }, [autoupdate, lastCheck])
 
   return <UpdaterContext.Provider value={{ loading, newVersion, notes, checkUpdate, fullUpdate, popup }}>{children}</UpdaterContext.Provider>
 }

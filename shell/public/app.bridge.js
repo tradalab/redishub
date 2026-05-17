@@ -1,4 +1,4 @@
-;(function () {
+(function () {
   const ScorixAppBridge = {
     _pending: new Map(), // id -> { resolve, reject, onChunk }
     _events: new Map(),
@@ -16,7 +16,8 @@
 
     async invoke(method, params, options = {}) {
       const id = this._next_id()
-      const envelope = { id, kind: "command", name: method, data: params, state: "start" }
+      const data = params || {}
+      const envelope = { id, kind: "command", name: method, data, state: "start" }
       console.debug({ fn: "invoke", envelope })
       const pending = {}
       const promise = new Promise((resolve, reject) => {
@@ -28,6 +29,9 @@
       try {
         // JS -> Go binding
         const resultRaw = await window.__scorix__ipc_emit?.(JSON.stringify(envelope))
+        if (resultRaw === undefined || resultRaw === "") {
+          throw new Error("IPC protocol error: empty response from backend")
+        }
         const result = typeof resultRaw === "string" ? JSON.parse(resultRaw) : resultRaw
         console.debug({ fn: "invoke", result })
         if (result && result.state === "error") {
@@ -76,7 +80,6 @@
         const { id, kind, name, data, state, error } = msg
         console.debug("Scorix IPC Receive:", { id, kind, name, state })
 
-        // ----- lifecycle for invoke -----
         if (id && this._pending.has(id)) {
           const pending = this._pending.get(id)
           switch (state) {
@@ -102,7 +105,6 @@
           return
         }
 
-        // ----- event -----
         if (kind === "event") {
           const listeners = this._events.get(name)
           if (listeners) {
@@ -123,7 +125,6 @@
           return
         }
 
-        // ----- Go calls JS -----
         if (kind === "resolve") {
           const handler = this._handlers[name]
           if (!handler) {
@@ -152,4 +153,4 @@
     window.__scorix__ipc_receive = msg => ScorixAppBridge._receive(msg)
     window.__scorix__ipc_resolve = msg => ScorixAppBridge._receive(msg)
   }
-})()
+})();

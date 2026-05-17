@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO } from "@/types"
 
 import { ConnectionForm, ConnectionFormRef, PendingState } from "./connection.form"
 import { Spinner } from "@/components/ui/spinner"

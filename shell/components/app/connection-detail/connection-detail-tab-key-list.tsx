@@ -60,7 +60,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
       })
 
       try {
-        const results = await scorix.invoke<KeyMetadata[]>("client:keys-metadata", {
+        const { items } = await scorix.invoke<{ items: KeyMetadata[] }>("client:keys-metadata", {
           connection_id: connectionId,
           database_index: databaseIdx,
           keys: keysToFetch,
@@ -68,7 +68,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
 
         setMetadata(prev => {
           const next = { ...prev }
-          results.forEach(m => {
+          items?.forEach(m => {
             next[m.key] = m
           })
           return next

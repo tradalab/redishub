@@ -13,11 +13,10 @@ import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
 import { useConnection } from "@/components/app/connection/connection.context"
-import { ConnectionDO } from "@/types/connection.do"
+import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList } from "@/hooks/api/group.api"
 import { useConnectionList, useDeleteConnection } from "@/hooks/api/connection.api"
 import { useGroup } from "@/components/app/group/group.context"
-import { GroupDO } from "@/types/group.do"
 
 export function SidebarConnection() {
   const { t } = useTranslation()
@@ -59,7 +58,7 @@ export function SidebarConnection() {
               <SidebarMenu>
                 <TreeProvider defaultExpandedIds={[]} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
                   <TreeView className="px-1 py-2">
-                    {filteredDataset.map(item => (
+                    {filteredDataset.map((item: TreeItem) => (
                       <RenderTreeItem key={item.id} item={item} reload={refetch} />
                     ))}
                   </TreeView>
@@ -107,7 +106,7 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
 
       {item.isGroup && item.children && (
         <TreeNodeContent hasChildren>
-          {item.children.map(child => (
+          {item.children.map((child: TreeItem) => (
             <RenderTreeItem key={child.id} item={child} reload={reload} />
           ))}
         </TreeNodeContent>

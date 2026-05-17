@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { PlusIcon, SaveIcon, Trash2Icon } from "lucide-react"
 import { useRef, useState } from "react"
-import { TlsDO } from "@/types/tls.do"
+import { TlsReq as TlsDO } from "@/types"
 import { useTlsList } from "@/hooks/api/tls.api"
 import { TlsForm, TlsFormRef, PendingState } from "./tls.form"
 import { v7 as uuidv7 } from "uuid"
@@ -65,7 +65,7 @@ export function TlsDialog({ open, onOpenChange }: Props) {
                 return (
                   <div
                     key={tls.id}
-                    onClick={() => setSelected(tls)}
+                    onClick={() => setSelected(tls as TlsDO)}
                     className={`px-3 py-2 text-sm cursor-pointer border-l-2 ${active ? "bg-muted border-primary" : "border-transparent hover:bg-muted"}`}
                   >
                     {displayName}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { SshReq as SshDO } from "@/types"
 import { useSsh } from "@/components/app/ssh/ssh.context"
 import { useSshList } from "@/hooks/api/ssh.api"
 
@@ -51,7 +52,7 @@ export function ConnectionSshTunnelForm({ form }: { form: UseFormReturn<any> }) 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">{t("none")}</SelectItem>
-                      {sshList?.map(ssh => (
+                      {sshList?.map((ssh: SshDO) => (
                         <SelectItem key={ssh.id} value={ssh.id}>
                           {ssh.username}@{ssh.host}:{ssh.port}
                         </SelectItem>

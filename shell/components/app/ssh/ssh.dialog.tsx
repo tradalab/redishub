@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { PlugIcon, PlusIcon, SaveIcon, Trash2Icon } from "lucide-react"
 import { useRef, useState } from "react"
-import { SshDO } from "@/types/ssh.do"
+import { SshReq as SshDO } from "@/types"
 import { useSshList } from "@/hooks/api/ssh.api"
 import { SshForm, SshFormRef, PendingState } from "./ssh.form"
 import { SshKindEnum } from "@/types/ssh-kind.enum"
@@ -67,7 +67,7 @@ export function SshDialog({ open, onOpenChange }: Props) {
                 return (
                   <div
                     key={ssh.id}
-                    onClick={() => setSelected(ssh)}
+                    onClick={() => setSelected(ssh as SshDO)}
                     className={`px-3 py-2 text-sm cursor-pointer border-l-2 ${active ? "bg-muted border-primary" : "border-transparent hover:bg-muted"}`}
                   >
                     {ssh.username}@{ssh.host}:{ssh.port}

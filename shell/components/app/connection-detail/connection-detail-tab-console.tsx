@@ -160,13 +160,13 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         }
 
         try {
-          const res = await scorix.invoke<string[]>("client:search-keys", {
+          const { keys } = await scorix.invoke<{ keys: string[] }>("client:search-keys", {
             connection_id: connectionId,
             database_index: databaseIdx,
             prefix: query,
             count: 20
           })
-          const list = (res || []).map(k => ({ value: k, type: "key" as const }))
+          const list = (keys || []).map(k => ({ value: k, type: "key" as const }))
           updateAc({ open: list.length > 0, x: pos.x, y: pos.y, direction: pos.direction, query, list, index: 0 })
         } catch (e) {
           updateAc({ open: false })

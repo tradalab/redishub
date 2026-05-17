@@ -3,7 +3,7 @@
 import { ReactNode, useState } from "react"
 import { GroupContext } from "./group.context"
 import { GroupDialog } from "./group.dialog"
-import { GroupDO } from "@/types/group.do"
+import { GroupItem as GroupDO } from "@/types"
 
 export function GroupProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)

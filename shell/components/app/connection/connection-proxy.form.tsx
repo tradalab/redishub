@@ -9,6 +9,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useProxy } from "@/components/app/proxy/proxy.context"
+import { ProxyReq as ProxyDO } from "@/types"
 import { useProxyList } from "@/hooks/api/proxy.api"
 
 export function ConnectionProxyForm({ form }: { form: UseFormReturn<any> }) {
@@ -51,7 +52,7 @@ export function ConnectionProxyForm({ form }: { form: UseFormReturn<any> }) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">{t("none")}</SelectItem>
-                      {proxyList?.map(p => (
+                      {proxyList?.map((p: ProxyDO) => (
                         <SelectItem key={p.id} value={p.id}>
                           [{p.protocol.toUpperCase()}] {p.host}:{p.port}
                         </SelectItem>

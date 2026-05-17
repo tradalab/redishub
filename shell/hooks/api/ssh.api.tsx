@@ -2,17 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import scorix from "@/lib/scorix"
-import { SshDO } from "@/types/ssh.do"
+import { SshReq as SshDO, SshListRes } from "@/types"
 
 const QUERY_KEY = ["ssh-list"]
 
 export function useSshList() {
-  return useQuery({
+  return useQuery<SshDO[]>({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const sql = 'SELECT * FROM "ssh" WHERE deleted_at IS NULL'
-      const data = await scorix.invoke<SshDO[]>("mod:gorm:Query", { sql })
-      return data || []
+      const res = await scorix.invoke<SshListRes>("ssh:list", {})
+      return res.items || []
     },
   })
 }
@@ -35,8 +34,7 @@ export function useDeleteSsh() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const sql = `DELETE FROM "ssh" WHERE id = '${id}'`
-      await scorix.invoke("mod:gorm:Query", { sql })
+      return scorix.invoke("ssh:delete", { id })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })

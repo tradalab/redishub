@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import { ProxyDO } from "@/hooks/api/proxy.api"
+import { ProxyReq as ProxyDO } from "@/types"
 
 interface ProxyContextProps {
   open?: (initialValues?: Partial<ProxyDO>) => void

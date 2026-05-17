@@ -1,20 +1,36 @@
 "use client"
 
-import { useCallback } from "react"
-import { useSettings } from "./use-settings"
+import { useCallback, useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
+import { useSettingStore } from "@/stores/setting.store"
 
 export function useSetting(key: string, options?: { silent?: boolean }) {
-  const { get, set } = useSettings(options)
+  const { t } = useTranslation()
+  const value = useSettingStore(s => s.settings[key])
+  const storeSet = useSettingStore(s => s.set)
+  const fetch = useSettingStore(s => s.fetch)
+  const silent = options?.silent
 
-  const value = get(key)
+  useEffect(() => {
+    fetch()
+  }, [fetch])
 
   const setValue = useCallback(
     async (next: string | ((prev?: string) => string)) => {
-      const prev = get(key)
+      const prev = useSettingStore.getState().settings[key]
       const val = typeof next === "function" ? next(prev) : next
-      return set(key, val)
+      try {
+        await storeSet(key, val)
+        if (!silent) toast.success(t("updated"))
+        return val
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+        toast.error(msg)
+        throw e
+      }
     },
-    [get, set, key]
+    [storeSet, key, silent, t]
   )
 
   return [value, setValue] as const

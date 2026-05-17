@@ -1,8 +1,7 @@
 import { create } from "zustand"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
-import { GroupDO } from "@/types/group.do"
-import { ConnectionDO } from "@/types/connection.do"
+import { GroupItem as GroupDO, GroupListRes, ConnectionReq as ConnectionDO, ConnectionListRes } from "@/types"
 
 interface DbState {
   loading: boolean
@@ -19,12 +18,12 @@ export const useDbStore = create<DbState>(set => ({
   load: async () => {
     set({ loading: true })
     try {
-      const [groups, databases] = await Promise.all([
-        scorix.invoke<GroupDO[]>("mod:gorm:Query", { sql: 'SELECT * FROM "group" WHERE deleted_at IS NULL' }),
-        scorix.invoke<ConnectionDO[]>("mod:gorm:Query", { sql: 'SELECT * FROM "connection" WHERE deleted_at IS NULL' }),
+      const [groupRes, connRes] = await Promise.all([
+        scorix.invoke<GroupListRes>("group:list", {}),
+        scorix.invoke<ConnectionListRes>("connection:list", {}),
       ])
 
-      set({ groups, databases })
+      set({ groups: groupRes.items || [], databases: connRes.items || [] })
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
       toast.error(msg)
