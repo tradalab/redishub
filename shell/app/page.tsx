@@ -15,26 +15,29 @@ export default function Page() {
   const { selectedDb } = useAppContext()
   const { tabs, activeTabId } = useTabStore()
 
-  const activeTab = tabs?.find(t => t.id === activeTabId)
-
   return (
     <div className="flex flex-col h-full min-h-0">
       <TabBar />
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {activeTab ? (
-          <>
-            {activeTab.type === "general" && <ConnectionDetailTabGeneral connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-            {activeTab.type === "console" && <ConnectionDetailTabConsole connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-            {activeTab.type === "key-detail" && (
-              <ConnectionDetailTabKeyDetail connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} selectedKey={activeTab.key} />
-            )}
-            {activeTab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-            {activeTab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-            {activeTab.type === "monitor" && <ConnectionDetailTabMonitor connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-            {activeTab.type === "key-list" && <ConnectionDetailTabKeyList connectionId={activeTab.connectionId} databaseIdx={activeTab.databaseIdx} />}
-          </>
-        ) : (
+      <div className="flex-1 min-h-0 overflow-hidden relative">
+        {tabs.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">Select an item from the sidebar to open a tab</div>
+        ) : (
+          tabs.map(tab => {
+            const isActive = tab.id === activeTabId
+            return (
+              <div key={tab.id} className={`absolute inset-0 min-h-0 overflow-hidden ${isActive ? "" : "hidden"}`}>
+                {tab.type === "general" && <ConnectionDetailTabGeneral connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                {tab.type === "console" && <ConnectionDetailTabConsole connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                {tab.type === "key-detail" && (
+                  <ConnectionDetailTabKeyDetail connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} selectedKey={tab.key} />
+                )}
+                {tab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                {tab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                {tab.type === "monitor" && <ConnectionDetailTabMonitor connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                {tab.type === "key-list" && <ConnectionDetailTabKeyList connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+              </div>
+            )
+          })
         )}
       </div>
     </div>
