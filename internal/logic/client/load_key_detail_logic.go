@@ -47,6 +47,14 @@ func (l *LoadKeyDetailLogic) LoadKeyDetail(params *types.ClientLoadKeyDetailReq)
 		return nil, err
 	}
 
+	var ttlSec float64
+	switch ttl {
+	case -1, -2:
+		ttlSec = float64(ttl)
+	default:
+		ttlSec = ttl.Seconds()
+	}
+
 	switch strings.ToLower(kind) {
 	case "string":
 		var str string
@@ -77,7 +85,7 @@ func (l *LoadKeyDetailLogic) LoadKeyDetail(params *types.ClientLoadKeyDetailReq)
 		Key:   key,
 		Value: valueStr,
 		Kind:  strings.ToLower(kind),
-		Ttl:   ttl.Seconds(),
+		Ttl:   ttlSec,
 		Total: total,
 	}, nil
 }

@@ -66,8 +66,10 @@ export function SidebarBrowser() {
     if (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) keysQuery.fetchNextPage()
   }
   const loadAll = async () => {
-    while (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) {
-      await keysQuery.fetchNextPage()
+    if (!keysQuery.hasNextPage) return
+    let res = await keysQuery.fetchNextPage()
+    while (res.hasNextPage) {
+      res = await keysQuery.fetchNextPage()
     }
   }
   const deleteKey = async (key: string) => {
