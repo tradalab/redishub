@@ -1,6 +1,7 @@
 "use client"
 
 import { ReactNode } from "react"
+import { SlidersHorizontal } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { version } from "../../../package.json"
 import scorix from "@/lib/scorix"
@@ -23,6 +24,7 @@ export function SettingDialog({ children }: { children: ReactNode }) {
             {
               key: "general",
               label: t("general"),
+              icon: SlidersHorizontal,
               content: <SettingPanelGeneral />,
             },
           ]}

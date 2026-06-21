@@ -2,12 +2,14 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { LucideIcon } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 type PanelItemType = {
   key: string
   label: string
+  icon?: LucideIcon
   danger?: boolean
   hasError?: boolean
   content: ReactNode
@@ -59,7 +61,8 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
                 active === s.key ? "bg-background text-foreground shadow-sm" : s.danger ? "text-destructive" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <span className="relative">
+              <span className="relative flex items-center gap-2">
+                {s.icon && <s.icon className="h-4 w-4" />}
                 {s.label}
                 {s.hasError && <span className="absolute -top-1 -right-2 flex h-2 w-2 rounded-full bg-destructive" />}
               </span>
@@ -73,7 +76,7 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
         {/* Sidebar */}
         <aside className="hidden space-y-1 lg:block overflow-y-auto min-h-0 pr-1 [overflow:overlay]">
           {items?.map(s => (
-            <PanelItem key={s.key} active={active === s.key} danger={s.danger} hasError={s.hasError} onClick={() => navigate(s.key)}>
+            <PanelItem key={s.key} active={active === s.key} icon={s.icon} danger={s.danger} hasError={s.hasError} onClick={() => navigate(s.key)}>
               {s.label}
             </PanelItem>
           ))}
@@ -88,12 +91,13 @@ export function Panel({ name, items, enable_url }: { name?: string; items: Panel
 export interface PanelItemProps {
   children: ReactNode
   active?: boolean
+  icon?: LucideIcon
   danger?: boolean
   hasError?: boolean
   onClick?: () => void
 }
 
-function PanelItem({ children, active, danger, hasError, onClick }: PanelItemProps) {
+function PanelItem({ children, active, icon: Icon, danger, hasError, onClick }: PanelItemProps) {
   return (
     <div
       onClick={onClick}
@@ -102,7 +106,10 @@ function PanelItem({ children, active, danger, hasError, onClick }: PanelItemPro
         active ? "bg-muted font-medium" : danger ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:bg-muted"
       )}
     >
-      <span>{children}</span>
+      <span className="flex items-center gap-2">
+        {Icon && <Icon className="h-4 w-4 shrink-0" />}
+        {children}
+      </span>
       {hasError && <span className="h-2 w-2 rounded-full bg-destructive" />}
     </div>
   )
