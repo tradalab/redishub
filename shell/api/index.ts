@@ -22,6 +22,7 @@ export const client = {
   keysDeleteByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.serverStream<T.ClientKeysDeleteProgressEvent>("client:keys-delete-by-prefix", params),
   keysScanByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.invoke<T.ClientKeysScanByPrefixRes>("client:keys-scan-by-prefix", params),
   searchKeys: (params: T.ClientSearchKeysReq) => scorix.invoke<T.ClientSearchKeysRes>("client:search-keys", params),
+  setReadOnly: (params: T.ClientSetReadOnlyReq) => scorix.invoke<T.Empty>("client:set-read-only", params),
 };
 
 export const conn = {
