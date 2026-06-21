@@ -137,6 +137,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "client:set-read-only", func(ctx context.Context, r *types.ClientSetReadOnlyReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewSetReadOnlyLogic(ctx, svcCtx).SetReadOnly(a.(*types.ClientSetReadOnlyReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "conn:test", func(ctx context.Context, r *types.ConnectionReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return conn.NewTestLogic(ctx, svcCtx).Test(a.(*types.ConnectionReq))

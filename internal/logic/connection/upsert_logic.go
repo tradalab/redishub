@@ -63,6 +63,7 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 	c.ProxyID = params.ProxyId
 	c.TlsEnable = bToI(params.TlsEnable)
 	c.TlsID = params.TlsId
+	c.ReadOnly = bToI(params.ReadOnly)
 
 	if isNew || params.Password != "" {
 		c.Password = params.Password
@@ -79,6 +80,7 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 		if err := l.svcCtx.ConnectionModel.Update(l.ctx, c); err != nil {
 			return nil, err
 		}
+		l.svcCtx.RedisManager.SetReadOnly(c.ID, params.ReadOnly)
 	}
 
 	return &types.UpsertRes{Id: c.ID}, nil

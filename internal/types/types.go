@@ -162,6 +162,12 @@ type ClientSearchKeysRes struct {
 	Keys []string `json:"keys"`
 }
 
+type ClientSetReadOnlyReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	ReadOnly      bool   `json:"read_only"`
+}
+
 type ConnectionListRes struct {
 	Items []ConnectionReq `json:"items"`
 }
@@ -195,6 +201,7 @@ type ConnectionReq struct {
 	Tls              TlsReq   `json:"tls"`
 	GroupId          string   `json:"group_id"`
 	LastDb           int32    `json:"last_db"`
+	ReadOnly         bool     `json:"read_only"`
 }
 
 type ConsoleInputEvent struct {
