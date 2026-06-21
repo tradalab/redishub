@@ -20,6 +20,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Button } from "@/components/ui/button"
 import { useKeyDelete, useKeyDetail, useKeyNameUpdate, useKeyTtlUpdate } from "@/hooks/api/client.api"
+import { useReadOnly } from "@/hooks/api/connection.api"
 import { Spinner } from "@/components/ui/spinner"
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group"
 import { Label } from "@/components/ui/label"
@@ -36,6 +37,8 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   const { updateTab, removeTab, tabs, activeTabId } = useTabStore()
   void tabs
+
+  const readOnly = useReadOnly(connectionId)
 
   const query = useKeyDetail(connectionId, databaseIdx, selectedKey)
   const detail = query.data
@@ -127,28 +130,35 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           <ButtonGroupText asChild>
             <Label htmlFor="url">{kind?.toUpperCase()}</Label>
           </ButtonGroupText>
-          <Input value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} />
+          <Input value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} disabled={readOnly} />
           <Button
             variant="outline"
             aria-label="Save"
             className={cn("", { "cursor-pointer": !!newKeyName })}
-            disabled={!newKeyName}
+            disabled={!newKeyName || readOnly}
             onClick={() => updateKeyName()}
           >
             <SaveIcon />
           </Button>
         </ButtonGroup>
         <div className="flex gap-3.5 items-center justify-center">
-          <KeyTtlUpdateDialog reload={reload} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
-            <div className="relative w-full cursor-pointer">
+          {readOnly ? (
+            <div className="relative w-full" title={t("read_only_blocked")}>
               <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
               <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
             </div>
-          </KeyTtlUpdateDialog>
+          ) : (
+            <KeyTtlUpdateDialog reload={reload} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
+              <div className="relative w-full cursor-pointer">
+                <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
+                <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
+              </div>
+            </KeyTtlUpdateDialog>
+          )}
           <Button size="icon-sm" variant="outline" onClick={reload}>
             <RefreshCcwIcon />
           </Button>
-          <Button size="icon-sm" variant="outline" onClick={() => handleDelete(selectedKey)}>
+          <Button size="icon-sm" variant="outline" disabled={readOnly} title={readOnly ? t("read_only_blocked") : undefined} onClick={() => handleDelete(selectedKey)}>
             <Trash2Icon />
           </Button>
         </div>
@@ -164,6 +174,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
           loading={loading}
           setLoading={setLoading}
           reload={reload}
+          readOnly={readOnly}
         />
       </div>
     </div>
@@ -180,24 +191,25 @@ type ViewKeyDataProps = {
   kind?: string
   reloadToken: number
   reload: () => void
+  readOnly?: boolean
 }
 
-function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reloadToken, reload }: ViewKeyDataProps) {
+function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reloadToken, reload, readOnly }: ViewKeyDataProps) {
   switch (kind) {
     case "string":
-      return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} />
+      return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} readOnly={readOnly} />
     case "json":
       return <CodeEditor value={value} language="json" autoFormat={true} defaultHeight={400} options={{ readOnly: true, minimap: { enabled: false } }} />
     case "list":
-      return <KeyDetailList databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
+      return <KeyDetailList databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
     case "hash":
-      return <KeyDetailHash databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
+      return <KeyDetailHash databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
     case "set":
-      return <KeyDetailSet databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
+      return <KeyDetailSet databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
     case "zset":
-      return <KeyDetailZset databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
+      return <KeyDetailZset databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
     case "stream":
-      return <KeyDetailStream databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} />
+      return <KeyDetailStream databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
     case "rejson-rl":
       return <div></div>
     default:

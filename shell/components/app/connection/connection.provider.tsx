@@ -29,6 +29,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       ssh_enable: false,
       tls_id: "",
       tls_enable: false,
+      read_only: false,
       mode: RedisModeEnum.STANDALONE,
     })
     setOpen(true)
