@@ -34,7 +34,10 @@ jobs:
           cache-dependency-path: shell/pnpm-lock.yaml
 
       - name: Install WiX v6
-        run: dotnet tool install --global wix --version 6.0.2
+        run: |
+          dotnet tool install --global wix --version 6.0.2
+          wix extension add -g WixToolset.UI.wixext/6.0.2
+          wix extension add -g WixToolset.Util.wixext/6.0.2
 
       - name: Put Windows SDK signtool on PATH
         shell: pwsh
@@ -44,7 +47,7 @@ jobs:
           Split-Path $st.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install scorix CLI
-        run: go install github.com/tradalab/scorix/cmd/scorix@v0.7.0
+        run: go install github.com/tradalab/scorix/cmd/scorix@v0.9.0
 
       - name: Install frontend deps
         working-directory: shell
