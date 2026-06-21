@@ -37,8 +37,8 @@ jobs:
           file: docker/Dockerfile_web
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-web:${{ steps.vars.outputs.short_sha }}
-            ghcr.io/${{ github.repository }}-web:latest
+            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.short_sha }}
+            ghcr.io/${{ github.repository }}:latest
 
       - name: Setup SSH (GitLab)
         run: |
@@ -55,13 +55,13 @@ jobs:
           TARGET_FILE="k8s/app/redishub/web/overlays/prod/patch-image.yaml"
           
           if [ -f "$TARGET_FILE" ]; then
-            sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}-web:${{ steps.vars.outputs.short_sha }}|" "$TARGET_FILE"
+            sed -i "s|^\(\s*image:\s*\).*|\1ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.short_sha }}|" "$TARGET_FILE"
           fi
 
           git config user.email "gitops-bot@tradalab.com"
           git config user.name "gitops-bot"
 
-          git commit -am "ci(redishub): update web image ghcr.io/${{ github.repository }}-web:${{ steps.vars.outputs.short_sha }}"
+          git commit -am "ci(redishub): update web image ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.short_sha }}"
           git push
         env:
           GITOPS_GITLAB_SSH_KEY: ${{ secrets.GITOPS_GITLAB_SSH_KEY }}

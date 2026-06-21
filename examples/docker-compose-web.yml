@@ -1,6 +1,6 @@
 services:
   redisui:
-    image: ghcr.io/tradalab/redishub-web:latest
+    image: ghcr.io/tradalab/redishub:latest
     ports:
       - "8080:8080"
     volumes:
