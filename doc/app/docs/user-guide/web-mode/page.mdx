@@ -28,6 +28,10 @@ variables (no rebuild) — the recommended path for Docker:
 - `SCORIX_MODE`: set to `web` to enable web mode (or pass `--mode web`).
 - `SCORIX_WEB_HOST`: the IP address to bind the server (e.g., `0.0.0.0`).
 - `SCORIX_WEB_PORT`: the port to listen on (default `8080`).
+- `SCORIX_MASTER_KEY` (**required in Docker/web**): base64-encoded 32-byte key used to encrypt saved credentials (Redis/Sentinel passwords, SSH keys & passphrases, TLS keys). On desktop this key lives in the OS keychain, but containers have no keychain — so you must supply it explicitly. Generate one with `openssl rand -base64 32`.
+
+> [!IMPORTANT]
+> Generate `SCORIX_MASTER_KEY` **once** and reuse the exact same value on every start. Store it in a secret manager — not in the image. If the key is missing the server refuses to start; if it later **changes or is lost, all stored credentials become permanently unrecoverable** (you'd have to re-enter every password). Back it up together with `app.dat`.
 
 ---
 
@@ -38,11 +42,15 @@ Using Docker is the recommended way to deploy RedisHub in web mode.
 ### 1. Run via Docker CLI
 
 ```bash
+# Generate the master key ONCE, store it safely, and reuse the same value every run:
+export SCORIX_MASTER_KEY="$(openssl rand -base64 32)"
+
 docker run -d \
   --name redishub \
   -p 8080:8080 \
   -v redishub_data:/root/.local/share/RedisHub \
   -e SCORIX_MODE=web \
+  -e SCORIX_MASTER_KEY="$SCORIX_MASTER_KEY" \
   ghcr.io/tradalab/redishub:latest
 ```
 
@@ -61,6 +69,10 @@ services:
       - SCORIX_MODE=web
       - SCORIX_WEB_HOST=0.0.0.0
       - SCORIX_WEB_PORT=8080
+      # Generate once (`openssl rand -base64 32`) and keep it stable; losing it
+      # makes all stored credentials unrecoverable. Provide it via the host env
+      # or a .env file — never bake it into the image.
+      - SCORIX_MASTER_KEY=${SCORIX_MASTER_KEY:?set a base64 32-byte key, e.g. `openssl rand -base64 32`}
     volumes:
       - redishub_data:/root/.local/share/RedisHub
     restart: unless-stopped
