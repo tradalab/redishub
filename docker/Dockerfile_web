@@ -1,4 +1,3 @@
-# 1. Base Node image
 FROM node:22-alpine AS node-base
 WORKDIR /app
 
@@ -9,7 +8,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN apk add --no-cache libc6-compat
 
 
-# 2. Install frontend deps
 FROM node-base AS next-deps
 
 ARG SHELL_DIR=shell
@@ -33,7 +31,6 @@ RUN set -eux; \
     fi
 
 
-# 3. Build frontend
 FROM node-base AS next-builder
 WORKDIR /app
 
@@ -43,8 +40,6 @@ ARG ENV_FILE=${SHELL_DIR}/.env.${BUILD_ENV}
 
 COPY --from=next-deps /app/node_modules ./node_modules
 COPY ${SHELL_DIR}/ ./
-
-# Explicit env copy
 COPY ${ENV_FILE} .env.production
 
 RUN mkdir -p public/monaco-editor && cp -r node_modules/monaco-editor/min/vs public/monaco-editor/vs
@@ -60,41 +55,32 @@ RUN set -eux; \
     echo "No lockfile found" && exit 1; \
     fi
 
-# 4. Go + Web builder
+
 FROM golang:1.26-alpine AS web-builder
 
 RUN apk add --no-cache gcc musl-dev
 
 WORKDIR /workspace
 
-# Cache Go modules
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source
 COPY . .
-
-# Inject frontend artifacts
 COPY --from=next-builder /app/dist /workspace/.scorix/dist
 
-# Build image
 RUN CGO_ENABLED=1 GOOS=linux go build -tags server -ldflags "-s -w" -o /workspace/redishub .
 
 
-# 5. Final Runner
 FROM alpine:latest
 WORKDIR /app
 
-# Install runtime dependencies
 RUN apk add --no-cache ca-certificates tzdata
 
-# Copy binary only. Config is embedded in the binary (//go:embed scorix.yaml),
-# so no config file is shipped or rewritten at runtime.
+# Config is embedded in the binary (//go:embed scorix.yaml), so no config file
+# is shipped or rewritten at runtime — everything is set via env, read by scorix
+# at startup (SCORIX_MODE selects web mode; SCORIX_WEB_HOST/PORT set the listen addr).
 COPY --from=web-builder /workspace/redishub /app/redishub
 
-# Everything is configured via env, read by scorix at startup:
-#   SCORIX_MODE      -> --mode default (main.go) selects web mode
-#   SCORIX_WEB_HOST/PORT -> cfg.Web -> a.WebAddr() listen address
 ENV SCORIX_MODE=web
 ENV SCORIX_WEB_HOST=0.0.0.0
 ENV SCORIX_WEB_PORT=8080

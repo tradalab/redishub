@@ -42,10 +42,6 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 | **Docker** | any recent | needed only for local Redis instances |
 | **scorix CLI** | latest | `go install github.com/tradalab/scorix/cmd/scorix@latest` (drives `make dev/generate/build/package`) |
 
-> **No C compiler required.** RedisHub is pure Go — SQLite is `modernc.org/sqlite` (no CGO) and the
-> webview is driven natively per-OS through `purego` (WebView2 COM on Windows, WKWebView on macOS,
-> WebKitGTK on Linux). There is no `gcc`/CGO build step.
-
 **Runtime dependencies** (the app loads these at startup, they are not build deps):
 
 - **Windows** — [WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (preinstalled on Windows 11 / recent Windows 10).
@@ -123,7 +119,7 @@ redishub/
 │   │   ├── ssh/ tls/ proxy/ # SSH / TLS / proxy profile CRUD + tests
 │   │   ├── group/ setting/  # Connection groups & user settings
 │   │   └── system/          # System info
-│   ├── model/               # Generated sqlx models + secrets handling (modernc/sqlite)
+│   ├── model/               # Generated sqlx models + secrets handling
 │   ├── svc/                 # Service context + Redis client manager
 │   └── config/              # Config struct (embeds scorix config)
 ├── pkg/
