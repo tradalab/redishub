@@ -2,6 +2,27 @@
 
 ---
 
+## [1.12.0]
+
+### 🚀 Features
+
+- **shell:** Persist open tabs and their state across restarts (#87)
+- **core:** Migrate to the Scorix native runtime (no-CGO WebView2) for a lighter, faster desktop app
+- **ipc:** Move Go ↔ JS communication to the auto-injected `window.scorix` bridge
+
+### 🐛 Fixes
+
+- **windows:** Fix blurry UI on high-DPI / scaled displays by enabling Per-Monitor-V2 DPI awareness
+- **keys:** Fix load-all-keys behavior and TTL formatting
+
+### ♻️ Improvements & Refactors
+
+- **shell:** Rework the data layer onto TanStack Query API hooks for more predictable state (#86)
+- **core:** Migrate business logic to the new Scorix model layer (#84)
+- **test:** Add Vitest setup and tests for the command engine
+
+---
+
 ## [1.11.0]
 
 ### 🚀 Features

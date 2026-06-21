@@ -2,15 +2,36 @@
 
 ---
 
+## [1.12.0]
+
+### 🚀 Features
+
+- **shell:** Persist open tabs and their state across restarts (#87)
+- **core:** Migrate to the Scorix native runtime (no-CGO WebView2) for a lighter, faster desktop app
+- **ipc:** Move Go ↔ JS communication to the auto-injected `window.scorix` bridge
+
+### 🐛 Fixes
+
+- **windows:** Fix blurry UI on high-DPI / scaled displays by enabling Per-Monitor-V2 DPI awareness
+- **keys:** Fix load-all-keys behavior and TTL formatting
+
+### ♻️ Improvements & Refactors
+
+- **shell:** Rework the data layer onto TanStack Query API hooks for more predictable state (#86)
+- **core:** Migrate business logic to the new Scorix model layer (#84)
+- **test:** Add Vitest setup and tests for the command engine
+
+---
+
 ## [1.11.0]
 
 ### 🚀 Features
 
 - **monitor:** Add real-time Redis MONITOR support with performance warnings (#71)
 - **ui:** Add Compact Mode for higher density layout (#69)
-- **ui:** Upgrade Command Palette with smart suggestions, persistent history, and safety confirmations for dangerous commands (#81)
-- **ui:** Add bulk delete keys by prefix (#74)
-- **ui:** Add manual and auto-refresh controls for connection details (#76)
+- **command:** Upgrade Command Palette with smart suggestions, persistent history, and safety confirmations for dangerous commands (#81)
+- **keys:** Add bulk delete keys by prefix (#74)
+- **connection:** Add manual and auto-refresh controls for connection details (#76)
 - **core:** Upgrade to Next.js 15 and Shadcn UI (#68)
 - **docker:** Support multi-platform web docker builds (#73)
 

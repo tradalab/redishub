@@ -43,7 +43,7 @@ docker run -d \
   -p 8080:8080 \
   -v redishub_data:/root/.local/share/RedisHub \
   -e SCORIX_MODE=web \
-  ghcr.io/tradalab/redishub-web:latest
+  ghcr.io/tradalab/redishub:latest
 ```
 
 ### 2. Using Docker Compose
@@ -53,7 +53,7 @@ Create a `docker-compose.yaml` file (based on `examples/docker-compose-web.yml`)
 ```yaml
 services:
   redishub:
-    image: ghcr.io/tradalab/redishub-web:latest
+    image: ghcr.io/tradalab/redishub:latest
     container_name: redishub
     ports:
       - "8080:8080"
