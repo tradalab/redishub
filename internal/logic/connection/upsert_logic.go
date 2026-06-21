@@ -49,10 +49,8 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 	c.Addrs = params.Addrs
 	c.SentinelMaster = params.SentinelMaster
 	c.SentinelUsername = params.SentinelUsername
-	c.SentinelPassword = params.SentinelPassword
 	c.Sock = params.Sock
 	c.Username = params.Username
-	c.Password = params.Password
 	c.AddrMapping = params.AddrMapping
 	c.LastDb = int64(params.LastDb)
 	c.ExecTimeout = params.ExecTimeout
@@ -65,6 +63,13 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 	c.ProxyID = params.ProxyId
 	c.TlsEnable = bToI(params.TlsEnable)
 	c.TlsID = params.TlsId
+
+	if isNew || params.Password != "" {
+		c.Password = params.Password
+	}
+	if isNew || params.SentinelPassword != "" {
+		c.SentinelPassword = params.SentinelPassword
+	}
 
 	if isNew {
 		if _, err := l.svcCtx.ConnectionModel.Insert(l.ctx, c); err != nil {

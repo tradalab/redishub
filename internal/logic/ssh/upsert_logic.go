@@ -45,10 +45,17 @@ func (l *UpsertLogic) Upsert(params *types.SshReq) (*types.UpsertRes, error) {
 	s.Port = int64(params.Port)
 	s.Username = params.Username
 	s.Kind = params.Kind
-	s.Password = params.Password
-	s.PrivateKey = params.PrivateKey
-	s.Passphrase = params.Passphrase
 	s.Timeout = params.Timeout
+
+	if isNew || params.Password != "" {
+		s.Password = params.Password
+	}
+	if isNew || params.PrivateKey != "" {
+		s.PrivateKey = params.PrivateKey
+	}
+	if isNew || params.Passphrase != "" {
+		s.Passphrase = params.Passphrase
+	}
 
 	if isNew {
 		if _, err := l.svcCtx.SshModel.Insert(l.ctx, s); err != nil {

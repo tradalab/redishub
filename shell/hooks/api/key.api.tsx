@@ -17,7 +17,7 @@ function invalidatePage(
 export function useHashFieldDel(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: keyApi.hashfielddel,
+    mutationFn: keyApi.hashFieldDel,
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }
@@ -25,7 +25,7 @@ export function useHashFieldDel(connectionId: string, databaseIdx: number) {
 export function useListItemDel(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: keyApi.listitemdel,
+    mutationFn: keyApi.listItemDel,
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }
@@ -33,7 +33,7 @@ export function useListItemDel(connectionId: string, databaseIdx: number) {
 export function useSetMemberDel(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: keyApi.setmemberdel,
+    mutationFn: keyApi.setMemberDel,
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }
@@ -41,7 +41,7 @@ export function useSetMemberDel(connectionId: string, databaseIdx: number) {
 export function useZsetMemberDel(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: keyApi.zsetmemberdel,
+    mutationFn: keyApi.zSetMemberDel,
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }
@@ -49,7 +49,7 @@ export function useZsetMemberDel(connectionId: string, databaseIdx: number) {
 export function useStreamEntryDel(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: keyApi.streamentrydel,
+    mutationFn: keyApi.streamEntryDel,
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }

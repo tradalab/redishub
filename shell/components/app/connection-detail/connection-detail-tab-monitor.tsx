@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import { useMonitorActive, useMonitorEvents, useMonitorStart, useMonitorStop } from "@/hooks/api/monitor.api"
+import { useMonitorSession } from "@/hooks/api/monitor.api"
 import { Trash2, Play, Pause, Activity, Search, RefreshCcwIcon } from "lucide-react"
 
 interface MonitorMessage {
@@ -23,26 +23,19 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 	const [filterKeyword, setFilterKeyword] = useState("")
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const startMutation = useMonitorStart()
-	const stopMutation = useMonitorStop()
-	const isMonitoring = useMonitorActive(connectionId, databaseIdx)
-	const isLoading = startMutation.isPending || stopMutation.isPending
+	const onMessage = useCallback((line: string) => {
+		setMessages(prev => {
+			const updated = [...prev, { time: Date.now(), message: line }]
+			if (updated.length > MAX_MESSAGES) return updated.slice(updated.length - MAX_MESSAGES)
+			return updated
+		})
+	}, [])
 
-	const startMonitor = useCallback(async () => {
-		try {
-			await startMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx })
-		} catch (err) {
-			console.error("Monitor start failed:", err)
-		}
-	}, [startMutation, connectionId, databaseIdx])
-
-	const stopMonitor = useCallback(async () => {
-		try {
-			await stopMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx })
-		} catch (err) {
-			console.error("Monitor stop failed:", err)
-		}
-	}, [stopMutation, connectionId, databaseIdx])
+	const { active: isMonitoring, loading: isLoading, start: startMonitor, stop: stopMonitor } = useMonitorSession(
+		connectionId,
+		databaseIdx,
+		onMessage,
+	)
 
 	useEffect(() => {
 		startMonitor()
@@ -51,16 +44,6 @@ export function ConnectionDetailTabMonitor({ connectionId, databaseIdx }: { conn
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [connectionId])
-
-	const onMessage = useCallback((payload: any) => {
-		setMessages(prev => {
-			const updated = [...prev, { time: Date.now(), message: payload }]
-			if (updated.length > MAX_MESSAGES) return updated.slice(updated.length - MAX_MESSAGES)
-			return updated
-		})
-	}, [])
-
-	useMonitorEvents(connectionId, { onMessage })
 
 	const filteredMessages = useMemo(() => {
 		if (!filterKeyword) return messages

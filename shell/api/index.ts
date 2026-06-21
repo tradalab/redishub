@@ -6,22 +6,22 @@ import type * as T from "@/types";
 
 export const client = {
   connect: (params: T.ClientConnectReq) => scorix.invoke<T.Empty>("client:connect", params),
-  consoleconnect: (params: T.ClientConnectReq) => scorix.invoke<T.Empty>("client:console-connect", params),
+  consoleConnect: (params: T.ClientConnectReq) => scorix.invoke<T.Empty>("client:console-connect", params),
   disconnect: (params: T.ClientDisconnectReq) => scorix.invoke<T.Empty>("client:disconnect", params),
   general: (params: T.ClientGeneralReq) => scorix.invoke<T.ClientGeneralRes>("client:general", params),
-  getslowquery: (params: T.ClientGetSlowQueryReq) => scorix.invoke<T.ClientGetSlowQueryRes>("client:get-slow-query", params),
-  loadallkeys: (params: T.ClientLoadAllKeysReq) => scorix.invoke<T.ClientLoadAllKeysRes>("client:load-all-keys", params),
-  loadkeydetail: (params: T.ClientLoadKeyDetailReq) => scorix.invoke<T.ClientLoadKeyDetailRes>("client:load-key-detail", params),
-  loadkeyvaluepage: (params: T.ClientLoadKeyValuePageReq) => scorix.invoke<T.ClientLoadKeyValuePageRes>("client:load-key-value-page", params),
-  keycreate: (params: T.ClientKeyCreateReq) => scorix.invoke<T.Empty>("client:key-create", params),
-  keydelete: (params: T.ClientKeyDeleteReq) => scorix.invoke<T.Empty>("client:key-delete", params),
-  keynameupdate: (params: T.ClientKeyNameUpdateReq) => scorix.invoke<T.Empty>("client:key-name-update", params),
-  keyttlupdate: (params: T.ClientKeyTtlUpdateReq) => scorix.invoke<T.Empty>("client:key-ttl-update", params),
-  keyvalueupdate: (params: T.ClientKeyValueUpdateReq) => scorix.invoke<T.Empty>("client:key-value-update", params),
-  keysmetadata: (params: T.ClientKeysMetadataReq) => scorix.invoke<T.ClientKeysMetadataRes>("client:keys-metadata", params),
-  keysdeletebyprefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.invoke<T.ClientKeysDeleteByPrefixRes>("client:keys-delete-by-prefix", params),
-  keysscanbyprefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.invoke<T.ClientKeysScanByPrefixRes>("client:keys-scan-by-prefix", params),
-  searchkeys: (params: T.ClientSearchKeysReq) => scorix.invoke<T.ClientSearchKeysRes>("client:search-keys", params),
+  getSlowQuery: (params: T.ClientGetSlowQueryReq) => scorix.invoke<T.ClientGetSlowQueryRes>("client:get-slow-query", params),
+  loadAllKeys: (params: T.ClientLoadAllKeysReq) => scorix.invoke<T.ClientLoadAllKeysRes>("client:load-all-keys", params),
+  loadKeyDetail: (params: T.ClientLoadKeyDetailReq) => scorix.invoke<T.ClientLoadKeyDetailRes>("client:load-key-detail", params),
+  loadKeyValuePage: (params: T.ClientLoadKeyValuePageReq) => scorix.invoke<T.ClientLoadKeyValuePageRes>("client:load-key-value-page", params),
+  keyCreate: (params: T.ClientKeyCreateReq) => scorix.invoke<T.Empty>("client:key-create", params),
+  keyDelete: (params: T.ClientKeyDeleteReq) => scorix.invoke<T.Empty>("client:key-delete", params),
+  keyNameUpdate: (params: T.ClientKeyNameUpdateReq) => scorix.invoke<T.Empty>("client:key-name-update", params),
+  keyTtlUpdate: (params: T.ClientKeyTtlUpdateReq) => scorix.invoke<T.Empty>("client:key-ttl-update", params),
+  keyValueUpdate: (params: T.ClientKeyValueUpdateReq) => scorix.invoke<T.Empty>("client:key-value-update", params),
+  keysMetadata: (params: T.ClientKeysMetadataReq) => scorix.invoke<T.ClientKeysMetadataRes>("client:keys-metadata", params),
+  keysDeleteByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.serverStream<T.ClientKeysDeleteProgressEvent>("client:keys-delete-by-prefix", params),
+  keysScanByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.invoke<T.ClientKeysScanByPrefixRes>("client:keys-scan-by-prefix", params),
+  searchKeys: (params: T.ClientSearchKeysReq) => scorix.invoke<T.ClientSearchKeysRes>("client:search-keys", params),
 };
 
 export const conn = {
@@ -29,24 +29,29 @@ export const conn = {
 };
 
 export const key = {
-  hashfielddel: (params: T.KeyHashFieldDelReq) => scorix.invoke<T.Empty>("key:hash-field-del", params),
-  listitemdel: (params: T.KeyListItemDelReq) => scorix.invoke<T.Empty>("key:list-item-del", params),
+  hashFieldDel: (params: T.KeyHashFieldDelReq) => scorix.invoke<T.Empty>("key:hash-field-del", params),
+  listItemDel: (params: T.KeyListItemDelReq) => scorix.invoke<T.Empty>("key:list-item-del", params),
   load: (params: T.KeyLoadReq) => scorix.invoke<T.KeyLoadRes>("key:load", params),
-  setmemberdel: (params: T.KeySetMemberDelReq) => scorix.invoke<T.Empty>("key:set-member-del", params),
-  streamentrydel: (params: T.KeyStreamEntryDelReq) => scorix.invoke<T.Empty>("key:stream-entry-del", params),
-  zsetmemberdel: (params: T.KeyZSetMemberDelReq) => scorix.invoke<T.Empty>("key:z-set-member-del", params),
+  setMemberDel: (params: T.KeySetMemberDelReq) => scorix.invoke<T.Empty>("key:set-member-del", params),
+  streamEntryDel: (params: T.KeyStreamEntryDelReq) => scorix.invoke<T.Empty>("key:stream-entry-del", params),
+  zSetMemberDel: (params: T.KeyZSetMemberDelReq) => scorix.invoke<T.Empty>("key:z-set-member-del", params),
 };
 
 export const monitor = {
-  start: (params: T.MonitorReq) => scorix.invoke<T.Empty>("monitor:start", params),
+  start: (params: T.MonitorReq) => scorix.serverStream<T.MonitorFrame>("monitor:start", params),
   stop: (params: T.MonitorReq) => scorix.invoke<T.Empty>("monitor:stop", params),
   status: (params: T.MonitorReq) => scorix.invoke<T.MonitorStatusRes>("monitor:status", params),
 };
 
 export const pubsub = {
+  stream: (params: T.PubSubStreamReq) => scorix.serverStream<T.PubsubMessageEvent>("pubsub:stream", params),
   subscribe: (params: T.PubSubSubscribeReq) => scorix.invoke<T.Empty>("pubsub:subscribe", params),
   unsubscribe: (params: T.PubSubSubscribeReq) => scorix.invoke<T.Empty>("pubsub:unsubscribe", params),
   publish: (params: T.PubSubPublishReq) => scorix.invoke<T.Empty>("pubsub:publish", params),
+};
+
+export const console = {
+  exec: (params: T.ConsoleInputEvent) => scorix.serverStream<T.ConsoleOutputEvent>("console:exec", params),
 };
 
 export const proxy = {

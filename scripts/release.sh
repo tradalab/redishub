@@ -11,10 +11,10 @@ fi
 
 echo "Releasing version: $VERSION"
 
-# update app.yaml
+# update scorix.yaml (single config source). current_version is removed — the
+# updater defaults it from app.version, so only app.version is bumped here.
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' -E "s/(version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
-  sed -i '' -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
+  sed -i '' -E "s/^([[:space:]]*version:[[:space:]]*).*/\1$VERSION/" scorix.yaml
 
   # update doc env
   if [ -f "doc/.env.production" ]; then
@@ -27,8 +27,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sed -i '' -E "s/\"version\": \"[^\"]+\"/\"version\": \"$VERSION\"/" doc/package.json
   fi
 else
-  sed -i -E "s/(version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
-  sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
+  sed -i -E "s/^([[:space:]]*version:[[:space:]]*).*/\1$VERSION/" scorix.yaml
 
   # update doc env
   if [ -f "doc/.env.production" ]; then

@@ -3,7 +3,6 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/tradalab/rdms/internal/svc"
@@ -20,12 +19,6 @@ func NewSubscribeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Subscri
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
-}
-
-type PubsubMessage struct {
-	Channel string `json:"channel"`
-	Message string `json:"message"`
-	Pattern string `json:"pattern,omitempty"`
 }
 
 func (l *SubscribeLogic) Subscribe(params *types.PubSubSubscribeReq) (*types.Empty, error) {
@@ -63,28 +56,6 @@ func (l *SubscribeLogic) Subscribe(params *types.PubSubSubscribeReq) (*types.Emp
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if !c.PubSubActive {
-		c.PubSubActive = true
-		eventOut := fmt.Sprintf("pubsub:message:%s", params.ConnectionId)
-
-		go func() {
-			defer func() {
-				c.PubSubMu.Lock()
-				c.PubSubActive = false
-				c.PubSubMu.Unlock()
-			}()
-
-			ch := c.PubSub.Channel()
-			for msg := range ch {
-				l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, PubsubMessage{
-					Channel: msg.Channel,
-					Message: msg.Payload,
-					Pattern: msg.Pattern,
-				})
-			}
-		}()
 	}
 
 	return &types.Empty{}, nil

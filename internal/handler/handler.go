@@ -3,9 +3,12 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+
 	"github.com/tradalab/rdms/internal/logic/client"
 	"github.com/tradalab/rdms/internal/logic/conn"
 	"github.com/tradalab/rdms/internal/logic/connection"
+	"github.com/tradalab/rdms/internal/logic/console"
 	"github.com/tradalab/rdms/internal/logic/group"
 	"github.com/tradalab/rdms/internal/logic/key"
 	"github.com/tradalab/rdms/internal/logic/monitor"
@@ -17,369 +20,324 @@ import (
 	"github.com/tradalab/rdms/internal/logic/tls"
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
+	"github.com/tradalab/scorix/app"
 )
 
-func RegisterHandlers(svcCtx *svc.ServiceContext) {
-	handlers := map[string]any{
-		"client:connect": func(ctx context.Context, args *types.ClientConnectReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewConnectLogic(ctx, svcCtx).Connect(a.(*types.ClientConnectReq))
+// reg registers one command on the app: it unmarshals the JSON payload into
+// *Req and dispatches to the logic.
+func reg[Req any](a *app.App, name string, call func(context.Context, *Req) (any, error)) {
+	a.Command(name, func(ctx context.Context, data json.RawMessage, _ app.ChunkStream) (any, error) {
+		var req Req
+		if len(data) > 0 && string(data) != "null" {
+			if err := json.Unmarshal(data, &req); err != nil {
+				return nil, err
 			}
-			return h(ctx, args)
-		},
-		"client:console-connect": func(ctx context.Context, args *types.ClientConnectReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewConsoleConnectLogic(ctx, svcCtx).ConsoleConnect(a.(*types.ClientConnectReq))
-			}
-			return h(ctx, args)
-		},
-		"client:disconnect": func(ctx context.Context, args *types.ClientDisconnectReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewDisconnectLogic(ctx, svcCtx).Disconnect(a.(*types.ClientDisconnectReq))
-			}
-			return h(ctx, args)
-		},
-		"client:general": func(ctx context.Context, args *types.ClientGeneralReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewGeneralLogic(ctx, svcCtx).General(a.(*types.ClientGeneralReq))
-			}
-			return h(ctx, args)
-		},
-		"client:get-slow-query": func(ctx context.Context, args *types.ClientGetSlowQueryReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewGetSlowQueryLogic(ctx, svcCtx).GetSlowQuery(a.(*types.ClientGetSlowQueryReq))
-			}
-			return h(ctx, args)
-		},
-		"client:load-all-keys": func(ctx context.Context, args *types.ClientLoadAllKeysReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewLoadAllKeysLogic(ctx, svcCtx).LoadAllKeys(a.(*types.ClientLoadAllKeysReq))
-			}
-			return h(ctx, args)
-		},
-		"client:load-key-detail": func(ctx context.Context, args *types.ClientLoadKeyDetailReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewLoadKeyDetailLogic(ctx, svcCtx).LoadKeyDetail(a.(*types.ClientLoadKeyDetailReq))
-			}
-			return h(ctx, args)
-		},
-		"client:load-key-value-page": func(ctx context.Context, args *types.ClientLoadKeyValuePageReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewLoadKeyValuePageLogic(ctx, svcCtx).LoadKeyValuePage(a.(*types.ClientLoadKeyValuePageReq))
-			}
-			return h(ctx, args)
-		},
-		"client:key-create": func(ctx context.Context, args *types.ClientKeyCreateReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeyCreateLogic(ctx, svcCtx).KeyCreate(a.(*types.ClientKeyCreateReq))
-			}
-			return h(ctx, args)
-		},
-		"client:key-delete": func(ctx context.Context, args *types.ClientKeyDeleteReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeyDeleteLogic(ctx, svcCtx).KeyDelete(a.(*types.ClientKeyDeleteReq))
-			}
-			return h(ctx, args)
-		},
-		"client:key-name-update": func(ctx context.Context, args *types.ClientKeyNameUpdateReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeyNameUpdateLogic(ctx, svcCtx).KeyNameUpdate(a.(*types.ClientKeyNameUpdateReq))
-			}
-			return h(ctx, args)
-		},
-		"client:key-ttl-update": func(ctx context.Context, args *types.ClientKeyTtlUpdateReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeyTtlUpdateLogic(ctx, svcCtx).KeyTtlUpdate(a.(*types.ClientKeyTtlUpdateReq))
-			}
-			return h(ctx, args)
-		},
-		"client:key-value-update": func(ctx context.Context, args *types.ClientKeyValueUpdateReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeyValueUpdateLogic(ctx, svcCtx).KeyValueUpdate(a.(*types.ClientKeyValueUpdateReq))
-			}
-			return h(ctx, args)
-		},
-		"client:keys-metadata": func(ctx context.Context, args *types.ClientKeysMetadataReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeysMetadataLogic(ctx, svcCtx).KeysMetadata(a.(*types.ClientKeysMetadataReq))
-			}
-			return h(ctx, args)
-		},
-		"client:keys-delete-by-prefix": func(ctx context.Context, args *types.ClientKeysDeleteByPrefixReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeysDeleteByPrefixLogic(ctx, svcCtx).KeysDeleteByPrefix(a.(*types.ClientKeysDeleteByPrefixReq))
-			}
-			return h(ctx, args)
-		},
-		"client:keys-scan-by-prefix": func(ctx context.Context, args *types.ClientKeysDeleteByPrefixReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewKeysScanByPrefixLogic(ctx, svcCtx).KeysScanByPrefix(a.(*types.ClientKeysDeleteByPrefixReq))
-			}
-			return h(ctx, args)
-		},
-		"client:search-keys": func(ctx context.Context, args *types.ClientSearchKeysReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return client.NewSearchKeysLogic(ctx, svcCtx).SearchKeys(a.(*types.ClientSearchKeysReq))
-			}
-			return h(ctx, args)
-		},
-		"conn:test": func(ctx context.Context, args *types.ConnectionReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return conn.NewTestLogic(ctx, svcCtx).Test(a.(*types.ConnectionReq))
-			}
-			return h(ctx, args)
-		},
-		"key:hash-field-del": func(ctx context.Context, args *types.KeyHashFieldDelReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewHashFieldDelLogic(ctx, svcCtx).HashFieldDel(a.(*types.KeyHashFieldDelReq))
-			}
-			return h(ctx, args)
-		},
-		"key:list-item-del": func(ctx context.Context, args *types.KeyListItemDelReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewListItemDelLogic(ctx, svcCtx).ListItemDel(a.(*types.KeyListItemDelReq))
-			}
-			return h(ctx, args)
-		},
-		"key:load": func(ctx context.Context, args *types.KeyLoadReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewLoadLogic(ctx, svcCtx).Load(a.(*types.KeyLoadReq))
-			}
-			return h(ctx, args)
-		},
-		"key:set-member-del": func(ctx context.Context, args *types.KeySetMemberDelReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewSetMemberDelLogic(ctx, svcCtx).SetMemberDel(a.(*types.KeySetMemberDelReq))
-			}
-			return h(ctx, args)
-		},
-		"key:stream-entry-del": func(ctx context.Context, args *types.KeyStreamEntryDelReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewStreamEntryDelLogic(ctx, svcCtx).StreamEntryDel(a.(*types.KeyStreamEntryDelReq))
-			}
-			return h(ctx, args)
-		},
-		"key:z-set-member-del": func(ctx context.Context, args *types.KeyZSetMemberDelReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return key.NewZSetMemberDelLogic(ctx, svcCtx).ZSetMemberDel(a.(*types.KeyZSetMemberDelReq))
-			}
-			return h(ctx, args)
-		},
-		"monitor:start": func(ctx context.Context, args *types.MonitorReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return monitor.NewStartLogic(ctx, svcCtx).Start(a.(*types.MonitorReq))
-			}
-			return h(ctx, args)
-		},
-		"monitor:stop": func(ctx context.Context, args *types.MonitorReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return monitor.NewStopLogic(ctx, svcCtx).Stop(a.(*types.MonitorReq))
-			}
-			return h(ctx, args)
-		},
-		"monitor:status": func(ctx context.Context, args *types.MonitorReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return monitor.NewStatusLogic(ctx, svcCtx).Status(a.(*types.MonitorReq))
-			}
-			return h(ctx, args)
-		},
-		"pubsub:subscribe": func(ctx context.Context, args *types.PubSubSubscribeReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return pubsub.NewSubscribeLogic(ctx, svcCtx).Subscribe(a.(*types.PubSubSubscribeReq))
-			}
-			return h(ctx, args)
-		},
-		"pubsub:unsubscribe": func(ctx context.Context, args *types.PubSubSubscribeReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return pubsub.NewUnsubscribeLogic(ctx, svcCtx).Unsubscribe(a.(*types.PubSubSubscribeReq))
-			}
-			return h(ctx, args)
-		},
-		"pubsub:publish": func(ctx context.Context, args *types.PubSubPublishReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return pubsub.NewPublishLogic(ctx, svcCtx).Publish(a.(*types.PubSubPublishReq))
-			}
-			return h(ctx, args)
-		},
-		"proxy:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return proxy.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"proxy:upsert": func(ctx context.Context, args *types.ProxyReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return proxy.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.ProxyReq))
-			}
-			return h(ctx, args)
-		},
-		"proxy:delete": func(ctx context.Context, args *types.IdReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return proxy.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
-			}
-			return h(ctx, args)
-		},
-		"ssh:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return ssh.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"ssh:test": func(ctx context.Context, args *types.SshReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return ssh.NewTestLogic(ctx, svcCtx).Test(a.(*types.SshReq))
-			}
-			return h(ctx, args)
-		},
-		"ssh:upsert": func(ctx context.Context, args *types.SshReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return ssh.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.SshReq))
-			}
-			return h(ctx, args)
-		},
-		"ssh:delete": func(ctx context.Context, args *types.IdReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return ssh.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
-			}
-			return h(ctx, args)
-		},
-		"tls:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return tls.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"tls:upsert": func(ctx context.Context, args *types.TlsReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return tls.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.TlsReq))
-			}
-			return h(ctx, args)
-		},
-		"tls:delete": func(ctx context.Context, args *types.IdReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return tls.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
-			}
-			return h(ctx, args)
-		},
-		"connection:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return connection.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"connection:upsert": func(ctx context.Context, args *types.ConnectionReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return connection.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.ConnectionReq))
-			}
-			return h(ctx, args)
-		},
-		"connection:delete": func(ctx context.Context, args *types.IdReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return connection.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
-			}
-			return h(ctx, args)
-		},
-		"system:info": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return system.NewInfoLogic(ctx, svcCtx).Info(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"group:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return group.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"group:upsert": func(ctx context.Context, args *types.GroupUpsertReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return group.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.GroupUpsertReq))
-			}
-			return h(ctx, args)
-		},
-		"group:delete": func(ctx context.Context, args *types.IdReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return group.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
-			}
-			return h(ctx, args)
-		},
-		"setting:list": func(ctx context.Context, args *types.Empty) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return setting.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-			}
-			return h(ctx, args)
-		},
-		"setting:set": func(ctx context.Context, args *types.SettingSetReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return setting.NewSetLogic(ctx, svcCtx).Set(a.(*types.SettingSetReq))
-			}
-			return h(ctx, args)
-		},
-		"setting:get": func(ctx context.Context, args *types.SettingGetReq) (interface{}, error) {
-			h := func(ctx context.Context, a any) (any, error) {
-				return setting.NewGetLogic(ctx, svcCtx).Get(a.(*types.SettingGetReq))
-			}
-			return h(ctx, args)
-		},
-	}
-	for name, handler := range handlers {
-		svcCtx.App.Cmd().Handle(name, handler)
-	}
+		}
+		return call(ctx, &req)
+	})
 }
 
-func CommandNames() []string {
-	return []string{
-		"client:connect",
-		"client:console-connect",
-		"client:disconnect",
-		"client:general",
-		"client:get-slow-query",
-		"client:load-all-keys",
-		"client:load-key-detail",
-		"client:load-key-value-page",
-		"client:key-create",
-		"client:key-delete",
-		"client:key-name-update",
-		"client:key-ttl-update",
-		"client:key-value-update",
-		"client:keys-metadata",
-		"client:keys-delete-by-prefix",
-		"client:keys-scan-by-prefix",
-		"client:search-keys",
-		"conn:test",
-		"key:hash-field-del",
-		"key:list-item-del",
-		"key:load",
-		"key:set-member-del",
-		"key:stream-entry-del",
-		"key:z-set-member-del",
-		"monitor:start",
-		"monitor:stop",
-		"monitor:status",
-		"pubsub:subscribe",
-		"pubsub:unsubscribe",
-		"pubsub:publish",
-		"proxy:list",
-		"proxy:upsert",
-		"proxy:delete",
-		"ssh:list",
-		"ssh:test",
-		"ssh:upsert",
-		"ssh:delete",
-		"tls:list",
-		"tls:upsert",
-		"tls:delete",
-		"connection:list",
-		"connection:upsert",
-		"connection:delete",
-		"system:info",
-		"group:list",
-		"group:upsert",
-		"group:delete",
-		"setting:list",
-		"setting:set",
-		"setting:get",
-	}
+func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
+	reg(a, "client:connect", func(ctx context.Context, r *types.ClientConnectReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewConnectLogic(ctx, svcCtx).Connect(a.(*types.ClientConnectReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:console-connect", func(ctx context.Context, r *types.ClientConnectReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewConsoleConnectLogic(ctx, svcCtx).ConsoleConnect(a.(*types.ClientConnectReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:disconnect", func(ctx context.Context, r *types.ClientDisconnectReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewDisconnectLogic(ctx, svcCtx).Disconnect(a.(*types.ClientDisconnectReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:general", func(ctx context.Context, r *types.ClientGeneralReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewGeneralLogic(ctx, svcCtx).General(a.(*types.ClientGeneralReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:get-slow-query", func(ctx context.Context, r *types.ClientGetSlowQueryReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewGetSlowQueryLogic(ctx, svcCtx).GetSlowQuery(a.(*types.ClientGetSlowQueryReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:load-all-keys", func(ctx context.Context, r *types.ClientLoadAllKeysReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewLoadAllKeysLogic(ctx, svcCtx).LoadAllKeys(a.(*types.ClientLoadAllKeysReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:load-key-detail", func(ctx context.Context, r *types.ClientLoadKeyDetailReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewLoadKeyDetailLogic(ctx, svcCtx).LoadKeyDetail(a.(*types.ClientLoadKeyDetailReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:load-key-value-page", func(ctx context.Context, r *types.ClientLoadKeyValuePageReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewLoadKeyValuePageLogic(ctx, svcCtx).LoadKeyValuePage(a.(*types.ClientLoadKeyValuePageReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:key-create", func(ctx context.Context, r *types.ClientKeyCreateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeyCreateLogic(ctx, svcCtx).KeyCreate(a.(*types.ClientKeyCreateReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:key-delete", func(ctx context.Context, r *types.ClientKeyDeleteReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeyDeleteLogic(ctx, svcCtx).KeyDelete(a.(*types.ClientKeyDeleteReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:key-name-update", func(ctx context.Context, r *types.ClientKeyNameUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeyNameUpdateLogic(ctx, svcCtx).KeyNameUpdate(a.(*types.ClientKeyNameUpdateReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:key-ttl-update", func(ctx context.Context, r *types.ClientKeyTtlUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeyTtlUpdateLogic(ctx, svcCtx).KeyTtlUpdate(a.(*types.ClientKeyTtlUpdateReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:key-value-update", func(ctx context.Context, r *types.ClientKeyValueUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeyValueUpdateLogic(ctx, svcCtx).KeyValueUpdate(a.(*types.ClientKeyValueUpdateReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:keys-metadata", func(ctx context.Context, r *types.ClientKeysMetadataReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeysMetadataLogic(ctx, svcCtx).KeysMetadata(a.(*types.ClientKeysMetadataReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "client:keys-delete-by-prefix", func(ctx context.Context, req *types.ClientKeysDeleteByPrefixReq, out app.Sink[types.ClientKeysDeleteProgressEvent]) error {
+		return client.NewKeysDeleteByPrefixLogic(ctx, svcCtx).KeysDeleteByPrefix(req, out)
+	})
+	reg(a, "client:keys-scan-by-prefix", func(ctx context.Context, r *types.ClientKeysDeleteByPrefixReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewKeysScanByPrefixLogic(ctx, svcCtx).KeysScanByPrefix(a.(*types.ClientKeysDeleteByPrefixReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:search-keys", func(ctx context.Context, r *types.ClientSearchKeysReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewSearchKeysLogic(ctx, svcCtx).SearchKeys(a.(*types.ClientSearchKeysReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "conn:test", func(ctx context.Context, r *types.ConnectionReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return conn.NewTestLogic(ctx, svcCtx).Test(a.(*types.ConnectionReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:hash-field-del", func(ctx context.Context, r *types.KeyHashFieldDelReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewHashFieldDelLogic(ctx, svcCtx).HashFieldDel(a.(*types.KeyHashFieldDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:list-item-del", func(ctx context.Context, r *types.KeyListItemDelReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewListItemDelLogic(ctx, svcCtx).ListItemDel(a.(*types.KeyListItemDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:load", func(ctx context.Context, r *types.KeyLoadReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewLoadLogic(ctx, svcCtx).Load(a.(*types.KeyLoadReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:set-member-del", func(ctx context.Context, r *types.KeySetMemberDelReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewSetMemberDelLogic(ctx, svcCtx).SetMemberDel(a.(*types.KeySetMemberDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:stream-entry-del", func(ctx context.Context, r *types.KeyStreamEntryDelReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewStreamEntryDelLogic(ctx, svcCtx).StreamEntryDel(a.(*types.KeyStreamEntryDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:z-set-member-del", func(ctx context.Context, r *types.KeyZSetMemberDelReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewZSetMemberDelLogic(ctx, svcCtx).ZSetMemberDel(a.(*types.KeyZSetMemberDelReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "monitor:start", func(ctx context.Context, req *types.MonitorReq, out app.Sink[types.MonitorFrame]) error {
+		return monitor.NewStartLogic(ctx, svcCtx).Start(req, out)
+	})
+	reg(a, "monitor:stop", func(ctx context.Context, r *types.MonitorReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return monitor.NewStopLogic(ctx, svcCtx).Stop(a.(*types.MonitorReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "monitor:status", func(ctx context.Context, r *types.MonitorReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return monitor.NewStatusLogic(ctx, svcCtx).Status(a.(*types.MonitorReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "pubsub:stream", func(ctx context.Context, req *types.PubSubStreamReq, out app.Sink[types.PubsubMessageEvent]) error {
+		return pubsub.NewStreamLogic(ctx, svcCtx).Stream(req, out)
+	})
+	reg(a, "pubsub:subscribe", func(ctx context.Context, r *types.PubSubSubscribeReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return pubsub.NewSubscribeLogic(ctx, svcCtx).Subscribe(a.(*types.PubSubSubscribeReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "pubsub:unsubscribe", func(ctx context.Context, r *types.PubSubSubscribeReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return pubsub.NewUnsubscribeLogic(ctx, svcCtx).Unsubscribe(a.(*types.PubSubSubscribeReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "pubsub:publish", func(ctx context.Context, r *types.PubSubPublishReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return pubsub.NewPublishLogic(ctx, svcCtx).Publish(a.(*types.PubSubPublishReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "console:exec", func(ctx context.Context, req *types.ConsoleInputEvent, out app.Sink[types.ConsoleOutputEvent]) error {
+		return console.NewExecLogic(ctx, svcCtx).Exec(req, out)
+	})
+	reg(a, "proxy:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return proxy.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "proxy:upsert", func(ctx context.Context, r *types.ProxyReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return proxy.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.ProxyReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "proxy:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return proxy.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "ssh:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return ssh.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "ssh:test", func(ctx context.Context, r *types.SshReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return ssh.NewTestLogic(ctx, svcCtx).Test(a.(*types.SshReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "ssh:upsert", func(ctx context.Context, r *types.SshReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return ssh.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.SshReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "ssh:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return ssh.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "tls:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return tls.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "tls:upsert", func(ctx context.Context, r *types.TlsReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return tls.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.TlsReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "tls:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return tls.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "connection:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return connection.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "connection:upsert", func(ctx context.Context, r *types.ConnectionReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return connection.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.ConnectionReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "connection:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return connection.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "system:info", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return system.NewInfoLogic(ctx, svcCtx).Info(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "group:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return group.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "group:upsert", func(ctx context.Context, r *types.GroupUpsertReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return group.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.GroupUpsertReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "group:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return group.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "setting:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return setting.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "setting:set", func(ctx context.Context, r *types.SettingSetReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return setting.NewSetLogic(ctx, svcCtx).Set(a.(*types.SettingSetReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "setting:get", func(ctx context.Context, r *types.SettingGetReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return setting.NewGetLogic(ctx, svcCtx).Get(a.(*types.SettingGetReq))
+		}
+		return h(ctx, r)
+	})
 }
 
 var _ = types.Empty{}

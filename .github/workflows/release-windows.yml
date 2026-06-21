@@ -9,50 +9,67 @@ on:
 jobs:
   build-msi:
     runs-on: windows-2022
-
     permissions:
       contents: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          go-version: "1.26"
+          cache: true
 
-      - name: Check Docker
-        run: docker version
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: shell/pnpm-lock.yaml
 
-      - name: Build Docker image
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - name: Install WiX v6
+        run: dotnet tool install --global wix --version 6.0.2
+
+      - name: Put Windows SDK signtool on PATH
+        shell: pwsh
         run: |
-          docker build `
-            -f docker/Dockerfile_windows `
-            -t ghcr.io/tradalab/redishub:latest `
-            --target artifacts `
-            .
+          $st = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" |
+                Sort-Object FullName | Select-Object -Last 1
+          Split-Path $st.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Create container
-        run: |
-          docker create --name extract ghcr.io/tradalab/redishub:latest
+      - name: Install scorix CLI
+        run: go install github.com/tradalab/scorix/cmd/scorix@v0.7.0
 
-      - name: Copy artifacts from container
-        run: |
-          docker cp extract:C:\artifacts .\release
+      - name: Install frontend deps
+        working-directory: shell
+        run: pnpm install --frozen-lockfile
 
-      - name: Remove container
-        run: |
-          docker rm extract
+      # Authenticode-signs when WIN_CERT_PFX_B64 is set (sign.windows.enabled);
+      # otherwise produces an UNSIGNED MSI with a warning (no --sign = not forced).
+      - name: Package (build → MSI)
+        env:
+          REDISHUB_WIN_CERT: ${{ secrets.WIN_CERT_PFX_B64 }}
+          REDISHUB_WIN_CERT_PW: ${{ secrets.WIN_CERT_PW }}
+        run: scorix package -d . --os windows --arch amd64
+
+      - name: Sign update artifacts (Ed25519 .sig + SHA256SUMS)
+        env:
+          SCORIX_UPDATE_PRIVATE_KEY: ${{ secrets.SCORIX_UPDATE_PRIVATE_KEY }}
+        run: scorix appcast -d .
 
       - name: List artifacts
-        run: dir release
+        run: dir artifacts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/**/*.msi
+          files: |
+            artifacts/*.msi
+            artifacts/*.msi.sig
+            artifacts/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

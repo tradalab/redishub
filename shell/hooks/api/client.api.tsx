@@ -1,11 +1,11 @@
 "use client"
 
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import scorix from "@/lib/scorix"
 import { client } from "@/api"
 import type {
   ClientGeneralRes,
   ClientGetSlowQueryRes,
+  ClientKeysDeleteProgressEvent,
   ClientKeysMetadataRes,
   ClientLoadAllKeysRes,
   ClientLoadKeyDetailRes,
@@ -62,7 +62,7 @@ export function useClearConnectionCache() {
 export function useSlowQuery(connectionId: string | undefined, databaseIdx: number) {
   return useQuery<ClientGetSlowQueryRes>({
     queryKey: [SLOW_QUERY_BASE, connectionId, databaseIdx],
-    queryFn: () => client.getslowquery({ connection_id: connectionId!, database_index: databaseIdx }),
+    queryFn: () => client.getSlowQuery({ connection_id: connectionId!, database_index: databaseIdx }),
     enabled: !!connectionId,
   })
 }
@@ -70,7 +70,7 @@ export function useSlowQuery(connectionId: string | undefined, databaseIdx: numb
 export function useKeyDetail(connectionId: string | undefined, databaseIdx: number, key: string | undefined) {
   return useQuery<ClientLoadKeyDetailRes>({
     queryKey: [KEY_DETAIL_BASE, connectionId, databaseIdx, key],
-    queryFn: () => client.loadkeydetail({ connection_id: connectionId!, database_index: databaseIdx, key: key! }),
+    queryFn: () => client.loadKeyDetail({ connection_id: connectionId!, database_index: databaseIdx, key: key! }),
     enabled: !!connectionId && !!key,
   })
 }
@@ -82,7 +82,7 @@ export function useKeysList(connectionId: string, databaseIdx: number, opts?: { 
     enabled: !!connectionId,
     initialPageParam: "0",
     queryFn: ({ pageParam }) =>
-      client.loadallkeys({
+      client.loadAllKeys({
         connection_id: connectionId,
         database_index: databaseIdx,
         prefix: "",
@@ -95,7 +95,7 @@ export function useKeysList(connectionId: string, databaseIdx: number, opts?: { 
 
 export function useKeysMetadata() {
   return useMutation<ClientKeysMetadataRes, Error, { connection_id: string; database_index: number; keys: string[] }>({
-    mutationFn: client.keysmetadata,
+    mutationFn: client.keysMetadata,
   })
 }
 
@@ -106,7 +106,7 @@ function invalidateKeyList(qc: ReturnType<typeof useQueryClient>, connectionId: 
 export function useKeyCreate(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: client.keycreate,
+    mutationFn: client.keyCreate,
     onSuccess: (_, vars) => {
       invalidateKeyList(qc, connectionId, databaseIdx)
       qc.invalidateQueries({ queryKey: [KEY_DETAIL_BASE, connectionId, databaseIdx, vars.key] })
@@ -118,7 +118,7 @@ export function useKeyCreate(connectionId: string, databaseIdx: number) {
 export function useKeyDelete(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: client.keydelete,
+    mutationFn: client.keyDelete,
     onSuccess: (_, vars) => {
       invalidateKeyList(qc, connectionId, databaseIdx)
       qc.removeQueries({ queryKey: [KEY_DETAIL_BASE, connectionId, databaseIdx, vars.key] })
@@ -130,7 +130,7 @@ export function useKeyDelete(connectionId: string, databaseIdx: number) {
 export function useKeyNameUpdate(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: client.keynameupdate,
+    mutationFn: client.keyNameUpdate,
     onSuccess: () => invalidateKeyList(qc, connectionId, databaseIdx),
   })
 }
@@ -138,7 +138,7 @@ export function useKeyNameUpdate(connectionId: string, databaseIdx: number) {
 export function useKeyTtlUpdate(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: client.keyttlupdate,
+    mutationFn: client.keyTtlUpdate,
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: [KEY_DETAIL_BASE, connectionId, databaseIdx, vars.key_name] })
     },
@@ -146,30 +146,25 @@ export function useKeyTtlUpdate(connectionId: string, databaseIdx: number) {
 }
 
 export function useKeyValueUpdate() {
-  return useMutation({ mutationFn: client.keyvalueupdate })
+  return useMutation({ mutationFn: client.keyValueUpdate })
 }
 
 export function useKeysDeleteByPrefix(connectionId: string, databaseIdx: number) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (params: { prefix: string; keys?: string[]; onProgress?: (data: any) => void }) => {
+    mutationFn: async (params: { prefix: string; keys?: string[]; onProgress?: (data: ClientKeysDeleteProgressEvent) => void }) => {
       const { prefix, keys, onProgress } = params
-      let cleanup = () => {}
-      if (onProgress && (!keys || keys.length === 0)) {
-        cleanup = scorix.on(`client:keys-delete-progress:${connectionId}`, (data: any) => {
-          if (data.prefix === prefix) onProgress(data)
-        })
+      let totalDeleted = 0
+      for await (const p of client.keysDeleteByPrefix({
+        connection_id: connectionId,
+        database_index: databaseIdx,
+        prefix,
+        keys: keys ?? [],
+      })) {
+        onProgress?.(p)
+        totalDeleted = Number(p.deleted)
       }
-      try {
-        return await client.keysdeletebyprefix({
-          connection_id: connectionId,
-          database_index: databaseIdx,
-          prefix,
-          keys: keys ?? [],
-        })
-      } finally {
-        cleanup()
-      }
+      return { total_deleted: totalDeleted }
     },
     onSuccess: () => invalidateKeyList(qc, connectionId, databaseIdx),
   })
@@ -187,7 +182,7 @@ export function useKeyValuePageQuery(
     enabled: !!connectionId && !!key,
     initialPageParam: "0",
     queryFn: ({ pageParam }) =>
-      client.loadkeyvaluepage({
+      client.loadKeyValuePage({
         connection_id: connectionId,
         database_index: databaseIdx,
         key,
@@ -200,5 +195,5 @@ export function useKeyValuePageQuery(
 }
 
 export function useConsoleConnect() {
-  return useMutation({ mutationFn: client.consoleconnect })
+  return useMutation({ mutationFn: client.consoleConnect })
 }

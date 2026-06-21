@@ -37,7 +37,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.TlsListRes, error) {
 			ClientAuth: t.ClientAuth > 0,
 			CaCert:     t.CaCert,
 			Cert:       t.Cert,
-			Key:        t.Key,
+			Key:        "",
 		})
 	}
 

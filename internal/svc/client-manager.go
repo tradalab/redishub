@@ -329,16 +329,22 @@ func (m *ClientManager) Remove(id string, dbIdx int) error {
 	key := fmt.Sprintf("%s:%d", id, dbIdx)
 
 	if c, ok := m.clients[key]; ok {
-		c.PubSubMu.Lock()
-		if c.PubSub != nil {
-			_ = c.PubSub.Close()
-		}
-		c.PubSubMu.Unlock()
+		c.closeStreams()
 		_ = c.Rdb.Close()
 		delete(m.clients, key)
 		return nil
 	}
 	return fmt.Errorf("client %s not found", key)
+}
+
+func (m *ClientManager) CloseAll() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for key, c := range m.clients {
+		c.closeStreams()
+		_ = c.Rdb.Close()
+		delete(m.clients, key)
+	}
 }
 
 func (m *ClientManager) Do(ctx context.Context, id string, dbIdx int, args ...interface{}) (interface{}, error) {

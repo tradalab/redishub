@@ -1,17 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import scorix from "@/lib/scorix"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { monitor } from "@/api"
-
-export function useMonitorStart() {
-  return useMutation({ mutationFn: monitor.start })
-}
-
-export function useMonitorStop() {
-  return useMutation({ mutationFn: monitor.stop })
-}
+import type { ServerStream } from "@/lib/scorix"
+import type { MonitorFrame } from "@/types"
 
 export function useMonitorStatus(connectionId: string | undefined, databaseIdx: number) {
   return useQuery({
@@ -21,42 +14,49 @@ export function useMonitorStatus(connectionId: string | undefined, databaseIdx: 
   })
 }
 
-export function useMonitorEvents(
+export function useMonitorSession(
   connectionId: string,
-  handlers: {
-    onMessage?: (payload: any) => void
-    onStatus?: (active: boolean) => void
-  }
+  databaseIdx: number,
+  onMessage: (line: string) => void,
 ) {
-  const { onMessage, onStatus } = handlers
-  useEffect(() => {
-    if (!connectionId) return
-    const offMsg = onMessage
-      ? scorix.on(`monitor:message:${connectionId}`, (payload: any, error: string) => {
-          if (error) {
-            console.error("Monitor IPC Error:", error)
-            return
-          }
-          onMessage(payload)
-        })
-      : undefined
-    const offStatus = onStatus
-      ? scorix.on(`monitor:status:${connectionId}`, (active: any) => onStatus(!!active))
-      : undefined
-    return () => {
-      if (offMsg) Promise.resolve(offMsg).then(off => typeof off === "function" && off())
-      if (offStatus) Promise.resolve(offStatus).then(off => typeof off === "function" && off())
-    }
-  }, [connectionId, onMessage, onStatus])
-}
-
-// Convenience hook: subscribe + return isMonitoring reactive value
-export function useMonitorActive(connectionId: string | undefined, databaseIdx: number) {
   const [active, setActive] = useState(false)
-  const status = useMonitorStatus(connectionId, databaseIdx)
-  useEffect(() => {
-    if (status.data) setActive(!!status.data.active)
-  }, [status.data])
-  useMonitorEvents(connectionId ?? "", { onStatus: setActive })
-  return active
+  const [loading, setLoading] = useState(false)
+  const streamRef = useRef<ServerStream<MonitorFrame> | null>(null)
+  const onMessageRef = useRef(onMessage)
+  onMessageRef.current = onMessage
+
+  const stop = useCallback(() => {
+    streamRef.current?.cancel()
+    streamRef.current = null
+    setActive(false)
+  }, [])
+
+  const start = useCallback(async () => {
+    if (streamRef.current) return
+    setLoading(true)
+    const stream = monitor.start({ connection_id: connectionId, database_index: databaseIdx })
+    streamRef.current = stream
+    setLoading(false)
+    try {
+      for await (const f of stream) {
+        if (f.kind === "status") setActive(!!f.active)
+        else if (f.kind === "message") onMessageRef.current(f.line)
+      }
+    } catch (err) {
+      console.error("Monitor stream error:", err)
+    } finally {
+      if (streamRef.current === stream) streamRef.current = null
+      setActive(false)
+    }
+  }, [connectionId, databaseIdx])
+
+  useEffect(
+    () => () => {
+      streamRef.current?.cancel()
+      streamRef.current = null
+    },
+    [],
+  )
+
+  return { active, loading, start, stop }
 }

@@ -2,13 +2,8 @@ syntax = "proto3";
 
 package rdms;
 
-// ─────────────────────────────────────────────
-// Shared / Common Messages
-// ─────────────────────────────────────────────
-
 message Empty {}
 
-// Connection DO (used for conn:test, ssh:test)
 message ConnectionReq {
   string id                 = 1;
   string mode               = 2;
@@ -72,10 +67,6 @@ message ProxyReq {
   string username = 5;
   string password = 6;
 }
-
-// ─────────────────────────────────────────────
-// Client Service Messages
-// ─────────────────────────────────────────────
 
 message ClientConnectReq {
   string connection_id  = 1;
@@ -166,7 +157,7 @@ message ZMember {
 
 message StreamValue {
   string id = 1;
-  string values = 2; // JSON string
+  string values = 2;
 }
 
 message ClientKeyDeleteReq {
@@ -355,10 +346,6 @@ message UpsertRes {
   string id = 1;
 }
 
-// ─────────────────────────────────────────────
-// Key Service Messages
-// ─────────────────────────────────────────────
-
 message KeyHashFieldDelReq {
   string connection_id  = 1;
   int32  database_index = 2;
@@ -403,23 +390,19 @@ message KeyZSetMemberDelReq {
   string member         = 4;
 }
 
-// ─────────────────────────────────────────────
-// Monitor Service Messages
-// ─────────────────────────────────────────────
-
 message MonitorReq {
   string connection_id  = 1;
   int32  database_index = 2;
 }
 
-// ─────────────────────────────────────────────
-// PubSub Service Messages
-// ─────────────────────────────────────────────
-
 message PubSubSubscribeReq {
   string connection_id  = 1;
   int32  database_index = 2;
   repeated string channels = 3;
+}
+message PubSubStreamReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
 }
 
 message PubSubPublishReq {
@@ -429,9 +412,51 @@ message PubSubPublishReq {
   string message        = 4;
 }
 
-// ─────────────────────────────────────────────
-// Services
-// ─────────────────────────────────────────────
+message MonitorMessageEvent {
+  string connection_id = 1;
+  string line          = 2;
+}
+
+message MonitorStatusEvent {
+  string connection_id = 1;
+  bool   active        = 2;
+}
+message MonitorFrame {
+  string kind          = 1; // "status" | "message"
+  string connection_id = 2;
+  bool   active        = 3; // when kind == "status"
+  string line          = 4; // when kind == "message"
+}
+
+message PubsubMessageEvent {
+  string connection_id = 1;
+  string channel       = 2;
+  string message       = 3;
+  string pattern       = 4;
+}
+
+message ClientKeysDeleteProgressEvent {
+  string connection_id = 1;
+  string prefix        = 2;
+  int64  deleted       = 3;
+  int64  total         = 4;
+  string status        = 5; // processing | done
+}
+
+message ConsoleInputEvent {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string id             = 3;
+  string command        = 4;
+}
+
+
+message ConsoleOutputEvent {
+  string connection_id = 1;
+  string id            = 2;
+  string stdout        = 3;
+  string stderr        = 4;
+}
 
 service client {
   rpc Connect(ClientConnectReq) returns (Empty);
@@ -448,7 +473,7 @@ service client {
   rpc KeyTtlUpdate(ClientKeyTtlUpdateReq) returns (Empty);
   rpc KeyValueUpdate(ClientKeyValueUpdateReq) returns (Empty);
   rpc KeysMetadata(ClientKeysMetadataReq) returns (ClientKeysMetadataRes);
-  rpc KeysDeleteByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysDeleteByPrefixRes);
+  rpc KeysDeleteByPrefix(ClientKeysDeleteByPrefixReq) returns (stream ClientKeysDeleteProgressEvent);
   rpc KeysScanByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysScanByPrefixRes);
   rpc SearchKeys(ClientSearchKeysReq) returns (ClientSearchKeysRes);
 }
@@ -467,15 +492,20 @@ service key {
 }
 
 service monitor {
-  rpc Start(MonitorReq) returns (Empty);
+  rpc Start(MonitorReq) returns (stream MonitorFrame);
   rpc Stop(MonitorReq) returns (Empty);
   rpc Status(MonitorReq) returns (MonitorStatusRes);
 }
 
 service pubsub {
+  rpc Stream(PubSubStreamReq) returns (stream PubsubMessageEvent);
   rpc Subscribe(PubSubSubscribeReq) returns (Empty);
   rpc Unsubscribe(PubSubSubscribeReq) returns (Empty);
   rpc Publish(PubSubPublishReq) returns (Empty);
+}
+
+service console {
+  rpc Exec(ConsoleInputEvent) returns (stream ConsoleOutputEvent);
 }
 
 service proxy {

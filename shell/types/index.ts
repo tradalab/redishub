@@ -85,6 +85,14 @@ export interface ClientKeysDeleteByPrefixRes {
   total_deleted: number;
 }
 
+export interface ClientKeysDeleteProgressEvent {
+  connection_id: string;
+  prefix: string;
+  deleted: number;
+  total: number;
+  status: string;
+}
+
 export interface ClientKeysMetadataReq {
   connection_id: string;
   database_index: number;
@@ -189,6 +197,20 @@ export interface ConnectionReq {
   last_db: number;
 }
 
+export interface ConsoleInputEvent {
+  connection_id: string;
+  database_index: number;
+  id: string;
+  command: string;
+}
+
+export interface ConsoleOutputEvent {
+  connection_id: string;
+  id: string;
+  stdout: string;
+  stderr: string;
+}
+
 export interface DbInfo {
   index: number;
   name: string;
@@ -290,9 +312,26 @@ export interface KeyZSetMemberDelReq {
   member: string;
 }
 
+export interface MonitorFrame {
+  kind: string;
+  connection_id: string;
+  active: boolean;
+  line: string;
+}
+
+export interface MonitorMessageEvent {
+  connection_id: string;
+  line: string;
+}
+
 export interface MonitorReq {
   connection_id: string;
   database_index: number;
+}
+
+export interface MonitorStatusEvent {
+  connection_id: string;
+  active: boolean;
 }
 
 export interface MonitorStatusRes {
@@ -319,10 +358,22 @@ export interface PubSubPublishReq {
   message: string;
 }
 
+export interface PubSubStreamReq {
+  connection_id: string;
+  database_index: number;
+}
+
 export interface PubSubSubscribeReq {
   connection_id: string;
   database_index: number;
   channels?: string[];
+}
+
+export interface PubsubMessageEvent {
+  connection_id: string;
+  channel: string;
+  message: string;
+  pattern: string;
 }
 
 export interface SettingGetReq {

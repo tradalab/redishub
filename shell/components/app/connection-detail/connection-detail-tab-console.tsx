@@ -66,7 +66,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
   const { addHistory, getHistoryForConnection } = useCommandStore()
 
-  // Autocomplete state
   const [acState, setAcState] = useState({ open: false, x: 0, y: 0, direction: "down" as "up" | "down", query: "", index: 0, list: [] as Suggestion[] })
   const acRef = useRef(acState)
   const updateAc = (partial: Partial<typeof acState>) => {
@@ -80,6 +79,8 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     let fitAddon: any
     let buffer = ""
     let debounceTimer: any
+    let disposed = false
+    let term: any = null
 
     let isExecuting = false
     const currentHistory = getHistoryForConnection(connectionId, databaseIdx).map(h => h.command).reverse()
@@ -160,7 +161,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         }
 
         try {
-          const { keys } = await client.searchkeys({
+          const { keys } = await client.searchKeys({
             connection_id: connectionId,
             database_index: databaseIdx,
             prefix: query,
@@ -258,8 +259,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     const initTerminal = async () => {
       const { Terminal } = await import("@xterm/xterm")
       const { FitAddon } = await import("@xterm/addon-fit")
+      if (disposed) return
 
-      const term = new Terminal({
+      term = new Terminal({
         cursorBlink: true,
         fontFamily: "JetBrains Mono, monospace",
         fontSize: 13,
@@ -275,7 +277,8 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
       fitAddon.fit()
 
       try {
-        await client.consoleconnect({ connection_id: connectionId, database_index: databaseIdx })
+        await client.consoleConnect({ connection_id: connectionId, database_index: databaseIdx })
+        if (disposed) return
         term?.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         termPrompt()
         setStatus("connected")
@@ -286,7 +289,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         return
       }
 
-      term.attachCustomKeyEventHandler((arg) => {
+      term.attachCustomKeyEventHandler((arg: KeyboardEvent) => {
         if (arg.keyCode === 9 && arg.type === 'keydown') {
           arg.preventDefault()
           if (acRef.current.open && acRef.current.list.length > 0) {
@@ -313,7 +316,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
         const code = data.charCodeAt(0)
 
-        // ESC
         if (code === 27 && data === "\u001b") {
           if (acRef.current.open) {
             updateAc({ open: false })
@@ -321,7 +323,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           }
         }
 
-        // ArrowUp
         if (code === 27 && data === "\u001b[A") {
           if (acRef.current.open) {
             const newIndex = Math.max(0, acRef.current.index - 1)
@@ -336,7 +337,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           return
         }
 
-        // ArrowDown
         if (code === 27 && data === "\u001b[B") {
           if (acRef.current.open) {
             const newIndex = Math.min(acRef.current.list.length - 1, acRef.current.index + 1)
@@ -356,7 +356,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           return
         }
 
-        // ENTER
         if (code === 13) {
           if (acRef.current.open && acRef.current.list.length > 0) {
             const selected = acRef.current.list[acRef.current.index]
@@ -381,7 +380,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           return
         }
 
-        // BACKSPACE
         if (code === 127) {
           if (buffer.length > 0) {
             const newBuf = Array.from(buffer).slice(0, -1).join("")
@@ -390,7 +388,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
             } else {
               buffer = newBuf
               bufferRef.current = buffer
-              term.write("\b \b") // fallback
+              term.write("\b \b")
             }
 
             clearTimeout(debounceTimer)
@@ -399,7 +397,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           return
         }
 
-        // normal input
         if (data.startsWith("\x1b")) return
         if (code < 32) return
 
@@ -426,8 +423,10 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     initTerminal()
 
     return () => {
+      disposed = true
       clearTimeout(debounceTimer)
-      termRef.current?.dispose()
+      term?.dispose()
+      termRef.current = null
     }
   }, [connectionId, databaseIdx, t, resolvedTheme])
 
@@ -445,7 +444,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         <div ref={terminalRef} className="w-full h-full px-2 pt-2" />
         <div className="absolute top-2 right-6 text-xs font-mono text-muted-foreground">Redis CLI {status === "connected" ? "🟢" : "🔴"}</div>
 
-        {/* Autocomplete Overlay */}
         {acState.open && acState.list.length > 0 && (
           <div
             className="absolute z-50 bg-popover text-popover-foreground border shadow-md rounded-md overflow-hidden max-h-[250px] flex flex-col"

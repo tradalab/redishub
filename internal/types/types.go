@@ -85,6 +85,14 @@ type ClientKeysDeleteByPrefixRes struct {
 	TotalDeleted int32 `json:"total_deleted"`
 }
 
+type ClientKeysDeleteProgressEvent struct {
+	ConnectionId string `json:"connection_id"`
+	Prefix       string `json:"prefix"`
+	Deleted      int64  `json:"deleted"`
+	Total        int64  `json:"total"`
+	Status       string `json:"status"`
+}
+
 type ClientKeysMetadataReq struct {
 	ConnectionId  string   `json:"connection_id"`
 	DatabaseIndex int32    `json:"database_index"`
@@ -189,6 +197,20 @@ type ConnectionReq struct {
 	LastDb           int32    `json:"last_db"`
 }
 
+type ConsoleInputEvent struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Id            string `json:"id"`
+	Command       string `json:"command"`
+}
+
+type ConsoleOutputEvent struct {
+	ConnectionId string `json:"connection_id"`
+	Id           string `json:"id"`
+	Stdout       string `json:"stdout"`
+	Stderr       string `json:"stderr"`
+}
+
 type DbInfo struct {
 	Index   int32  `json:"index"`
 	Name    string `json:"name"`
@@ -290,9 +312,26 @@ type KeyZSetMemberDelReq struct {
 	Member        string `json:"member"`
 }
 
+type MonitorFrame struct {
+	Kind         string `json:"kind"`
+	ConnectionId string `json:"connection_id"`
+	Active       bool   `json:"active"`
+	Line         string `json:"line"`
+}
+
+type MonitorMessageEvent struct {
+	ConnectionId string `json:"connection_id"`
+	Line         string `json:"line"`
+}
+
 type MonitorReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
+}
+
+type MonitorStatusEvent struct {
+	ConnectionId string `json:"connection_id"`
+	Active       bool   `json:"active"`
 }
 
 type MonitorStatusRes struct {
@@ -319,10 +358,22 @@ type PubSubPublishReq struct {
 	Message       string `json:"message"`
 }
 
+type PubSubStreamReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+}
+
 type PubSubSubscribeReq struct {
 	ConnectionId  string   `json:"connection_id"`
 	DatabaseIndex int32    `json:"database_index"`
 	Channels      []string `json:"channels"`
+}
+
+type PubsubMessageEvent struct {
+	ConnectionId string `json:"connection_id"`
+	Channel      string `json:"channel"`
+	Message      string `json:"message"`
+	Pattern      string `json:"pattern"`
 }
 
 type SettingGetReq struct {

@@ -3,7 +3,6 @@ package monitor
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
@@ -34,9 +33,6 @@ func (l *StopLogic) Stop(params *types.MonitorReq) (*types.Empty, error) {
 	if cancel != nil {
 		cancel()
 	}
-
-	statusEvent := fmt.Sprintf("monitor:status:%s", params.ConnectionId)
-	l.svcCtx.App.Evt().Emit(context.Background(), "", statusEvent, false)
 
 	return &types.Empty{}, nil
 }

@@ -1,17 +1,12 @@
 *.exe
 
+# IDE / editor
 .idea
+
+# scorix build/packaging output (regenerated; not source)
 .scorix
 .wix
-
 artifacts
-
 dist/
 
-/pkg/genicon
-/pkg/png2ico
-/pkg/svg2png
-/cmd
-.goreleaser.yaml
-gen-signer.sh
 app_windows.syso

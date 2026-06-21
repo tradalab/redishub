@@ -43,6 +43,7 @@ interface ProxyFormProps {
 
 export const ProxyForm = forwardRef<ProxyFormRef, ProxyFormProps>(({ proxy, onPendingChange, onDeleted, onSaved }, ref) => {
   const { t } = useTranslation()
+  const secretPlaceholder = proxy.id ? t("secret_keep_hint") : undefined
   const upsert = useUpsertProxy()
   const remove = useDeleteProxy()
 
@@ -197,7 +198,7 @@ export const ProxyForm = forwardRef<ProxyFormRef, ProxyFormProps>(({ proxy, onPe
                 {t("password")} ({t("optional")})
               </FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type="password" {...field} value={field.value ?? ""} placeholder={secretPlaceholder} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -14,11 +14,11 @@ export function ConnectionStatus() {
 
   React.useEffect(() => {
     const checkMode = () => {
-      const webMode = typeof window !== "undefined" && !window.__scorix__ipc_emit
+      const webMode = typeof window !== "undefined" && window.scorix?.mode === "web"
       setIsWebMode(webMode)
 
-      if (webMode && window.ScorixWebBridge) {
-        setStatus(window.ScorixWebBridge._status || "disconnected")
+      if (webMode && window.scorix?.status) {
+        setStatus(window.scorix.status())
       }
     }
 

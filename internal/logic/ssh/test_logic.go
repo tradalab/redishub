@@ -35,6 +35,20 @@ func (l *TestLogic) Test(params *types.SshReq) (*types.Empty, error) {
 		Timeout:    params.Timeout,
 	}
 
+	if params.Id != "" && (s.Password == "" || s.PrivateKey == "" || s.Passphrase == "") {
+		if stored, err := l.svcCtx.SshModel.FindOne(l.ctx, params.Id); err == nil {
+			if s.Password == "" {
+				s.Password = stored.Password
+			}
+			if s.PrivateKey == "" {
+				s.PrivateKey = stored.PrivateKey
+			}
+			if s.Passphrase == "" {
+				s.Passphrase = stored.Passphrase
+			}
+		}
+	}
+
 	config, err := s.BuildClientCfg()
 	if err != nil {
 		return nil, err

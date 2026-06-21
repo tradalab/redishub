@@ -2,15 +2,6 @@ package util
 
 import "unicode"
 
-func Map[S ~[]T, T any, R any](arr S, mappingFunc func(int) R) []R {
-	total := len(arr)
-	result := make([]R, total)
-	for i := 0; i < total; i++ {
-		result[i] = mappingFunc(i)
-	}
-	return result
-}
-
 func EncodeRedisKey(key string) any {
 	if ContainsBinary(key) {
 		b := []byte(key)
@@ -24,8 +15,7 @@ func EncodeRedisKey(key string) any {
 }
 
 func ContainsBinary(str string) bool {
-	rs := []rune(str)
-	for _, r := range rs {
+	for _, r := range str {
 		if r == unicode.ReplacementChar {
 			return true
 		}

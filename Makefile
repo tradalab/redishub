@@ -1,31 +1,32 @@
-.PHONY: help dev build deps shell-install shell-build shell-dev \
+.PHONY: help dev shell-dev generate build package deps shell-install doctor \
         test lint lint-go \
         redis-up redis-down redis-status redis-logs redis-init-cluster \
         clean
 
 SHELL := bash
 
-# ─── Paths ───────────────────────────────────────────────────────────────────
 SHELL_DIR   := shell
 SCORIX_DIST := .scorix/dist
-SHELL_DIST  := $(SHELL_DIR)/dist
 
-# ─── Default target ──────────────────────────────────────────────────────────
+# Default target
 help:
 	@echo ""
-	@echo "  RedisHub - available commands"
+	@echo "  RedisHub"
 	@echo ""
 	@echo "  Development"
-	@echo "    make dev               Build frontend then run the Go app"
-	@echo "    make shell-dev         Run Next.js dev server (hot-reload, no Go)"
+	@echo "    make dev               Run the app with Next.js dev server + HMR (scorix dev)"
+	@echo ""
+	@echo "  Codegen"
+	@echo "    make generate          Regenerate proto + model code (scorix generate)"
+	@echo ""
+	@echo "  Build"
+	@echo "    make build             Single-binary build for the host (scorix build)"
+	@echo "    make package           Native installer per scorix.yaml targets (scorix package)"
 	@echo ""
 	@echo "  Setup"
 	@echo "    make deps              Install all dependencies (Go + pnpm)"
 	@echo "    make shell-install     Install frontend dependencies only"
-	@echo ""
-	@echo "  Build"
-	@echo "    make build             Full production build (current OS/arch)"
-	@echo "    make shell-build       Build frontend only"
+	@echo "    make doctor            Check environment & dependencies (scorix doctor)"
 	@echo ""
 	@echo "  Quality"
 	@echo "    make test              Run Go tests"
@@ -43,22 +44,29 @@ help:
 	@echo "    make clean             Remove build artifacts and dist"
 	@echo ""
 
-# ─── Development ─────────────────────────────────────────────────────────────
+# Development
 
-## Full dev cycle: build frontend → inject into Go embed dir → run app
-dev: shell-build _ensure-win-res
-	@echo "==> Injecting frontend into .scorix/dist"
-	rm -rf $(SCORIX_DIST)
-	mkdir -p $(SCORIX_DIST)
-	cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
-	@echo "==> Running Go app"
-	go run .
+dev:
+	SCORIX_LOGGER_LEVEL=$${SCORIX_LOGGER_LEVEL:-debug} SCORIX_IPC_TRACE=$${SCORIX_IPC_TRACE:-1} scorix dev
 
-## Run the Next.js dev server alone (no Go backend — UI only, for frontend work)
-shell-dev:
-	cd $(SHELL_DIR) && pnpm dev
+# Codegen
 
-# ─── Setup ───────────────────────────────────────────────────────────────────
+## Regenerate handlers/types/events from proto and sqlx models from schema.sql
+generate:
+	scorix generate proto
+	scorix generate model
+
+# Build
+
+## Build the single production binary for the current platform
+build:
+	scorix build
+
+## Build + wrap into a native installer (msi/dmg/appimage) per scorix.yaml
+package:
+	scorix package
+
+# Setup
 
 ## Install all dependencies
 deps: shell-install
@@ -68,24 +76,11 @@ deps: shell-install
 shell-install:
 	cd $(SHELL_DIR) && pnpm install
 
-# ─── Build ───────────────────────────────────────────────────────────────────
+## Check the toolchain (go, node/pnpm, WebView2 runtime, …)
+doctor:
+	scorix doctor
 
-## Build the full production binary for the current platform
-build: shell-build
-	@echo "==> Injecting frontend into .scorix/dist"
-	rm -rf $(SCORIX_DIST)
-	mkdir -p $(SCORIX_DIST)
-	cp -R $(SHELL_DIST)/. $(SCORIX_DIST)/
-	bash scripts/build.sh
-
-## Build the frontend only
-shell-build:
-	@echo "==> Preparing monaco-editor assets"
-	mkdir -p $(SHELL_DIR)/public/monaco-editor
-	cp -R $(SHELL_DIR)/node_modules/monaco-editor/min/vs $(SHELL_DIR)/public/monaco-editor/
-	cd $(SHELL_DIR) && pnpm build
-
-# ─── Quality ─────────────────────────────────────────────────────────────────
+# Quality
 
 test: _ensure-embed
 	go test ./...
@@ -96,22 +91,16 @@ lint: lint-go
 lint-go: _ensure-embed
 	go vet ./...
 
-## Internal: ensure .scorix/dist exists so go:embed doesn't fail
+## Internal: `//go:embed all:.scorix/dist` fails to compile when the dir is
+## missing, so build the frontend once before go test/vet. (monaco assets are
+## copied by the shell's own pnpm build.)
 _ensure-embed:
 	@if [ ! -d "$(SCORIX_DIST)" ]; then \
 		echo "==> .scorix/dist missing — building frontend first"; \
-		mkdir -p $(SHELL_DIR)/public/monaco-editor; \
-		cp -R $(SHELL_DIR)/node_modules/monaco-editor/min/vs $(SHELL_DIR)/public/monaco-editor/; \
 		cd $(SHELL_DIR) && pnpm build; \
 		mkdir -p ../$(SCORIX_DIST); \
 		cp -R dist/. ../$(SCORIX_DIST)/; \
 	fi
-
-_ensure-win-res:
-ifeq ($(OS),Windows_NT)
-	@echo "==> Generating Windows icon resource..."
-	go run github.com/akavel/rsrc@latest -ico assets/icon.ico -o app_windows.syso
-endif
 
 # ─── Redis (Docker) ──────────────────────────────────────────────────────────
 
@@ -133,4 +122,4 @@ redis-init-cluster:
 # ─── Cleanup ─────────────────────────────────────────────────────────────────
 
 clean:
-	rm -rf $(SCORIX_DIST) $(SHELL_DIST) artifacts .scorix/AppDir app_windows.syso
+	rm -rf $(SCORIX_DIST) $(SHELL_DIR)/dist artifacts .scorix/AppDir app_windows.syso

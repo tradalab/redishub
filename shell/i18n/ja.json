@@ -114,6 +114,7 @@
   "sentinel_authentication": "Sentinel認証",
   "master_username": "マスターユーザー名",
   "master_password": "マスターパスワード",
+  "secret_keep_hint": "変更しない場合は空欄のまま",
   "import_from_standalone": "スタンドアローンからインポート",
   "addr_mapping": "アドレスマッピング (NAT)",
   "addr_mapping_help": "到達不能な内部IPを到達可能なホストアドレスに変換します。形式: 内部:ポート=外部:ポート、1行に1つ。",

@@ -32,6 +32,7 @@ interface Props {
 
 export const TlsForm = forwardRef<TlsFormRef, Props>(({ tls, onPendingChange, onSaved, onDeleted }, ref) => {
   const { t } = useTranslation()
+  const editing = !!tls.id
 
   const tlsSchema = z.object({
     id: z.string().optional(),
@@ -271,8 +272,9 @@ export const TlsForm = forwardRef<TlsFormRef, Props>(({ tls, onPendingChange, on
                       <FormControl>
                         <Textarea
                           {...field}
+                          value={field.value ?? ""}
                           rows={6}
-                          placeholder={`-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----`}
+                          placeholder={editing ? t("secret_keep_hint") : `-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----`}
                           className="font-mono text-xs whitespace-pre"
                         />
                       </FormControl>

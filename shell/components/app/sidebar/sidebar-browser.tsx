@@ -97,7 +97,7 @@ export function SidebarBrowser() {
   }
   const scanByPrefix = async (prefix: string, _cursor: string = "0", _limit: number = 1000) => {
     try {
-      const res = await client.keysscanbyprefix({
+      const res = await client.keysScanByPrefix({
         connection_id: selectedDb || "",
         database_index: selectedDbIdx,
         prefix,

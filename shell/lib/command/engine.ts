@@ -1,46 +1,15 @@
-import scorix from "@/lib/scorix"
+import { console as consoleApi } from "@/api"
 import { CommandContext, CommandResponse, Middleware } from "./types"
 
 export class CommandEngine {
   private middlewares: Middleware[] = []
-  private static activeConnections = new Set<string>()
-  private static pendingRequests = new Map<string, (res: CommandResponse) => void>()
-
-  constructor() { }
 
   public use(middleware: Middleware) {
     this.middlewares.push(middleware)
     return this
   }
 
-  private ensureListener(connectionId: string) {
-    if (CommandEngine.activeConnections.has(connectionId)) return
-
-    CommandEngine.activeConnections.add(connectionId)
-    scorix.on("console:output:" + connectionId, (payload: any, error: string) => {
-      const id = payload?.id
-      if (!id) {
-        console.warn("Received output without command ID", payload, error)
-        return
-      }
-
-      const resolve = CommandEngine.pendingRequests.get(id)
-      if (resolve) {
-        CommandEngine.pendingRequests.delete(id)
-        resolve({
-          id,
-          status: error || payload?.stderr ? "error" : "success",
-          stdout: payload?.stdout,
-          stderr: payload?.stderr || error,
-          executionTimeMs: 0,
-        })
-      }
-    })
-  }
-
   public async execute(ctx: CommandContext): Promise<CommandResponse> {
-    this.ensureListener(ctx.connectionId)
-
     const startTime = Date.now()
     let mwIndex = -1
 
@@ -53,51 +22,68 @@ export class CommandEngine {
         return mw(ctx, () => dispatch(i + 1))
       }
 
-      return new Promise<CommandResponse>((resolve, reject) => {
-        const abortHandler = () => {
-          scorix.emit("console:cancel:" + ctx.connectionId, { id: ctx.id }).catch(console.error)
-          CommandEngine.pendingRequests.delete(ctx.id)
-          resolve({
-            id: ctx.id,
-            status: "cancelled",
-            executionTimeMs: Date.now() - startTime,
-          })
-        }
-
-        if (ctx.signal) {
-          if (ctx.signal.aborted) {
-            return resolve({ id: ctx.id, status: "cancelled", executionTimeMs: 0 })
-          }
-          ctx.signal.addEventListener("abort", abortHandler)
-        }
-
-        CommandEngine.pendingRequests.set(ctx.id, (res) => {
-          if (ctx.signal) {
-            ctx.signal.removeEventListener("abort", abortHandler)
-          }
-          res.executionTimeMs = Date.now() - startTime
-          resolve(res)
-        })
-
-        scorix.emit("console:input:" + ctx.connectionId, {
-          id: ctx.id,
-          command: ctx.raw,
-        }).catch((err) => {
-          if (ctx.signal) {
-            ctx.signal.removeEventListener("abort", abortHandler)
-          }
-          CommandEngine.pendingRequests.delete(ctx.id)
-          resolve({
-            id: ctx.id,
-            status: "error",
-            stderr: err?.message || "Failed to emit command",
-            executionTimeMs: Date.now() - startTime,
-          })
-        })
-      })
+      return this.run(ctx, startTime)
     }
 
     return dispatch(0)
+  }
+
+  private async run(ctx: CommandContext, startTime: number): Promise<CommandResponse> {
+    if (ctx.signal?.aborted) {
+      return { id: ctx.id, status: "cancelled", executionTimeMs: 0 }
+    }
+
+    const log = (...a: unknown[]) => console.log("[console:exec]", ctx.id, ...a)
+    log("open", ctx.raw)
+
+    const stream = consoleApi.exec({
+      connection_id: ctx.connectionId,
+      database_index: ctx.databaseIdx,
+      id: ctx.id,
+      command: ctx.raw,
+    })
+
+    const onAbort = () => stream.cancel()
+    ctx.signal?.addEventListener("abort", onAbort)
+
+    let stdout = ""
+    let stderr = ""
+    let frames = 0
+    try {
+      for await (const out of stream) {
+        frames++
+        log("frame", out)
+        if (out.stdout) stdout += out.stdout
+        if (out.stderr) stderr += out.stderr
+      }
+      log("done", { frames, stdout, stderr })
+    } catch (err) {
+      log("error", err)
+      stderr = (err as Error)?.message || "Command failed"
+    } finally {
+      ctx.signal?.removeEventListener("abort", onAbort)
+    }
+
+    if (ctx.signal?.aborted) {
+      return { id: ctx.id, status: "cancelled", executionTimeMs: Date.now() - startTime }
+    }
+
+    if (frames === 0 && !stderr) {
+      return {
+        id: ctx.id,
+        status: "error",
+        stderr: "No response from server (console:exec stream closed without output)",
+        executionTimeMs: Date.now() - startTime,
+      }
+    }
+
+    return {
+      id: ctx.id,
+      status: stderr ? "error" : "success",
+      stdout,
+      stderr,
+      executionTimeMs: Date.now() - startTime,
+    }
   }
 }
 

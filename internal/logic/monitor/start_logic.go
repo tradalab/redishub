@@ -2,10 +2,17 @@
 package monitor
 
 import (
+	"bufio"
 	"context"
+	"crypto/tls"
 	"fmt"
+	"io"
+	"net"
+	"strings"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/tradalab/scorix/app"
+
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
 )
@@ -22,86 +29,146 @@ func NewStartLogic(ctx context.Context, svcCtx *svc.ServiceContext) *StartLogic 
 	}
 }
 
-func (l *StartLogic) Start(params *types.MonitorReq) (*types.Empty, error) {
+func (l *StartLogic) Start(params *types.MonitorReq, out app.Sink[types.MonitorFrame]) error {
 	c, err := l.svcCtx.RedisManager.Get(params.ConnectionId, int(params.DatabaseIndex))
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	rdb, ok := c.Rdb.(*redis.Client)
+	if !ok {
+		return fmt.Errorf("MONITOR is only supported on standalone redis client")
+	}
+
+	ctx, cancel := context.WithCancel(out.Context())
+
+	conn, br, err := dialMonitor(ctx, rdb.Options())
+	if err != nil {
+		cancel()
+		return fmt.Errorf("monitor connect failed: %w", err)
+	}
+
+	go func() {
+		<-ctx.Done()
+		_ = conn.Close()
+	}()
 
 	c.MonitorMu.Lock()
-	if c.MonitorActive {
-		c.MonitorMu.Unlock()
-		return &types.Empty{}, nil
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
+	prev := c.MonitorCancel
 	c.MonitorActive = true
 	c.MonitorCancel = cancel
+	c.MonitorConn = conn
 	c.MonitorMu.Unlock()
-
-	ch := make(chan string, 1000)
-	var m *redis.MonitorCmd
-	var conn *redis.Conn
-
-	rollback := func() {
-		c.MonitorMu.Lock()
-		c.MonitorActive = false
-		c.MonitorCancel = nil
-		c.MonitorMu.Unlock()
-		cancel()
+	if prev != nil {
+		prev()
 	}
 
-	switch rdb := c.Rdb.(type) {
-	case *redis.Client:
-		conn = rdb.Conn()
-		m = conn.Monitor(ctx, ch)
-		m.Start()
-
+	defer func() {
 		c.MonitorMu.Lock()
-		c.Monitor = m
-		c.MonitorConn = conn
-		c.MonitorMu.Unlock()
-	default:
-		rollback()
-		return nil, fmt.Errorf("MONITOR is only supported on standalone redis client")
-	}
-
-	eventOut := fmt.Sprintf("monitor:message:%s", params.ConnectionId)
-	statusEvent := fmt.Sprintf("monitor:status:%s", params.ConnectionId)
-
-	l.svcCtx.App.Evt().Emit(context.Background(), "", statusEvent, true)
-
-	go func(m *redis.MonitorCmd, conn *redis.Conn, cancel context.CancelFunc) {
-		defer func() {
-			c.MonitorMu.Lock()
-			if c.Monitor == m {
-				c.Monitor = nil
-				c.MonitorActive = false
-			}
-			if c.MonitorConn == conn {
-				c.MonitorConn = nil
-			}
-			c.MonitorMu.Unlock()
-
-			m.Stop()
-			conn.Close()
-			cancel()
-
-			l.svcCtx.App.Evt().Emit(context.Background(), "", statusEvent, false)
-		}()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case msg, ok := <-ch:
-				if !ok {
-					return
-				}
-				l.svcCtx.App.Evt().Emit(context.Background(), "", eventOut, msg)
-			}
+		mine := c.MonitorConn == conn
+		if mine {
+			c.MonitorConn = nil
+			c.MonitorActive = false
+			c.MonitorCancel = nil
 		}
-	}(m, conn, cancel)
+		c.MonitorMu.Unlock()
 
-	return &types.Empty{}, nil
+		cancel()
+		_ = conn.Close()
+
+		if mine {
+			_ = out.Send(&types.MonitorFrame{Kind: "status", ConnectionId: params.ConnectionId, Active: false})
+		}
+	}()
+
+	if err := out.Send(&types.MonitorFrame{Kind: "status", ConnectionId: params.ConnectionId, Active: true}); err != nil {
+		return err
+	}
+
+	for {
+		line, err := br.ReadString('\n')
+		if err != nil {
+			return nil
+		}
+		line = strings.TrimPrefix(strings.TrimRight(line, "\r\n"), "+")
+		if line == "" {
+			continue
+		}
+		if err := out.Send(&types.MonitorFrame{Kind: "message", ConnectionId: params.ConnectionId, Line: line}); err != nil {
+			return err
+		}
+	}
+}
+
+func dialMonitor(ctx context.Context, opt *redis.Options) (net.Conn, *bufio.Reader, error) {
+	dialer := opt.Dialer
+	if dialer == nil {
+		d := &net.Dialer{}
+		dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return d.DialContext(ctx, network, addr)
+		}
+	}
+	conn, err := dialer(ctx, opt.Network, opt.Addr)
+	if err != nil {
+		return nil, nil, err
+	}
+	if opt.TLSConfig != nil {
+		tc := tls.Client(conn, opt.TLSConfig)
+		if err := tc.HandshakeContext(ctx); err != nil {
+			_ = conn.Close()
+			return nil, nil, err
+		}
+		conn = tc
+	}
+
+	br := bufio.NewReader(conn)
+	readReply := func() (string, error) {
+		l, err := br.ReadString('\n')
+		return strings.TrimRight(l, "\r\n"), err
+	}
+	expectOK := func(what string) error {
+		l, err := readReply()
+		if err != nil {
+			return err
+		}
+		if strings.HasPrefix(l, "-") {
+			return fmt.Errorf("%s rejected: %s", what, strings.TrimPrefix(l, "-"))
+		}
+		return nil
+	}
+
+	if opt.Password != "" {
+		args := []string{"AUTH", opt.Password}
+		if opt.Username != "" {
+			args = []string{"AUTH", opt.Username, opt.Password}
+		}
+		if err := writeRESP(conn, args...); err != nil {
+			_ = conn.Close()
+			return nil, nil, err
+		}
+		if err := expectOK("AUTH"); err != nil {
+			_ = conn.Close()
+			return nil, nil, err
+		}
+	}
+
+	if err := writeRESP(conn, "MONITOR"); err != nil {
+		_ = conn.Close()
+		return nil, nil, err
+	}
+	if err := expectOK("MONITOR"); err != nil {
+		_ = conn.Close()
+		return nil, nil, err
+	}
+	return conn, br, nil
+}
+
+func writeRESP(w io.Writer, args ...string) error {
+	var b strings.Builder
+	fmt.Fprintf(&b, "*%d\r\n", len(args))
+	for _, a := range args {
+		fmt.Fprintf(&b, "$%d\r\n%s\r\n", len(a), a)
+	}
+	_, err := io.WriteString(w, b.String())
+	return err
 }

@@ -114,6 +114,7 @@
   "sentinel_authentication": "Sentinel Authentication",
   "master_username": "Master Username",
   "master_password": "Master Password",
+  "secret_keep_hint": "Leave blank to keep current",
   "import_from_standalone": "Import from Standalone",
   "addr_mapping": "Address Mapping (NAT)",
   "addr_mapping_help": "Translate unreachable internal IPs to reachable host addresses. Format: internal:port=external:port, one per line.",

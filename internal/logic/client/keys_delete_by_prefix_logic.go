@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/tradalab/scorix/app"
+
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
 )
@@ -21,13 +23,21 @@ func NewKeysDeleteByPrefixLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-func (l *KeysDeleteByPrefixLogic) KeysDeleteByPrefix(params *types.ClientKeysDeleteByPrefixReq) (*types.ClientKeysDeleteByPrefixRes, error) {
+func (l *KeysDeleteByPrefixLogic) KeysDeleteByPrefix(params *types.ClientKeysDeleteByPrefixReq, out app.Sink[types.ClientKeysDeleteProgressEvent]) error {
 	cli, err := l.svcCtx.RedisManager.Get(params.ConnectionId, int(params.DatabaseIndex))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	eventTopic := fmt.Sprintf("client:keys-delete-progress:%s", params.ConnectionId)
+	progress := func(deleted, total int, status string) error {
+		return out.Send(&types.ClientKeysDeleteProgressEvent{
+			ConnectionId: params.ConnectionId,
+			Prefix:       params.Prefix,
+			Deleted:      int64(deleted),
+			Total:        int64(total),
+			Status:       status,
+		})
+	}
 
 	if len(params.Keys) > 0 {
 		batchSize := 1000
@@ -39,34 +49,21 @@ func (l *KeysDeleteByPrefixLogic) KeysDeleteByPrefix(params *types.ClientKeysDel
 			}
 			batch := params.Keys[i:end]
 
-			err = cli.Rdb.Del(l.ctx, batch...).Err()
-			if err != nil {
-				return nil, err
+			if err = cli.Rdb.Del(l.ctx, batch...).Err(); err != nil {
+				return err
 			}
 			totalDeleted += len(batch)
 
-			l.svcCtx.App.Evt().Emit(l.ctx, "", eventTopic, map[string]any{
-				"prefix":  params.Prefix,
-				"deleted": totalDeleted,
-				"total":   len(params.Keys),
-				"status":  "processing",
-			})
+			if err = progress(totalDeleted, len(params.Keys), "processing"); err != nil {
+				return err
+			}
 		}
 
-		l.svcCtx.App.Evt().Emit(l.ctx, "", eventTopic, map[string]any{
-			"prefix":  params.Prefix,
-			"deleted": totalDeleted,
-			"total":   len(params.Keys),
-			"status":  "done",
-		})
-
-		return &types.ClientKeysDeleteByPrefixRes{
-			TotalDeleted: int32(totalDeleted),
-		}, nil
+		return progress(totalDeleted, len(params.Keys), "done")
 	}
 
 	if params.Prefix == "" {
-		return nil, fmt.Errorf("prefix or keys must be provided")
+		return fmt.Errorf("prefix or keys must be provided")
 	}
 
 	match := params.Prefix + "*"
@@ -77,21 +74,18 @@ func (l *KeysDeleteByPrefixLogic) KeysDeleteByPrefix(params *types.ClientKeysDel
 	for {
 		keys, nextCursor, err := cli.Rdb.Scan(l.ctx, cursor, match, batchSize).Result()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(keys) > 0 {
-			err = cli.Rdb.Del(l.ctx, keys...).Err()
-			if err != nil {
-				return nil, err
+			if err = cli.Rdb.Del(l.ctx, keys...).Err(); err != nil {
+				return err
 			}
 			totalDeleted += len(keys)
 
-			l.svcCtx.App.Evt().Emit(l.ctx, "", eventTopic, map[string]any{
-				"prefix":  params.Prefix,
-				"deleted": totalDeleted,
-				"status":  "processing",
-			})
+			if err = progress(totalDeleted, 0, "processing"); err != nil {
+				return err
+			}
 		}
 
 		cursor = nextCursor
@@ -100,13 +94,5 @@ func (l *KeysDeleteByPrefixLogic) KeysDeleteByPrefix(params *types.ClientKeysDel
 		}
 	}
 
-	l.svcCtx.App.Evt().Emit(l.ctx, "", eventTopic, map[string]any{
-		"prefix":  params.Prefix,
-		"deleted": totalDeleted,
-		"status":  "done",
-	})
-
-	return &types.ClientKeysDeleteByPrefixRes{
-		TotalDeleted: int32(totalDeleted),
-	}, nil
+	return progress(totalDeleted, 0, "done")
 }

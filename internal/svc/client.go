@@ -2,6 +2,7 @@ package svc
 
 import (
 	"context"
+	"net"
 	"strings"
 	"sync"
 
@@ -19,8 +20,7 @@ type Client struct {
 	PubSub        *redis.PubSub
 	PubSubActive  bool
 	PubSubMu      sync.Mutex
-	Monitor       *redis.MonitorCmd
-	MonitorConn   *redis.Conn
+	MonitorConn   net.Conn
 	MonitorCancel context.CancelFunc
 	MonitorActive bool
 	MonitorMu     sync.Mutex
@@ -28,6 +28,24 @@ type Client struct {
 
 func NewClient(rdb redis.UniversalClient, cfg *model.Connection, ssh *model.Ssh, proxy *model.Proxy, tls *model.Tls, dbIdx int) *Client {
 	return &Client{Rdb: rdb, Cfg: cfg, Ssh: ssh, Proxy: proxy, Tls: tls, DbIdx: dbIdx}
+}
+
+func (c *Client) closeStreams() {
+	c.MonitorMu.Lock()
+	if c.MonitorCancel != nil {
+		c.MonitorCancel()
+		c.MonitorCancel = nil
+	}
+	c.MonitorActive = false
+	c.MonitorMu.Unlock()
+
+	c.PubSubMu.Lock()
+	if c.PubSub != nil {
+		_ = c.PubSub.Close()
+		c.PubSub = nil
+	}
+	c.PubSubActive = false
+	c.PubSubMu.Unlock()
 }
 
 func (c *Client) GetInfo(ctx context.Context, sections ...string) (map[string]map[string]string, error) {

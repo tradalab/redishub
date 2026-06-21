@@ -34,9 +34,9 @@ func (l *ListLogic) List(params *types.Empty) (*types.SshListRes, error) {
 			Port:       int32(s.Port),
 			Username:   s.Username,
 			Kind:       s.Kind,
-			Password:   s.Password,
-			PrivateKey: s.PrivateKey,
-			Passphrase: s.Passphrase,
+			Password:   "",
+			PrivateKey: "",
+			Passphrase: "",
 			Timeout:    s.Timeout,
 		})
 	}

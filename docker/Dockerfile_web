@@ -88,21 +88,17 @@ WORKDIR /app
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates tzdata
 
-# Copy binary and configuration
+# Copy binary only. Config is embedded in the binary (//go:embed scorix.yaml),
+# so no config file is shipped or rewritten at runtime.
 COPY --from=web-builder /workspace/redishub /app/redishub
-COPY --from=web-builder /workspace/etc/app.yaml /app/etc/app.yaml
 
-# Set environment variables for scorix web mode
+# Everything is configured via env, read by scorix at startup:
+#   SCORIX_MODE      -> --mode default (main.go) selects web mode
+#   SCORIX_WEB_HOST/PORT -> cfg.Web -> a.WebAddr() listen address
 ENV SCORIX_MODE=web
 ENV SCORIX_WEB_HOST=0.0.0.0
 ENV SCORIX_WEB_PORT=8080
 
-# Overwrite config values in etc/app.yaml with environment variables
-RUN sed -i "s/^mode:.*/mode: ${SCORIX_MODE}/" etc/app.yaml && \
-    sed -i "/^web:/,/port:/ s/^\( *\)host:.*/\1host: ${SCORIX_WEB_HOST}/" etc/app.yaml && \
-    sed -i "/^web:/,/port:/ s/^\( *\)port:.*/\1port: ${SCORIX_WEB_PORT}/" etc/app.yaml
-
 EXPOSE 8080
 
-# Run the application
 CMD ["/app/redishub"]

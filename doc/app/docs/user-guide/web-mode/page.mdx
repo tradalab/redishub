@@ -8,24 +8,26 @@ When running in **Web Mode**, RedisHub starts a built-in HTTP server that serves
 
 ## Configuration
 
-The primary way to configure Web Mode is through the `etc/app.yaml` file.
+Configuration lives in `scorix.yaml`, which is embedded into the binary at build
+time. The defaults look like:
 
 ```yaml
-# etc/app.yaml
-mode: web
+# scorix.yaml
+mode: app           # default; switch to web via env / --mode (below)
 
 web:
-  host: 0.0.0.0 # Listen on all interfaces
-  port: 8080    # The port to serve the UI
+  host: 127.0.0.1   # loopback by default (secure)
+  port: 8080        # the port to serve the UI
 ```
 
 ### Environment Variables
 
-You can also use environment variables to override these settings, which is ideal for Docker deployments:
+Since config is embedded, deployments override at runtime via environment
+variables (no rebuild) — the recommended path for Docker:
 
-- `SCORIX_MODE`: Set to `web` to enable web mode.
-- `SCORIX_WEB_HOST`: The IP address to bind the server (e.g., `0.0.0.0`).
-- `SCORIX_WEB_PORT`: The port to listen on (default `8080`).
+- `SCORIX_MODE`: set to `web` to enable web mode (or pass `--mode web`).
+- `SCORIX_WEB_HOST`: the IP address to bind the server (e.g., `0.0.0.0`).
+- `SCORIX_WEB_PORT`: the port to listen on (default `8080`).
 
 ---
 
@@ -127,6 +129,5 @@ If possible, deploy RedisHub within your internal network or a VPN-protected VPC
 If you prefer to run the binary directly on a Linux server:
 
 1. Download the latest Linux binary from the [Releases](https://github.com/tradalab/redishub/releases) page.
-2. Create an `etc/app.yaml` with `mode: web`.
-3. Ensure the user running the binary has write permissions to the application directory (for `app.dat`).
-4. Run the binary: `./redishub`
+2. Ensure the user running the binary has write permissions to the application directory (for `app.dat`).
+3. Run in web mode (config is embedded — no external file needed): `SCORIX_MODE=web SCORIX_WEB_HOST=0.0.0.0 ./redishub` (or `./redishub --mode web`).

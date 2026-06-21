@@ -20,15 +20,15 @@ CREATE TABLE IF NOT EXISTS "connection" (
     exec_timeout     INTEGER NOT NULL DEFAULT 60,
     dial_timeout     INTEGER NOT NULL DEFAULT 60,
     key_size         INTEGER NOT NULL DEFAULT 10000,
-    group_id         TEXT,
+    group_id         TEXT NOT NULL DEFAULT '',
     ssh_enable       INTEGER NOT NULL DEFAULT 0,
-    ssh_id           TEXT,
+    ssh_id           TEXT NOT NULL DEFAULT '',
     proxy_enable     INTEGER NOT NULL DEFAULT 0,
-    proxy_id         TEXT,
+    proxy_id         TEXT NOT NULL DEFAULT '',
     tls_enable       INTEGER NOT NULL DEFAULT 0,
-    tls_id           TEXT,
-    created_at       DATETIME,
-    updated_at       DATETIME,
+    tls_id           TEXT NOT NULL DEFAULT '',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at       DATETIME
 );
 
@@ -93,3 +93,19 @@ CREATE TABLE IF NOT EXISTS "setting" (
     updated_at  DATETIME,
     deleted_at  DATETIME
 );
+
+UPDATE "connection" SET
+    group_id   = COALESCE(group_id, ''),
+    ssh_id     = COALESCE(ssh_id, ''),
+    proxy_id   = COALESCE(proxy_id, ''),
+    tls_id     = COALESCE(tls_id, ''),
+    created_at = COALESCE(created_at, CURRENT_TIMESTAMP),
+    updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP)
+WHERE group_id IS NULL OR ssh_id IS NULL OR proxy_id IS NULL OR tls_id IS NULL
+   OR created_at IS NULL OR updated_at IS NULL;
+
+UPDATE "ssh" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
+UPDATE "tls" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
+UPDATE proxy SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
+UPDATE "group" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
+UPDATE "setting" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;

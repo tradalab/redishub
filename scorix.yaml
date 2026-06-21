@@ -1,4 +1,7 @@
-# Scorix Project Configuration
+# Scorix Project — single config source.
+#   Top section  : CLI build/codegen recipe (read by the `scorix` CLI on disk).
+#   `app:` … `modules:` : runtime manifest, embedded via //go:embed scorix.yaml
+#   and read by app.New (Tauri-style: one tauri.conf.json equivalent).
 name: github.com/tradalab/rdms
 proto: proto/app.proto
 shell:
@@ -8,3 +11,100 @@ shell:
 model:
   schema: etc/schema.sql
   dialect: sqlite
+package:
+  manufacturer: TradaLab
+  description: "Professional Redis Command Center - High-performance desktop & web client for managing and monitoring Redis."
+  icon: assets/icon.ico
+  ldflags: ["-s", "-w"]
+  targets:
+    - { os: windows, arch: amd64, format: msi }
+    - { os: darwin, arch: universal, format: dmg }
+    - { os: linux, arch: amd64, format: appimage }
+  windows:
+    upgrade_code: deae281f-e7ee-41cd-bc53-b3d37b5b3737
+  sign:
+    windows:
+      enabled: true
+      cert_env: REDISHUB_WIN_CERT
+      password_env: REDISHUB_WIN_CERT_PW
+      timestamp_url: http://timestamp.digicert.com
+    macos:
+      enabled: true
+      identity_env: MACOS_SIGN_IDENTITY        # "Developer ID Application: ... (TEAMID)"
+      notarize: true
+      apple_id_env: APPLE_ID
+      team_id_env: APPLE_TEAM_ID
+      password_env: APPLE_APP_PASSWORD          # app-specific password
+    linux:
+      enabled: false
+      gpg_key_env: LINUX_GPG_KEY
+  update:
+    appcast: true
+    checksums: true
+    elevate: true                       # MSI install needs elevation
+    base_url: https://cdn.tradalab.com/redishub
+    sign_key_env: SCORIX_UPDATE_PRIVATE_KEY  # Ed25519 private key (base64); CI secret
+
+# ── Runtime manifest (embedded; read by app.New) ─────────────────────────────
+app:
+  name: RedisHub
+  version: 1.11.0
+  identifier: com.tradalab.redishub
+  single_instance: true
+  description: "RedisHub"
+  authors: ["TradaLab Team"]
+  license: "UNLICENSE"
+  icon: "assets/icon.ico"
+
+mode: app
+
+# web mode: override khi deploy qua SCORIX_WEB_HOST / SCORIX_WEB_PORT
+# (vd SCORIX_WEB_HOST=0.0.0.0). Cờ --addr override cả hai.
+web:
+  host: 127.0.0.1
+  port: 8080
+
+window:
+  title: RedisHub
+  width: 1200
+  height: 800
+  min_width: 800
+  min_height: 600
+  resizable: true
+  frameless: false
+  debug: false
+  hide_on_close: true
+
+# sealed: env / runtime-file KHÔNG override được (RCE guard) — đổi phải rebuild.
+security:
+  csp: default
+  allow_right_click: true
+  allowlist:
+    shell: true # browser module OpenUrl only
+
+logger:
+  level: info # debug, info, warn, error
+  format: console # console, json
+  output: stdout # stdout, file, both
+  file: logs/app.log
+  max_size: 10 # MB
+  max_age: 7 # days
+
+modules:
+  # sqlx config is generated from the model.dialect above into svc — not here.
+  systemtray:
+    enabled: true
+    title: RedisHub
+    tooltip: RedisHub
+  browser:
+    enabled: true
+  # sealed: repo / public_key / provider không override được lúc runtime
+  # (chống đổi nguồn auto-update). current_version mặc định từ app.version.
+  updater:
+    enabled: true
+    provider: github
+    github_repo: tradalab/redishub
+    appcast_url:
+    public_key_base_64: XoPvqQ8+pJPXLzD0zlpTLVo7WCTzKK47gWYsz25TL9E=
+    platform_key:
+    force_elevate: true

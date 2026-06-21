@@ -34,7 +34,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.ProxyListRes, error) {
 			Host:     p.Host,
 			Port:     int32(p.Port),
 			Username: p.Username,
-			Password: p.Password,
+			Password: "", // secrets are never sent to the client
 		})
 	}
 

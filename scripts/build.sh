@@ -15,7 +15,7 @@ cd "$PROJECT_ROOT"
 APP_NAME="RedisHub"
 APP_MANUFACTURER="TradaLab"
 APP_DESC="Professional Redis Command Center - High-performance desktop & web client for managing and monitoring Redis."
-VERSION=$(grep '^[[:space:]]\+version:' etc/app.yaml | awk '{print $2}')
+VERSION=$(grep '^[[:space:]]\+version:' scorix.yaml | awk '{print $2}')
 
 ####################################################################################################
 # SYSTEM ENV
@@ -40,12 +40,8 @@ mkdir -p "$TEMP_DIR"
 
 echo "==> Generate config"
 
-echo "+ Write version"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
-else
-  sed -i -E "s/(current_version:[[:space:]]*).*/\1$VERSION/" etc/app.yaml
-fi
+# Version lives in scorix.yaml (app.version) and is embedded into the binary; the
+# updater derives current_version from it — nothing to write here.
 
 echo "+ Copy icon"
 cp assets/icon.ico "$TEMP_DIR/$APP_NAME.ico"

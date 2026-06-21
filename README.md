@@ -108,7 +108,7 @@ This builds the frontend, injects it into `.scorix/dist/`, then runs `go run mai
 ```
 redishub/
 ├── main.go                  # Entry point — wires app + systray
-├── etc/app.yaml             # App config (name, window, logger, modules)
+├── scorix.yaml              # Single config source: build recipe + runtime manifest (app, window, logger, modules)
 ├── app/
 │   ├── handler/             # IPC command registration
 │   ├── logic/
@@ -189,7 +189,7 @@ Run `make dev` instead of `go run main.go` directly — it builds the frontend f
 On macOS: `xcode-select --install`. On Linux: `apt-get install libwebkit2gtk-4.1-dev`. On Windows: install TDM-GCC.
 
 **App window doesn't open**
-Set `window.debug: true` in `etc/app.yaml` to open DevTools. Logs go to stdout by default.
+Set `window.debug: true` in `scorix.yaml` to open DevTools. Logs go to stdout by default.
 
 **Redis cluster won't connect**
 Run `make redis-init-cluster` after `make redis-up`. The cluster requires one-time initialization.

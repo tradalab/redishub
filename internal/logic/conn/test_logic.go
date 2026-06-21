@@ -44,43 +44,42 @@ func (l *TestLogic) Test(params *types.ConnectionReq) (*types.Empty, error) {
 		TlsEnable:        bToI(params.TlsEnable),
 	}
 
-	var sshCfg *model.Ssh
-	if params.SshEnable {
-		sshCfg = &model.Ssh{
-			Host:       params.Ssh.Host,
-			Port:       int64(params.Ssh.Port),
-			Username:   params.Ssh.Username,
-			Kind:       params.Ssh.Kind,
-			Password:   params.Ssh.Password,
-			PrivateKey: params.Ssh.PrivateKey,
-			Passphrase: params.Ssh.Passphrase,
-			Timeout:    params.Ssh.Timeout,
+	if params.Id != "" && (params.Password == "" || params.SentinelPassword == "") {
+		if existing, err := l.svcCtx.ConnectionModel.FindOne(l.ctx, params.Id); err == nil {
+			if params.Password == "" {
+				conn.Password = existing.Password
+			}
+			if params.SentinelPassword == "" {
+				conn.SentinelPassword = existing.SentinelPassword
+			}
 		}
+	}
+
+	var sshCfg *model.Ssh
+	if params.SshEnable && params.SshId != "" {
+		s, err := l.svcCtx.SshModel.FindOne(l.ctx, params.SshId)
+		if err != nil {
+			return nil, err
+		}
+		sshCfg = s
 	}
 
 	var proxyCfg *model.Proxy
-	if params.ProxyEnable {
-		proxyCfg = &model.Proxy{
-			Protocol: params.Proxy.Protocol,
-			Host:     params.Proxy.Host,
-			Port:     int64(params.Proxy.Port),
-			Username: params.Proxy.Username,
-			Password: params.Proxy.Password,
+	if params.ProxyEnable && params.ProxyId != "" {
+		p, err := l.svcCtx.ProxyModel.FindOne(l.ctx, params.ProxyId)
+		if err != nil {
+			return nil, err
 		}
+		proxyCfg = p
 	}
 
 	var tlsCfg *model.Tls
-	if params.TlsEnable {
-		tlsCfg = &model.Tls{
-			Name:       params.Tls.Name,
-			UseSni:     bToI(params.Tls.UseSni),
-			ServerName: params.Tls.ServerName,
-			Verify:     bToI(params.Tls.Verify),
-			ClientAuth: bToI(params.Tls.ClientAuth),
-			CaCert:     params.Tls.CaCert,
-			Cert:       params.Tls.Cert,
-			Key:        params.Tls.Key,
+	if params.TlsEnable && params.TlsId != "" {
+		tc, err := l.svcCtx.TlsModel.FindOne(l.ctx, params.TlsId)
+		if err != nil {
+			return nil, err
 		}
+		tlsCfg = tc
 	}
 
 	if err := l.svcCtx.RedisManager.Test(&conn, sshCfg, proxyCfg, tlsCfg, 0); err != nil {

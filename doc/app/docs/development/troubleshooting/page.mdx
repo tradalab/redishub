@@ -26,7 +26,7 @@ Common development, setup, and build issues for RedisHub, with solutions.
 
 **Solution**:
 1.  Check the logs in your terminal for any hidden errors.
-2.  Enable debug mode in `etc/app.yaml`:
+2.  Enable debug mode in `scorix.yaml`:
     ```yaml
     window:
       debug: true
@@ -49,5 +49,5 @@ Common development, setup, and build issues for RedisHub, with solutions.
 
 **Solution**:
 1.  Identify the conflicting port (e.g., `8080` for the web server or `6379` for Redis).
-2.  Edit the port mappings in `dev/docker-compose-*.yaml` or `etc/app.yaml`.
+2.  Edit the port mappings in `dev/docker-compose-*.yaml` or `scorix.yaml` (`web.port`).
 3.  Update the connection settings in the RedisHub UI to match the new ports.

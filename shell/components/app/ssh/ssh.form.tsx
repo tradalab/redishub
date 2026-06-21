@@ -35,6 +35,8 @@ interface Props {
 
 export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, onSaved, onDeleted }, ref) => {
   const { t } = useTranslation()
+  const editing = !!ssh.id
+  const secretPlaceholder = editing ? t("secret_keep_hint") : undefined
 
   const defaultValues = useMemo(
     () => ({
@@ -225,7 +227,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
               <FormItem>
                 <FormLabel>{t("password")}</FormLabel>
                 <FormControl>
-                  <Input {...field} type="password" />
+                  <Input {...field} value={field.value ?? ""} type="password" placeholder={secretPlaceholder} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -242,7 +244,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
                 <FormItem>
                   <FormLabel>{t("private_key")}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="font-mono text-xs min-h-[120px]" placeholder={t("enter_private_key_pem")} />
+                    <Textarea {...field} value={field.value ?? ""} className="font-mono text-xs min-h-[120px]" placeholder={editing ? t("secret_keep_hint") : t("enter_private_key_pem")} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -255,7 +257,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
                 <FormItem>
                   <FormLabel>Passphrase</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" />
+                    <Input {...field} value={field.value ?? ""} type="password" placeholder={secretPlaceholder} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

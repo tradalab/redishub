@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { usePubSubMessages, usePubSubPublish, usePubSubSubscribe, usePubSubUnsubscribe } from "@/hooks/api/pubsub.api"
+import { usePubSubStream, usePubSubPublish, usePubSubSubscribe, usePubSubUnsubscribe } from "@/hooks/api/pubsub.api"
 import { Plus, Send, Trash2, Ban, Play, Pause, Radio } from "lucide-react"
 
 interface PubsubMessage {
@@ -113,7 +113,7 @@ export function ConnectionDetailTabPubSub({ connectionId, databaseIdx }: { conne
     })
   }, [])
 
-  usePubSubMessages(connectionId, onMessage)
+  usePubSubStream(connectionId, databaseIdx, onMessage)
 
   useEffect(() => {
     if (autoScroll && scrollRef.current) {

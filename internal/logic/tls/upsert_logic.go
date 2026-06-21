@@ -48,7 +48,10 @@ func (l *UpsertLogic) Upsert(params *types.TlsReq) (*types.UpsertRes, error) {
 	t.ClientAuth = bToI(params.ClientAuth)
 	t.CaCert = params.CaCert
 	t.Cert = params.Cert
-	t.Key = params.Key
+
+	if isNew || params.Key != "" {
+		t.Key = params.Key
+	}
 
 	if isNew {
 		if _, err := l.svcCtx.TlsModel.Insert(l.ctx, t); err != nil {

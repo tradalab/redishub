@@ -17,6 +17,8 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
 
   const mode: RedisModeEnum = form.watch("mode") || RedisModeEnum.STANDALONE
   const network: string = form.watch("network")
+  const editing = !!form.watch("id")
+  const secretPlaceholder = editing ? t("secret_keep_hint") : undefined
 
   return (
     <div className="space-y-6 px-1 py-1">
@@ -261,7 +263,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                     <FormItem>
                       <FormLabel className="text-[11px]">{t("sentinel_password")}</FormLabel>
                       <FormControl>
-                        <Input {...field} type="password" className="h-8 text-xs" />
+                        <Input {...field} value={field.value ?? ""} type="password" placeholder={secretPlaceholder} className="h-8 text-xs" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -344,7 +346,7 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
                 <FormItem>
                   <FormLabel className="flex items-center justify-between">{t("master_password")}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="password" />
+                    <Input {...field} value={field.value ?? ""} type="password" placeholder={secretPlaceholder} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

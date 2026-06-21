@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-func NewIgnoreDeadlineConn(conn net.Conn) *IgnoreDeadlineConn {
-	return &IgnoreDeadlineConn{Conn: conn}
-}
-
 type IgnoreDeadlineConn struct {
 	net.Conn
 }

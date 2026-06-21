@@ -45,7 +45,10 @@ func (l *UpsertLogic) Upsert(params *types.ProxyReq) (*types.UpsertRes, error) {
 	p.Host = params.Host
 	p.Port = int64(params.Port)
 	p.Username = params.Username
-	p.Password = params.Password
+
+	if isNew || params.Password != "" {
+		p.Password = params.Password
+	}
 
 	if isNew {
 		if _, err := l.svcCtx.ProxyModel.Insert(l.ctx, p); err != nil {

@@ -15,6 +15,10 @@ cd "$PROJECT_ROOT"
 GOOS=${1:-$(go env GOOS)}
 GOARCH=${2:-$(go env GOARCH)}
 
+# Dev runs at debug log level + IPC call tracing (override via the same env vars).
+export SCORIX_LOGGER_LEVEL="${SCORIX_LOGGER_LEVEL:-debug}"
+export SCORIX_IPC_TRACE="${SCORIX_IPC_TRACE:-1}"
+
 ####################################################################################################
 # Shell
 

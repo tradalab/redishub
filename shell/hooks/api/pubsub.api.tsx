@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
-import scorix from "@/lib/scorix"
 import { pubsub } from "@/api"
+import type * as T from "@/types"
 
 export function usePubSubSubscribe() {
   return useMutation({ mutationFn: pubsub.subscribe })
@@ -17,18 +17,31 @@ export function usePubSubPublish() {
   return useMutation({ mutationFn: pubsub.publish })
 }
 
-export function usePubSubMessages(connectionId: string, onMessage: (payload: any) => void) {
+export function usePubSubStream(
+  connectionId: string,
+  databaseIdx: number,
+  onMessage: (payload: T.PubsubMessageEvent) => void,
+) {
+  const onMessageRef = useRef(onMessage)
+  onMessageRef.current = onMessage
+
   useEffect(() => {
     if (!connectionId) return
-    const off = scorix.on(`pubsub:message:${connectionId}`, (payload: any, error: string) => {
-      if (error) {
-        console.error("PubSub IPC Error:", error)
-        return
+    const stream = pubsub.stream({ connection_id: connectionId, database_index: databaseIdx })
+    let cancelled = false
+    ;(async () => {
+      try {
+        for await (const m of stream) {
+          if (cancelled) break
+          onMessageRef.current(m)
+        }
+      } catch (err) {
+        if (!cancelled) console.error("PubSub stream error:", err)
       }
-      onMessage(payload)
-    })
+    })()
     return () => {
-      Promise.resolve(off).then(o => typeof o === "function" && o())
+      cancelled = true
+      stream.cancel()
     }
-  }, [connectionId, onMessage])
+  }, [connectionId, databaseIdx])
 }
