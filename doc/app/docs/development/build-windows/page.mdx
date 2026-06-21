@@ -1,49 +1,35 @@
 # Building for Windows
 
-To build Windows artifacts, you need to use **Windows containers** in a Windows environment, as the build process requires the Wix Toolset and Windows system libraries.
+Windows artifacts (`.msi`) are built natively with the `scorix` CLI — no Docker required. The MSI
+step needs the WiX Toolset.
 
 ## Prerequisites
 
-- **Docker Desktop** (Switched to **Windows containers**)
-- **Hyper-V** (Must be enabled on the host machine)
-- **Git** (For cloning the repository)
+- **Go 1.26+** and **Node.js 22+** + **pnpm**
+- **WiX Toolset v6** — `dotnet tool install --global wix --version 6.0.2`
+- **scorix CLI** — `go install github.com/tradalab/scorix/cmd/scorix@latest`
 
-## Building the Base Image
+## Build Process
 
-The base image contains large dependencies like `Go`, `Node.js`, and the `Wix Toolset`. 
-
-Build the base image from the project root:
+From the project root:
 
 ```bash
-DOCKER_BUILDKIT=0 docker build \
-  -f docker/Dockerfile_basewindows \
-  -t ghcr.io/tradalab/scorix-base-windows:latest \
-  .
+make package          # scorix package — builds the binary + wraps it into an MSI
 ```
 
-## Creating the MSI Installer
-
-Once the base image is ready, you can compile the application and build the MSI installer.
+Or invoke `scorix` directly to target an explicit OS/arch (this is what CI runs):
 
 ```bash
-DOCKER_BUILDKIT=0 docker build \
-  --platform windows/amd64 \
-  -f docker/Dockerfile_windows \
-  . -t redishub:windows
+scorix package -d . --os windows --arch amd64
 ```
 
-## Exporting the Artifacts
-
-Because Windows containers don't support the `--output type=local` buildx feature as easily as Linux containers, you'll need to create a temporary container to copy the files out:
-
-```bash
-docker create --name tmp redishub:windows && \
-docker cp tmp:C:/artifacts ./ && \
-docker rm tmp
-```
+Code signing is applied automatically when the signing secrets from `scorix.yaml`
+(`sign.windows`) are present in the environment; otherwise an unsigned MSI is produced.
 
 ## Output Locations
 
-Upon a successful export, the following files will be available:
+- `artifacts/RedisHub-1.11.0-windows-amd64.msi` (version tracks `app.version` in `scorix.yaml`)
 
-- `artifacts/RedisHub-1.8.0-windows-amd64.msi`
+> [!NOTE]
+> CI runs the same `scorix package` step on a native `windows-2022` runner — see
+> `.github/workflows/release-windows.yml`.

@@ -40,19 +40,19 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 | **Node.js** | 22+ | `node -v` |
 | **pnpm** | 10.3+ | `pnpm -v` |
 | **Docker** | any recent | needed only for local Redis instances |
-| **CGO** | enabled | required for SQLite and webview |
+| **scorix CLI** | latest | `go install github.com/tradalab/scorix/cmd/scorix@latest` (drives `make dev/generate/build/package`) |
 
-**macOS**
-```bash
-xcode-select --install
-```
+> **No C compiler required.** RedisHub is pure Go — SQLite is `modernc.org/sqlite` (no CGO) and the
+> webview is driven natively per-OS through `purego` (WebView2 COM on Windows, WKWebView on macOS,
+> WebKitGTK on Linux). There is no `gcc`/CGO build step.
 
-**Linux (Ubuntu/Debian)**
-```bash
-sudo apt-get install -y gcc libwebkit2gtk-4.1-dev libgtk-3-dev pkg-config
-```
+**Runtime dependencies** (the app loads these at startup, they are not build deps):
 
-**Windows** — Install [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) or MSYS2 `mingw-w64-gcc` and ensure `gcc` is in `PATH`.
+- **Windows** — [WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (preinstalled on Windows 11 / recent Windows 10).
+- **Linux** — `libgtk-3` and `libwebkit2gtk-4.1` (falls back to `4.0`): `sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0`.
+- **macOS** — none; WKWebView ships with the OS. (Building a universal `.dmg` needs Xcode Command Line Tools for `lipo`.)
+
+Run `make doctor` (`scorix doctor`) to check your toolchain.
 
 ---
 
@@ -97,9 +97,9 @@ make redis-init-cluster
 make dev
 ```
 
-This builds the frontend, injects it into `.scorix/dist/`, then runs `go run main.go`. The app window opens automatically.
-
-> For frontend-only changes, use `make shell-dev` (Next.js hot-reload). IPC calls to the Go backend won't work in this mode.
+This runs `scorix dev`: it starts the Next.js dev server with hot-reload (HMR) and the Go backend
+together, then opens the app window. Frontend edits reload live; IPC calls to the Go backend work
+end-to-end (unlike a standalone `pnpm dev`).
 
 ---
 
@@ -107,53 +107,69 @@ This builds the frontend, injects it into `.scorix/dist/`, then runs `go run mai
 
 ```
 redishub/
-├── main.go                  # Entry point — wires app + systray
+├── main.go                  # Entry point — wires app + browser/updater modules; mode app|web
 ├── scorix.yaml              # Single config source: build recipe + runtime manifest (app, window, logger, modules)
-├── app/
-│   ├── handler/             # IPC command registration
+├── proto/app.proto          # IPC contract — handlers, types & events are generated from here
+├── etc/schema.sql           # DB schema — sqlx CRUD models are generated from here
+├── internal/
+│   ├── handler/             # Generated IPC registration (handler.go — DO NOT EDIT)
+│   ├── types/               # Generated request/response/event types (DO NOT EDIT)
 │   ├── logic/
 │   │   ├── client/          # Connection + key operations
-│   │   ├── key/             # Per-type key operations (hash, list, …)
+│   │   ├── key/             # Per-type key operations (hash, list, set, zset, stream)
+│   │   ├── connection/      # Saved connection CRUD
 │   │   ├── conn/            # Connection test logic
-│   │   └── ssh/             # SSH test logic
+│   │   ├── console/ monitor/ pubsub/  # Console exec, MONITOR stream, Pub/Sub
+│   │   ├── ssh/ tls/ proxy/ # SSH / TLS / proxy profile CRUD + tests
+│   │   ├── group/ setting/  # Connection groups & user settings
+│   │   └── system/          # System info
+│   ├── model/               # Generated sqlx models + secrets handling (modernc/sqlite)
 │   ├── svc/                 # Service context + Redis client manager
-│   └── dal/do/              # GORM models (Connection, SSH, TLS, Group, Setting)
+│   └── config/              # Config struct (embeds scorix config)
 ├── pkg/
-│   ├── netx/                # SSH tunnel helper
+│   ├── netx/                # SSH tunnel + proxy dialers
 │   └── util/                # Binary key encoding
-├── shell/                   # Next.js frontend (pnpm workspace)
-│   ├── src/                 # React components, pages, hooks
-│   └── dist/                # Build output (git-ignored) → copied to .scorix/dist
+├── shell/                   # Next.js frontend (pnpm workspace) → built into .scorix/dist
+├── doc/                     # Nextra documentation site
 ├── dev/                     # Docker Compose files for local Redis
-├── scripts/
-│   ├── dev.sh               # Same as `make dev`
-│   └── build.sh             # Production binary builder
-└── docker/                  # Dockerfiles for CI/CD builds
+├── scripts/                 # release.sh — version bump helper
+└── docker/                  # Dockerfile_web — web/server image (CI builds & pushes it)
 ```
 
 ---
 
 ### 5. Adding a new IPC command
 
-IPC commands follow the pattern `domain:action` (e.g. `client:connect`).
+IPC is **proto-driven**. Commands follow the pattern `service:method` (e.g. `client:connect`,
+emitted as `client:Connect`). `internal/handler/handler.go` and `internal/types/types.go` are
+**generated** — you don't edit them by hand.
 
-**Step 1 — Write the logic** in `app/logic/<domain>/<action>.logic.go`:
-```go
-type MyLogicArgs struct {
-    ConnectionId string `json:"connection_id" validate:"required"`
+**Step 1 — Declare the contract** in [`proto/app.proto`](proto/app.proto). Add request/response
+messages and an `rpc` to the relevant `service` (use `returns (stream …)` for server-streaming
+commands like `monitor:Start`):
+```proto
+message MyActionReq {
+  string connection_id = 1;
 }
 
-func (l *MyLogic) MyLogic(params MyLogicArgs) (interface{}, error) {
-    // ... implementation
-    return result, nil
+service client {
+  // ... existing rpcs
+  rpc MyAction(MyActionReq) returns (Empty);
 }
 ```
 
-**Step 2 — Register the handler** in `app/handler/handler.go`:
+**Step 2 — Regenerate** handlers, types, and (if you touched `etc/schema.sql`) models:
+```bash
+make generate          # scorix generate proto + scorix generate model
+```
+
+**Step 3 — Implement the logic** in `internal/logic/<service>/<action>_logic.go`. The generated
+handler calls `client.NewMyActionLogic(ctx, svcCtx).MyAction(req)`:
 ```go
-svcCtx.App.Cmd().Handle("client:my-action", func(ctx context.Context, params client.MyLogicArgs) (interface{}, error) {
-    return client.NewMyLogic(ctx, svcCtx).MyLogic(params)
-})
+func (l *MyActionLogic) MyAction(req *types.MyActionReq) (any, error) {
+    // ... implementation
+    return result, nil
+}
 ```
 
 ---
@@ -161,11 +177,13 @@ svcCtx.App.Cmd().Handle("client:my-action", func(ctx context.Context, params cli
 ### 6. Commands reference
 
 ```bash
-make dev                  # Build frontend + run app (main workflow)
-make shell-dev            # Next.js hot-reload (frontend only)
-make deps                 # Install all dependencies
+make dev                  # Run app with Next.js dev server + HMR (scorix dev) — main workflow
+make generate             # Regenerate proto + model code (scorix generate proto/model)
+make build                # Single-binary build for the host (scorix build)
+make package              # Native installer (msi/dmg/appimage) per scorix.yaml (scorix package)
+make deps                 # Install all dependencies (Go + pnpm)
 make shell-install        # Install frontend dependencies only
-make shell-build          # Build frontend only
+make doctor               # Check the toolchain (scorix doctor)
 make test                 # Run Go tests
 make lint                 # Lint everything (go vet + eslint)
 make lint-go              # go vet only
@@ -174,22 +192,24 @@ make redis-down           # Stop all Docker Redis instances
 make redis-init-cluster   # Initialize cluster topology (first time only)
 make redis-status         # Show container status
 make redis-logs           # Tail container logs
-make build                # Full production binary for current OS/arch
-make clean                # Remove build artifacts
+make clean                # Remove build artifacts and dist
 ```
 
 ---
 
 ### 7. Troubleshooting
 
-**`//go:embed .scorix/dist/*` fails at build time**
-Run `make dev` instead of `go run main.go` directly — it builds the frontend first.
+**`//go:embed all:.scorix/dist` fails at build time**
+The frontend hasn't been built yet. Use `make dev` / `make build` (the `scorix` CLI builds the shell
+into `.scorix/dist` first) rather than a bare `go build`. For `make test`/`make lint`, the Makefile
+builds the shell once automatically (see the `_ensure-embed` target).
 
-**CGO / `cannot find package "C"` errors**
-On macOS: `xcode-select --install`. On Linux: `apt-get install libwebkit2gtk-4.1-dev`. On Windows: install TDM-GCC.
+**App window doesn't open (Windows)**
+Make sure the [WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
+is installed. Set `window.debug: true` in `scorix.yaml` to open DevTools. Logs go to stdout by default.
 
-**App window doesn't open**
-Set `window.debug: true` in `scorix.yaml` to open DevTools. Logs go to stdout by default.
+**App window doesn't open (Linux)**
+Install the GTK/WebKit runtime: `sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0`.
 
 **Redis cluster won't connect**
 Run `make redis-init-cluster` after `make redis-up`. The cluster requires one-time initialization.

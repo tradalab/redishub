@@ -1,7 +1,3 @@
-# Scorix Project — single config source.
-#   Top section  : CLI build/codegen recipe (read by the `scorix` CLI on disk).
-#   `app:` … `modules:` : runtime manifest, embedded via //go:embed scorix.yaml
-#   and read by app.New (Tauri-style: one tauri.conf.json equivalent).
 name: github.com/tradalab/rdms
 proto: proto/app.proto
 shell:
@@ -45,7 +41,6 @@ package:
     base_url: https://cdn.tradalab.com/redishub
     sign_key_env: SCORIX_UPDATE_PRIVATE_KEY  # Ed25519 private key (base64); CI secret
 
-# ── Runtime manifest (embedded; read by app.New) ─────────────────────────────
 app:
   name: RedisHub
   version: 1.11.0
@@ -58,8 +53,6 @@ app:
 
 mode: app
 
-# web mode: override khi deploy qua SCORIX_WEB_HOST / SCORIX_WEB_PORT
-# (vd SCORIX_WEB_HOST=0.0.0.0). Cờ --addr override cả hai.
 web:
   host: 127.0.0.1
   port: 8080
@@ -75,7 +68,6 @@ window:
   debug: false
   hide_on_close: true
 
-# sealed: env / runtime-file KHÔNG override được (RCE guard) — đổi phải rebuild.
 security:
   csp: default
   allow_right_click: true
@@ -91,15 +83,12 @@ logger:
   max_age: 7 # days
 
 modules:
-  # sqlx config is generated from the model.dialect above into svc — not here.
   systemtray:
     enabled: true
     title: RedisHub
     tooltip: RedisHub
   browser:
     enabled: true
-  # sealed: repo / public_key / provider không override được lúc runtime
-  # (chống đổi nguồn auto-update). current_version mặc định từ app.version.
   updater:
     enabled: true
     provider: github

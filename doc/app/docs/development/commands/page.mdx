@@ -8,11 +8,11 @@ RedisHub uses a `Makefile` to orchestrate common development, testing, and build
 
 | Command | Action |
 |---------|--------|
-| `make dev` | Build frontend + run Go app (Recommended) |
-| `make shell-dev` | Next.js hot-reload (Frontend ONLY) |
+| `make dev` | Run the app with the Next.js dev server + HMR (`scorix dev`) — main workflow |
+| `make generate` | Regenerate handlers/types from proto + sqlx models from schema (`scorix generate proto/model`) |
 | `make deps` | Install all backend and frontend dependencies |
 | `make shell-install` | Install frontend dependencies only |
-| `make shell-build` | Build frontend only |
+| `make doctor` | Check the toolchain & runtime deps (`scorix doctor`) |
 
 ---
 
@@ -42,10 +42,11 @@ RedisHub uses a `Makefile` to orchestrate common development, testing, and build
 
 | Command | Action |
 |---------|--------|
-| `make build` | Build production binary for current OS/Arch |
-| `make clean` | Remove build artifacts and temporary files |
+| `make build` | Build the single production binary for the host (`scorix build`) |
+| `make package` | Build + wrap into a native installer — msi/dmg/appimage per `scorix.yaml` (`scorix package`) |
+| `make clean` | Remove build artifacts and dist |
 
 ---
 
 > [!TIP]
-> If you encounter CGO-related errors while running `make dev`, ensure your GCC compiler is in your `PATH` and correctly configured for your operating system.
+> If a build fails, run `make doctor` to check the toolchain.

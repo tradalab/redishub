@@ -9,8 +9,10 @@ Thank you for your interest in contributing to RedisHub! We welcome contribution
 3. **Coding Standards**:
     - **Go**: Follow `gofmt` and standard Go idioms.
     - **Frontend**: Use Tailwind CSS for styling and TypeScript for typed props.
+    - **IPC**: Edit `proto/app.proto` and run `make generate` — never hand-edit the generated `handler.go` / `types.go` / `shell/api/index.ts`.
 4. **Testing**:
-    - Ensure your changes run correctly in development mode using `bash scripts/dev.sh`.
+    - Ensure your changes run correctly in development mode using `make dev`.
+    - Run `make lint` and `make test` before opening a PR.
 5. **Commit Messages**: Use descriptive commit messages following the [Conventional Commits](https://www.conventionalcommits.org/) format: `<type>(<scope>): <description>`.
     - `feat:`: New feature.
     - `fix:`: Bug fix.

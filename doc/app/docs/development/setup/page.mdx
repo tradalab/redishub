@@ -12,24 +12,18 @@ Ensure you have the following tools installed and available in your `PATH`:
 | **Node.js** | 22+ | Frontend runtime. |
 | **pnpm** | 10.3+ | Fast package manager (corepack enable pnpm). |
 | **Docker** | recent | Required for local Redis instances. |
-| **CGO** | enabled | Required for SQLite and webview integration. |
+| **scorix CLI** | latest | `go install github.com/tradalab/scorix/cmd/scorix@latest` — drives `make dev/generate/build/package`. |
 
-### OS-Specific Setup
+### Runtime Dependencies
 
-#### macOS
-Install Xcode command line tools for CGO support:
-```bash
-xcode-select --install
-```
+These are loaded by the app at startup — they are **not** build dependencies:
 
-#### Linux (Ubuntu/Debian)
-Install required development libraries:
-```bash
-sudo apt-get install -y gcc libwebkit2gtk-4.1-dev libgtk-3-dev pkg-config
-```
+- **Windows** — [WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (preinstalled on Windows 11 / recent Windows 10).
+- **Linux** — GTK3 + WebKitGTK: `sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0` (falls back to `4.0`).
+- **macOS** — none; WKWebView ships with the OS.
 
-#### Windows
-Install [TDM-GCC](https://jmeubank.github.io/tdm-gcc/) or MSYS2 `mingw-w64-gcc` and ensure `gcc` is correctly configured in your `PATH`.
+> [!TIP]
+> Run `make doctor` (`scorix doctor`) to verify your toolchain and runtime dependencies.
 
 ---
 
@@ -68,26 +62,29 @@ make redis-up
 
 ## Running Development Server
 
-To start both the Go backend and the Next.js frontend concurrently:
+To start the Go backend and the Next.js dev server (with HMR) together:
 
 ```bash
 make dev
 ```
 
-- **Native App**: The application window will open automatically.
-- **Web Frontend**: For hot-reloading at `localhost:3000`, use `make shell-dev` (IPC Backend calls won't work in this mode).
+This runs `scorix dev`: the application window opens automatically, frontend edits hot-reload live,
+and IPC calls to the Go backend work end-to-end.
 
 ---
 
 ## Project Structure
 
-| Directory | Description |
+| Path | Description |
 | :--- | :--- |
-| `app/` | Core backend business logic, services, and handlers. |
-| `cmd/` | Supplementary CLI tools and release utilities. |
+| `main.go` | Entry point — wires the app + browser/updater modules; selects `app` or `web` mode. |
+| `proto/app.proto` | IPC contract. Handlers (`internal/handler`) and types (`internal/types`) are **generated** from it. |
+| `etc/schema.sql` | DB schema. sqlx CRUD models (`internal/model`) are **generated** from it. |
+| `scorix.yaml` | Single config source: build recipe + runtime manifest (app, window, logger, modules). |
+| `internal/` | Backend: generated `handler`/`types`, `logic/<service>`, `model` (sqlx), `svc`, `config`. |
+| `pkg/` | Reusable Go packages (`netx` SSH/proxy dialers, `util` key encoding). |
+| `shell/` | The Next.js frontend (React, Tailwind, Shadcn UI), built into `.scorix/dist`. |
 | `doc/` | The Nextra-powered documentation site (what you are reading now). |
-| `etc/` | SQL schema + generated DB model artifacts (`schema.sql`). App config lives in `scorix.yaml`. |
-| `pkg/` | Reusable Go packages and utility libraries. |
-| `shell/` | The Next.js frontend application (React, Tailwind, Lucide). |
-| `scripts/` | Automation scripts for orchestration and releases. |
-| `dev/` | Docker Compose files for local development environments. |
+| `scripts/` | `release.sh` — version bump helper. |
+| `dev/` | Docker Compose files for local Redis topologies. |
+| `docker/` | `Dockerfile_web` — the web/server image (built & pushed by CI). |

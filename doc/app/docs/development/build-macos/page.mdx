@@ -1,33 +1,35 @@
 # Building for macOS
 
-macOS builds are performed natively using the standard macOS SDK and the Go toolchain. We create a **Universal Binary** that supports both Intel (AMD64) and Apple Silicon (ARM64) architectures.
+macOS builds are performed natively on a Mac. We create a **Universal Binary** that supports both Intel (AMD64) and Apple Silicon (ARM64) architectures and bundle it into a `.dmg`.
 
 ## Prerequisites
 
-- **Go 1.24+**
-- **Node.js 22+**
-- **pnpm**
-- **Xcode Command Line Tools**: Install via `xcode-select --install`.
+- **Go 1.26+**
+- **Node.js 22+** + **pnpm**
+- **Xcode Command Line Tools**: `xcode-select --install` — provides `lipo` for merging the universal binary.
+
+> [!NOTE]
+> The universal `.dmg` must be built on a Mac (it uses `lipo` from the Xcode Command Line Tools).
 
 ## Build Process
 
-To build the macOS application and bundle it into a `.dmg` installer, use the provided build script:
+Run `make package` (`scorix package`) on a Mac — it builds the universal binary and packages the
+`.dmg` per the `darwin/universal` target in `scorix.yaml`:
 
 ```bash
-bash scripts/build.sh darwin universal
+make package
 ```
 
-Under the hood, this script:
-1. Compiles the frontend and Go backend.
-2. Creates separate `amd64` and `arm64` binaries.
+Under the hood it:
+1. Builds the frontend and Go backend.
+2. Compiles separate `amd64` and `arm64` binaries.
 3. Uses `lipo` to merge them into a single universal binary.
-4. Bundles the binary into an `.app` structure.
-5. Packages the `.app` into a `.dmg` via `dmgbuild` or `hdiutil`.
+4. Bundles it into an `.app` and packages the `.app` into a `.dmg`.
 
 ## Output Locations
 
-Upon a successful build, the following files will be available:
+Upon a successful build, the following file will be available:
 
-- `artifacts/RedisHub-1.8.0-macos-universal.dmg`
+- `artifacts/RedisHub-1.11.0-macos-universal.dmg` (version tracks `app.version` in `scorix.yaml`)
 
 This DMG can be mounted and dragged into the Applications folder for installation.
