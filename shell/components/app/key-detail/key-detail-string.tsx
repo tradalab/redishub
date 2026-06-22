@@ -16,6 +16,7 @@ export type KeyDetailStringProps = {
   selectedKey: string
   data: string
   reload: () => void
+  readOnly?: boolean
 }
 
 export function KeyDetailString(props: KeyDetailStringProps) {
@@ -50,7 +51,14 @@ export function KeyDetailString(props: KeyDetailStringProps) {
   return (
     <>
       <div>
-        <Button size="sm" variant="outline" className="mb-2" disabled={!changed || loading} onClick={() => update()}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="mb-2"
+          disabled={!changed || loading || props.readOnly}
+          title={props.readOnly ? t("read_only_blocked") : undefined}
+          onClick={() => update()}
+        >
           {loading ? <Spinner /> : <SaveIcon />}
           {t("save")}
         </Button>
@@ -60,7 +68,7 @@ export function KeyDetailString(props: KeyDetailStringProps) {
         language="txt"
         autoFormat={true}
         defaultHeight={400}
-        options={{ readOnly: loading, minimap: { enabled: false } }}
+        options={{ readOnly: loading || props.readOnly, minimap: { enabled: false } }}
         onChange={val => {
           if (!changed) {
             setChanged(true)

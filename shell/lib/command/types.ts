@@ -8,6 +8,7 @@ export interface CommandContext {
   connectionId: string
   databaseIdx: number
   signal?: AbortSignal
+  readOnly?: boolean
 }
 
 export interface CommandResponse {
@@ -28,6 +29,7 @@ export interface CommandMetadata {
   syntax: string
   summary: string
   isDangerous: boolean
+  isWrite?: boolean
   category: CommandCategory
   docLink?: string
 }

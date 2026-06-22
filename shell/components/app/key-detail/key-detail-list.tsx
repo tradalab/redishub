@@ -27,6 +27,7 @@ type KeyDetailListProps = {
   selectedKey: string
   reloadToken: number
   reload: () => void
+  readOnly?: boolean
 }
 
 export function KeyDetailList(props: KeyDetailListProps) {
@@ -55,6 +56,7 @@ export function KeyDetailList(props: KeyDetailListProps) {
       size: 12,
       header: ({ column }) => <TableColumnHeader column={column} title="" />,
       cell: ({ row }) => {
+        if (props.readOnly) return null
         const idx = row.original.id
         const isDeleting = deletingIdx === idx
 
@@ -151,6 +153,12 @@ export function KeyDetailList(props: KeyDetailListProps) {
   return (
     <>
       <div>
+        {props.readOnly ? (
+          <Button size="sm" variant="outline" className="mb-2" disabled title={t("read_only_blocked")}>
+            <PlusIcon />
+            {t("insert_row")}
+          </Button>
+        ) : (
         <Drawer direction="right">
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
@@ -188,6 +196,7 @@ export function KeyDetailList(props: KeyDetailListProps) {
             </Form>
           </DrawerContent>
         </Drawer>
+        )}
       </div>
       <TableProvider columns={columns} data={items as ListType[]}>
         <TableHeader>
