@@ -15,7 +15,7 @@ import {
   LayoutGridIcon,
   MonitorIcon,
   LockIcon,
-  UnlockIcon,
+  PanelsTopLeftIcon,
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
@@ -23,7 +23,7 @@ import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
 import { Virtuoso } from "react-virtuoso"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DbInfo } from "@/types"
@@ -265,84 +265,99 @@ export function SidebarBrowser() {
               <span className="flex size-1.5 rounded-full bg-green-500" />
               DB{selectedDbIdx}
               {readOnly && (
-                <Badge
-                  variant="outline"
-                  className="ml-1 h-4 gap-1 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wider border-amber-500/50 text-amber-600 dark:text-amber-400"
-                  title={t("read_only_desc")}
-                >
-                  <LockIcon className="h-2.5 w-2.5" />
-                  {t("read_only")}
-                </Badge>
+                <button type="button" onClick={toggleReadOnly} title={t("read_only_disable")} className="inline-flex">
+                  <Badge
+                    variant="outline"
+                    className="ml-1 h-3.5 gap-0.5 rounded-sm px-1 py-0 text-[8px] leading-none font-semibold uppercase tracking-wide border-amber-500/50 text-amber-600 dark:text-amber-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/20 [&>svg]:size-2!"
+                  >
+                    <LockIcon />
+                    {t("read_only")}
+                  </Badge>
+                </button>
               )}
             </div>
           </div>
-          <div className="flex gap-2.5">
-            <LayoutGridIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "key-list",
-                  title: t("key_list") + ` (DB ${selectedDbIdx})`,
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <DatabaseIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "general",
-                  title: currentConnection?.name || "General",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <TerminalIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
-              }
-            />
-            <RadioIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "pubsub",
-                  title: "Pub/Sub",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <MonitorIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "monitor",
-                  title: "Monitor",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <ActivityIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "slow-query",
-                  title: "Slow Query",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
+          <div className="flex gap-2.5 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="inline-flex items-center cursor-pointer focus:outline-none" title={t("views")}>
+                  <PanelsTopLeftIcon className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-44">
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({
+                      type: "key-list",
+                      title: t("key_list") + ` (DB ${selectedDbIdx})`,
+                      connectionId: selectedDb!,
+                      connectionName: currentConnection?.name,
+                      databaseIdx: selectedDbIdx,
+                    })
+                  }
+                >
+                  <LayoutGridIcon className="h-4 w-4" />
+                  {t("key_list")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({
+                      type: "general",
+                      title: currentConnection?.name || "General",
+                      connectionId: selectedDb!,
+                      connectionName: currentConnection?.name,
+                      databaseIdx: selectedDbIdx,
+                    })
+                  }
+                >
+                  <DatabaseIcon className="h-4 w-4" />
+                  {t("general")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <TerminalIcon className="h-4 w-4" />
+                  {t("console")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "pubsub", title: "Pub/Sub", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <RadioIcon className="h-4 w-4" />
+                  Pub/Sub
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "monitor", title: "Monitor", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <MonitorIcon className="h-4 w-4" />
+                  {t("monitor")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "slow-query", title: "Slow Query", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <ActivityIcon className="h-4 w-4" />
+                  {t("slow_query")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked={readOnly} onCheckedChange={() => toggleReadOnly()} className="gap-2 cursor-pointer">
+                  <LockIcon className="h-4 w-4" />
+                  {t("read_only")}
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <RefreshCcwIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -353,13 +368,6 @@ export function SidebarBrowser() {
                 reload()
               }}
             />
-            <span title={readOnly ? t("read_only_disable") : t("read_only_enable")} className="inline-flex">
-              {readOnly ? (
-                <LockIcon className="h-4 w-4 cursor-pointer text-amber-600 dark:text-amber-400" onClick={toggleReadOnly} />
-              ) : (
-                <UnlockIcon className="h-4 w-4 cursor-pointer" onClick={toggleReadOnly} />
-              )}
-            </span>
             {readOnly ? (
               <span title={t("read_only_blocked")} className="inline-flex">
                 <PlusIcon className="h-4 w-4 cursor-not-allowed opacity-40" />
