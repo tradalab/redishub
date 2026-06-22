@@ -2,6 +2,27 @@
 
 ---
 
+## [1.13.0]
+
+### 🚀 Features
+
+- **connection:** Add per-connection **Read-only Mode** — server-enforced blocking of every write command (detected from the live Redis `COMMAND` table, with a curated fallback), gated mutating UI actions, console feedback, and clear indicators, for safely exploring production data (#88)
+
+### 🐛 Fixes
+
+- **windows:** Fix the application GUI failing to launch/render on Windows
+
+### ♻️ Improvements & Refactors
+
+- **shell:** Consolidate the key-browser header's view actions (Key List, General, Console, Pub/Sub, Monitor, Slow Query) into a single **Views** menu to reduce clutter
+- **deps:** Update Scorix runtime to v0.9.2
+
+### 🔧 Chores
+
+- **ui:** Add settings panel icon
+
+---
+
 ## [1.12.0]
 
 ### 🚀 Features

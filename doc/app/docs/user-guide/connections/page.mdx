@@ -70,6 +70,26 @@ Access these settings under the **Optional** tab for fine-grained control:
 Essential for environments where Redis nodes report internal, unreachable IPs (e.g., Docker or AWS ElastiCache behind NAT).
 - **Mapping**: Define rules to translate internal `ip:port` to host-reachable `ip:port`.
 - **Syntax**: `internal:port=external:port`, one entry per line.
+
+## Read-only Mode
+
+Connecting to a production or sensitive Redis instance? Enable **Read-only Mode** to explore data with zero risk of accidental modification. When active, RedisHub blocks **every write command** on that connection.
+
+### Enabling it
+
+Read-only mode is **per connection** and persists across restarts. Toggle it from any of:
+
+- The **Read-only** switch in the connection dialog's **Optional** tab.
+- The **Views** menu (or the lock toggle) in the key browser header.
+- Clicking the amber **READ-ONLY** badge to turn it back off.
+
+### How it works
+
+- **Server-enforced, not just UI.** Writes are rejected at the command layer — covering the key editors, bulk delete, **and** the interactive Console. The blocked-command set is detected from the connected server's own `COMMAND` table (so module writes like `JSON.SET` are caught too), with a curated fallback for servers that restrict `COMMAND`.
+- **Gated UI.** Add / edit / delete / rename / TTL actions are disabled, with clear feedback when a blocked action is attempted.
+- **Clear indicators.** A `READ-ONLY` badge appears in the browser header, and a lock icon marks the connection in the sidebar list.
+
+> **Note:** `PUBLISH` (Pub/Sub messaging) is allowed because it does not modify the keyspace. Administrative commands that change server or data state (e.g. `CONFIG SET`, `FLUSHALL`, `SHUTDOWN`) are blocked.
 73: 
 74: ## Server Information
 75: 
