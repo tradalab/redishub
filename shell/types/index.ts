@@ -162,6 +162,12 @@ export interface ClientSearchKeysRes {
   keys?: string[];
 }
 
+export interface ClientSetReadOnlyReq {
+  connection_id: string;
+  database_index: number;
+  read_only: boolean;
+}
+
 export interface ConnectionListRes {
   items?: ConnectionReq[];
 }
@@ -195,6 +201,7 @@ export interface ConnectionReq {
   tls: TlsReq;
   group_id: string;
   last_db: number;
+  read_only: boolean;
 }
 
 export interface ConsoleInputEvent {

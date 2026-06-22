@@ -27,6 +27,7 @@ type KeyDetailHashProps = {
   selectedKey: string
   reloadToken: number
   reload: () => void
+  readOnly?: boolean
 }
 
 export function KeyDetailHash(props: KeyDetailHashProps) {
@@ -60,6 +61,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
       size: 12,
       header: ({ column }) => <TableColumnHeader column={column} title="" />,
       cell: ({ row }) => {
+        if (props.readOnly) return null
         const fieldKey = row.original.key
         const isDeleting = deletingField === fieldKey
 
@@ -155,6 +157,12 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   return (
     <>
       <div>
+        {props.readOnly ? (
+          <Button size="sm" variant="outline" className="mb-2" disabled title={t("read_only_blocked")}>
+            <PlusIcon />
+            {t("insert_row")}
+          </Button>
+        ) : (
         <Drawer direction="right">
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
@@ -192,6 +200,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
             </Form>
           </DrawerContent>
         </Drawer>
+        )}
       </div>
       <TableProvider columns={columns} data={items as HashType[]}>
         <TableHeader>

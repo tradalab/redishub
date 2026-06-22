@@ -27,6 +27,7 @@ type Props = {
   selectedKey: string
   reloadToken: number
   reload: () => void
+  readOnly?: boolean
 }
 
 const schema = z.object({
@@ -60,6 +61,7 @@ export function KeyDetailStream(props: Props) {
       size: 12,
       header: ({ column }) => <TableColumnHeader column={column} title="" />,
       cell: ({ row }) => {
+        if (props.readOnly) return null
         const entryId = row.original.id
         const isDeleting = deletingEntry === entryId
 
@@ -157,6 +159,12 @@ export function KeyDetailStream(props: Props) {
 
   return (
     <>
+      {props.readOnly ? (
+        <Button size="sm" variant="outline" className="mb-2" disabled title={t("read_only_blocked")}>
+          <PlusIcon />
+          {t("insert_row")}
+        </Button>
+      ) : (
       <Drawer direction="right">
         <DrawerTrigger asChild>
           <Button size="sm" variant="outline" className="mb-2">
@@ -193,6 +201,7 @@ export function KeyDetailStream(props: Props) {
           </Form>
         </DrawerContent>
       </Drawer>
+      )}
 
       <TableProvider columns={columns} data={items as StreamType[]}>
         <TableHeader>

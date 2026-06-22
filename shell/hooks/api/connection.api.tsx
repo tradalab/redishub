@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { connection, conn } from "@/api"
+import { connection, conn, client } from "@/api"
 import { ConnectionReq as ConnectionDO } from "@/types"
 
 const QUERY_KEY = ["conn-list"]
@@ -12,6 +12,28 @@ export function useConnectionList() {
     queryFn: async () => {
       const res = await connection.list({})
       return res.items || []
+    },
+  })
+}
+
+export function useReadOnly(connectionId?: string): boolean {
+  const { data } = useConnectionList()
+  if (!connectionId) return false
+  return Boolean(data?.find(c => c.id === connectionId)?.read_only)
+}
+
+export function useSetReadOnly() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: { connectionId: string; databaseIdx: number; readOnly: boolean }) => {
+      await client.setReadOnly({
+        connection_id: vars.connectionId,
+        database_index: vars.databaseIdx,
+        read_only: vars.readOnly,
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 }

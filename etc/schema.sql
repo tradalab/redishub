@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS "connection" (
     proxy_id         TEXT NOT NULL DEFAULT '',
     tls_enable       INTEGER NOT NULL DEFAULT 0,
     tls_id           TEXT NOT NULL DEFAULT '',
+    read_only        INTEGER NOT NULL DEFAULT 0,
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at       DATETIME
@@ -74,9 +75,6 @@ CREATE TABLE IF NOT EXISTS proxy (
     deleted_at  DATETIME
 );
 
--- `group` is a SQL reserved word — must be quoted as a table name. Use
--- standard double-quotes so the DDL stays portable across SQLite/Postgres;
--- generated query code already quotes identifiers per dialect.
 CREATE TABLE IF NOT EXISTS "group" (
     id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
     name        TEXT NOT NULL DEFAULT '',

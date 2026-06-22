@@ -3,6 +3,7 @@
 import { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { useTranslation } from "react-i18next"
 
 export function ConnectionOptionalForm({ form }: { form: UseFormReturn<any> }) {
@@ -10,6 +11,22 @@ export function ConnectionOptionalForm({ form }: { form: UseFormReturn<any> }) {
 
   return (
     <>
+      <FormField
+        control={form.control}
+        name="read_only"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between border rounded-lg p-4">
+            <div>
+              <FormLabel>{t("read_only")}</FormLabel>
+              <p className="text-xs text-muted-foreground">{t("read_only_desc")}</p>
+            </div>
+            <FormControl>
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="exec_timeout"

@@ -12,14 +12,15 @@ import (
 	"github.com/tradalab/rdms/internal/model"
 	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
 	_ "modernc.org/sqlite"
+
 	// scorix:model:imports:end
 	"github.com/tradalab/scorix/app"
 )
 
 type ServiceContext struct {
-	Cfg *config.Config
-
+	Cfg          *config.Config
 	RedisManager *ClientManager
+	sqlx         *scorixsqlx.Module
 	// scorix:model:fields:start
 	ConnectionModel model.ConnectionModel
 	SshModel        model.SshModel
@@ -44,6 +45,7 @@ func NewServiceContext(a *app.App) *ServiceContext {
 	return &ServiceContext{
 		Cfg:          &config.Config{},
 		RedisManager: NewManager(),
+		sqlx:         sqlxMod,
 		// scorix:model:assigns:start
 		ConnectionModel: model.NewConnectionModel(sqlxMod.Conn),
 		SshModel:        model.NewSshModel(sqlxMod.Conn),

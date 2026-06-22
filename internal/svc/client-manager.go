@@ -71,6 +71,9 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 	_ = rdb.Do(ctx, "CLIENT", "SETNAME", url.QueryEscape(cfg.Name)).Err()
 
 	cli := NewClient(rdb, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	cli.ReadOnly.Store(cfg.ReadOnly != 0)
+	cli.writeCmds = buildWriteCmds(ctx, rdb)
+	rdb.AddHook(&readOnlyHook{cli: cli})
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -320,6 +323,18 @@ func (m *ClientManager) Get(id string, dbIdx int) (*Client, error) {
 	}
 
 	return nil, fmt.Errorf("client %s not found", key)
+}
+
+func (m *ClientManager) SetReadOnly(id string, ro bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	prefix := id + ":"
+	for key, c := range m.clients {
+		if strings.HasPrefix(key, prefix) {
+			c.ReadOnly.Store(ro)
+		}
+	}
 }
 
 func (m *ClientManager) Remove(id string, dbIdx int) error {

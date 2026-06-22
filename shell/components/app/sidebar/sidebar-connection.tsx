@@ -4,7 +4,7 @@ import { useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
-import { EditIcon, FolderPlusIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
+import { EditIcon, FolderPlusIcon, LockIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
 import { toast } from "sonner"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
@@ -78,8 +78,10 @@ type RenderTreeItemProps = {
 }
 
 function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
+  const { t } = useTranslation()
   const { connect, selectedDb } = useAppContext()
   const isActive = !item.isGroup && item.id === selectedDb
+  const readOnly = !item.isGroup && Boolean(item.connection?.read_only)
 
   return (
     <TreeNode
@@ -101,6 +103,11 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
         <TreeExpander hasChildren={item.isGroup} />
         <TreeIcon hasChildren={item.isGroup} />
         <TreeLabel>{item.name}</TreeLabel>
+        {readOnly && (
+          <span title={t("read_only")} className="ml-auto mr-0.5 inline-flex shrink-0">
+            <LockIcon className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+          </span>
+        )}
         <ActionButton item={item} reload={reload} />
       </TreeNodeTrigger>
 

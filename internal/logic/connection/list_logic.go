@@ -54,6 +54,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.ConnectionListRes, error) 
 			ProxyId:          c.ProxyID,
 			TlsEnable:        c.TlsEnable > 0,
 			TlsId:            c.TlsID,
+			ReadOnly:         c.ReadOnly > 0,
 		})
 	}
 

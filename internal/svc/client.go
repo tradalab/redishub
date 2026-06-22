@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/internal/model"
@@ -24,6 +25,8 @@ type Client struct {
 	MonitorCancel context.CancelFunc
 	MonitorActive bool
 	MonitorMu     sync.Mutex
+	ReadOnly      atomic.Bool
+	writeCmds     map[string]struct{}
 }
 
 func NewClient(rdb redis.UniversalClient, cfg *model.Connection, ssh *model.Ssh, proxy *model.Proxy, tls *model.Tls, dbIdx int) *Client {

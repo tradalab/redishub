@@ -14,6 +14,8 @@ import {
   RadioIcon,
   LayoutGridIcon,
   MonitorIcon,
+  LockIcon,
+  PanelsTopLeftIcon,
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
@@ -21,13 +23,14 @@ import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
 import { Virtuoso } from "react-virtuoso"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ConnectionReq as ConnectionDO, DbInfo } from "@/types"
+import { DbInfo } from "@/types"
 import { client, connection } from "@/api"
 import { useKeyDelete, useKeysDeleteByPrefix, useKeysList } from "@/hooks/api/client.api"
-import { useConnectionList } from "@/hooks/api/connection.api"
+import { useConnectionList, useSetReadOnly } from "@/hooks/api/connection.api"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { useTranslation } from "react-i18next"
@@ -50,6 +53,18 @@ export function SidebarBrowser() {
   const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
+  const readOnly = Boolean(currentConnection?.read_only)
+  const setReadOnly = useSetReadOnly()
+
+  const toggleReadOnly = async () => {
+    if (!selectedDb || setReadOnly.isPending) return
+    try {
+      await setReadOnly.mutateAsync({ connectionId: selectedDb, databaseIdx: selectedDbIdx, readOnly: !readOnly })
+      toast.success(!readOnly ? t("read_only_enabled") : t("read_only_disabled"))
+    } catch (e: any) {
+      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+    }
+  }
 
   const keysQuery = useKeysList(selectedDb || "", selectedDbIdx, { count: currentConnection?.key_size })
   const keys = useMemo(() => {
@@ -249,75 +264,100 @@ export function SidebarBrowser() {
             <div className="text-[10px] text-muted-foreground flex items-center gap-1">
               <span className="flex size-1.5 rounded-full bg-green-500" />
               DB{selectedDbIdx}
+              {readOnly && (
+                <button type="button" onClick={toggleReadOnly} title={t("read_only_disable")} className="inline-flex">
+                  <Badge
+                    variant="outline"
+                    className="ml-1 h-3.5 gap-0.5 rounded-sm px-1 py-0 text-[8px] leading-none font-semibold uppercase tracking-wide border-amber-500/50 text-amber-600 dark:text-amber-400 cursor-pointer hover:bg-amber-50/50 dark:hover:bg-amber-950/20 [&>svg]:size-2!"
+                  >
+                    <LockIcon />
+                    {t("read_only")}
+                  </Badge>
+                </button>
+              )}
             </div>
           </div>
-          <div className="flex gap-2.5">
-            <LayoutGridIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "key-list",
-                  title: t("key_list") + ` (DB ${selectedDbIdx})`,
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <DatabaseIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "general",
-                  title: currentConnection?.name || "General",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <TerminalIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
-              }
-            />
-            <RadioIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "pubsub",
-                  title: "Pub/Sub",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <MonitorIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "monitor",
-                  title: "Monitor",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
-            <ActivityIcon
-              className="h-4 w-4 cursor-pointer"
-              onClick={() =>
-                addTab({
-                  type: "slow-query",
-                  title: "Slow Query",
-                  connectionId: selectedDb!,
-                  connectionName: currentConnection?.name,
-                  databaseIdx: selectedDbIdx,
-                })
-              }
-            />
+          <div className="flex gap-2.5 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button type="button" className="inline-flex items-center cursor-pointer focus:outline-none" title={t("views")}>
+                  <PanelsTopLeftIcon className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-44">
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({
+                      type: "key-list",
+                      title: t("key_list") + ` (DB ${selectedDbIdx})`,
+                      connectionId: selectedDb!,
+                      connectionName: currentConnection?.name,
+                      databaseIdx: selectedDbIdx,
+                    })
+                  }
+                >
+                  <LayoutGridIcon className="h-4 w-4" />
+                  {t("key_list")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({
+                      type: "general",
+                      title: currentConnection?.name || "General",
+                      connectionId: selectedDb!,
+                      connectionName: currentConnection?.name,
+                      databaseIdx: selectedDbIdx,
+                    })
+                  }
+                >
+                  <DatabaseIcon className="h-4 w-4" />
+                  {t("general")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "console", title: "Console", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <TerminalIcon className="h-4 w-4" />
+                  {t("console")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "pubsub", title: "Pub/Sub", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <RadioIcon className="h-4 w-4" />
+                  Pub/Sub
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "monitor", title: "Monitor", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <MonitorIcon className="h-4 w-4" />
+                  {t("monitor")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() =>
+                    addTab({ type: "slow-query", title: "Slow Query", connectionId: selectedDb!, connectionName: currentConnection?.name, databaseIdx: selectedDbIdx })
+                  }
+                >
+                  <ActivityIcon className="h-4 w-4" />
+                  {t("slow_query")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked={readOnly} onCheckedChange={() => toggleReadOnly()} className="gap-2 cursor-pointer">
+                  <LockIcon className="h-4 w-4" />
+                  {t("read_only")}
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <RefreshCcwIcon
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
@@ -328,9 +368,15 @@ export function SidebarBrowser() {
                 reload()
               }}
             />
-            <BrowserAddKeyDialog>
-              <PlusIcon className="h-4 w-4 cursor-pointer" />
-            </BrowserAddKeyDialog>
+            {readOnly ? (
+              <span title={t("read_only_blocked")} className="inline-flex">
+                <PlusIcon className="h-4 w-4 cursor-not-allowed opacity-40" />
+              </span>
+            ) : (
+              <BrowserAddKeyDialog>
+                <PlusIcon className="h-4 w-4 cursor-pointer" />
+              </BrowserAddKeyDialog>
+            )}
           </div>
         </div>
         <div className="flex gap-2 items-center">
@@ -390,7 +436,7 @@ export function SidebarBrowser() {
                         loadMore()
                       }}
                       itemContent={(index, item) => (
-                        <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} connectionName={currentConnection?.name} />
+                        <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} connectionName={currentConnection?.name} readOnly={readOnly} />
                       )}
                     />
                   </div>
@@ -415,10 +461,12 @@ function RenderTreeItem({
   item,
   deleteKey,
   connectionName,
+  readOnly,
 }: {
   item: FlattenedTreeItem
   deleteKey: (item: TreeItem) => Promise<void>
   connectionName?: string
+  readOnly?: boolean
 }) {
   const { selectedDb, selectedDbIdx } = useAppContext()
   const { addTab } = useTabStore()
@@ -442,7 +490,7 @@ function RenderTreeItem({
         <TreeLabel title={item.name}>
           {item.name || "[Empty]"} {item.isGroup && item.keyCount !== undefined && item.keyCount > 0 && `(${item.keyCount})`}
         </TreeLabel>
-        <ActionButton item={item} deleteKey={deleteKey} />
+        {!readOnly && <ActionButton item={item} deleteKey={deleteKey} />}
       </TreeNodeTrigger>
     </TreeNode>
   )

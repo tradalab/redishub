@@ -8,13 +8,16 @@ import { useTranslation } from "react-i18next"
 import { useTheme } from "next-themes"
 import { defaultEngine } from "@/lib/command/engine"
 import { confirmDangerousMiddleware } from "@/lib/command/middleware/dangerous-command"
+import { readOnlyMiddleware } from "@/lib/command/middleware/read-only"
 import { CommandRegistry } from "@/lib/command/registry"
 import { useCommandStore } from "@/stores/command.store"
+import { useReadOnly } from "@/hooks/api/connection.api"
 import { CommandContext } from "@/lib/command/types"
 import { cn } from "@/lib/utils"
 
 let middlewareRegistered = false
 if (!middlewareRegistered) {
+  defaultEngine.use(readOnlyMiddleware)
   defaultEngine.use(confirmDangerousMiddleware)
   middlewareRegistered = true
 }
@@ -65,6 +68,10 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
   const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
   const { addHistory, getHistoryForConnection } = useCommandStore()
+
+  const readOnly = useReadOnly(connectionId)
+  const readOnlyRef = useRef(readOnly)
+  readOnlyRef.current = readOnly
 
   const [acState, setAcState] = useState({ open: false, x: 0, y: 0, direction: "down" as "up" | "down", query: "", index: 0, list: [] as Suggestion[] })
   const acRef = useRef(acState)
@@ -226,6 +233,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
           },
           connectionId,
           databaseIdx,
+          readOnly: readOnlyRef.current,
         }
 
         const res = await defaultEngine.execute(ctx)

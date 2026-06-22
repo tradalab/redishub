@@ -33,6 +33,7 @@ message ConnectionReq {
   TlsReq tls                = 26;
   string group_id           = 27;
   int32  last_db            = 28;
+  bool   read_only          = 29;
 }
 
 message SshReq {
@@ -71,6 +72,12 @@ message ProxyReq {
 message ClientConnectReq {
   string connection_id  = 1;
   int32  database_index = 2;
+}
+
+message ClientSetReadOnlyReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  bool   read_only      = 3;
 }
 
 message ClientDisconnectReq {
@@ -476,6 +483,7 @@ service client {
   rpc KeysDeleteByPrefix(ClientKeysDeleteByPrefixReq) returns (stream ClientKeysDeleteProgressEvent);
   rpc KeysScanByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysScanByPrefixRes);
   rpc SearchKeys(ClientSearchKeysReq) returns (ClientSearchKeysRes);
+  rpc SetReadOnly(ClientSetReadOnlyReq) returns (Empty);
 }
 
 service conn {

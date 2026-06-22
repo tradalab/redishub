@@ -27,6 +27,7 @@ type KeyDetailSetProps = {
   selectedKey: string
   reloadToken: number
   reload: () => void
+  readOnly?: boolean
 }
 
 export function KeyDetailSet(props: KeyDetailSetProps) {
@@ -55,6 +56,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
       size: 12,
       header: ({ column }) => <TableColumnHeader column={column} title="" />,
       cell: ({ row }) => {
+        if (props.readOnly) return null
         const memberKey = row.original.value
         const isDeleting = deletingMember === memberKey
 
@@ -150,6 +152,12 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
   return (
     <>
       <div>
+        {props.readOnly ? (
+          <Button size="sm" variant="outline" className="mb-2" disabled title={t("read_only_blocked")}>
+            <PlusIcon />
+            {t("insert_row")}
+          </Button>
+        ) : (
         <Drawer direction="right">
           <DrawerTrigger asChild>
             <Button size="sm" variant="outline" className="mb-2">
@@ -187,6 +195,7 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
             </Form>
           </DrawerContent>
         </Drawer>
+        )}
       </div>
       <TableProvider columns={columns} data={items as SetType[]}>
         <TableHeader>
