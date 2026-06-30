@@ -2,9 +2,9 @@
 
 import { toast } from "sonner"
 import { useEffect, useState, useMemo } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 import {
   Server,
   Users,
@@ -23,21 +23,21 @@ import {
   LucideIcon,
   RefreshCw,
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@tradalab/lyra/ui"
+import { Card, CardContent } from "@tradalab/lyra/ui"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button } from "@tradalab/lyra/ui"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@tradalab/lyra/ui"
 import { useConnectionGeneral } from "@/hooks/api/client.api"
 import { parseRedisInfo } from "@/lib/utils"
-import { Switch } from "@/components/ui/switch"
+import { Switch } from "@tradalab/lyra/ui"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@tradalab/lyra/ui"
 
 const SECTION_ICONS: Record<string, LucideIcon> = {
   Server,

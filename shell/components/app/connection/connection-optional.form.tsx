@@ -1,9 +1,9 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
-import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Input } from "@tradalab/lyra/ui"
+import { Switch } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 
 export function ConnectionOptionalForm({ form }: { form: UseFormReturn<any> }) {

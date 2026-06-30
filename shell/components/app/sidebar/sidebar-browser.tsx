@@ -1,6 +1,7 @@
 "use client"
 
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@tradalab/lyra/ui"
+import { SidebarPanel } from "@tradalab/lyra/shell"
 import {
   ArrowDownToLineIcon,
   ListEndIcon,
@@ -21,20 +22,20 @@ import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
-import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "../../ui/trada-ui/tree"
+import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { Virtuoso } from "react-virtuoso"
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@tradalab/lyra/ui"
 import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
 import { DbInfo } from "@/types"
 import { client, connection } from "@/api"
 import { useKeyDelete, useKeysDeleteByPrefix, useKeysList } from "@/hooks/api/client.api"
 import { useConnectionList, useSetReadOnly } from "@/hooks/api/connection.api"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
+import { Badge } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
+import { Spinner } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
-import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { useConfirm } from "@tradalab/lyra/blocks"
 import { useTabStore } from "@/stores/tab.store"
 import { BrowserBulkDeleteDialog } from "@/components/app/browser-bulk-delete-dialog"
 
@@ -254,7 +255,7 @@ export function SidebarBrowser() {
   }
 
   return (
-    <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
+    <SidebarPanel variant="sidebar" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
       <SidebarHeader className="gap-2 border-b" style={{ padding: "var(--sidebar-header-p)" }}>
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
@@ -453,7 +454,7 @@ export function SidebarBrowser() {
         onScan={scanByPrefix}
         onConfirm={keys => deleteByPrefix(deletePrefix, keys)}
       />
-    </Sidebar>
+    </SidebarPanel>
   )
 }
 

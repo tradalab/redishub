@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   prettier,
   {
-    name: "trada-ui-custom",
+    name: "lyra-custom",
     plugins: {
       prettier: prettierPlugin,
     },

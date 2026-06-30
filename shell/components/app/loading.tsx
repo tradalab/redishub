@@ -1,7 +1,7 @@
 "use client"
 
 import { useAppContext } from "@/ctx/app.context"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 
 export function Loading() {
   const { loading } = useAppContext()

@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
+import { Separator } from "@tradalab/lyra/ui"
+import { Input } from "@tradalab/lyra/ui"
 import { useMonitorSession } from "@/hooks/api/monitor.api"
 import { Trash2, Play, Pause, Activity, Search, RefreshCcwIcon } from "lucide-react"
 

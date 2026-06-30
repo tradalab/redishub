@@ -3,13 +3,13 @@
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@tradalab/lyra/ui"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@tradalab/lyra/ui"
 
 import { ConnectionReq as ConnectionDO } from "@/types"
 
 import { ConnectionForm, ConnectionFormRef, PendingState } from "./connection.form"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 import { PlugIcon, SaveIcon } from "lucide-react"
 
 export type Props = {

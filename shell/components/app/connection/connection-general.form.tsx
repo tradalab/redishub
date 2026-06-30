@@ -1,13 +1,13 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/trada-ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@tradalab/lyra/blocks"
+import { Input } from "@tradalab/lyra/ui"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 import { useGroupList } from "@/hooks/api/group.api"
-import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@tradalab/lyra/ui"
+import { Separator } from "@tradalab/lyra/ui"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
 import { GroupItem as GroupDO } from "@/types"
 

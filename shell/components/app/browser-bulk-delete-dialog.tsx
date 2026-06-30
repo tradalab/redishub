@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@tradalab/lyra/ui"
 import { Loader2Icon, Trash2Icon, SearchIcon, ChevronDownIcon, ListIcon, AlertTriangleIcon } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { Input } from "@tradalab/lyra/ui"
+import { useConfirm } from "@tradalab/lyra/blocks"
 
 interface BrowserBulkDeleteDialogProps {
   open: boolean

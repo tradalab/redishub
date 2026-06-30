@@ -2,11 +2,11 @@
 
 import { ReactNode } from "react"
 import { SlidersHorizontal } from "lucide-react"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@tradalab/lyra/ui"
 import { version } from "../../../package.json"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
-import { Panel } from "@/components/ui/trada-ui/panel"
+import { Panel } from "@tradalab/lyra/blocks"
 import { SettingPanelGeneral } from "./setting-panel-general"
 
 export function SettingDialog({ children }: { children: ReactNode }) {

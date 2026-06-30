@@ -4,7 +4,7 @@ import { toast } from "sonner"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useSlowQuery } from "@/hooks/api/client.api"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 
 function formatDuration(us: number | string | undefined): string {
   if (!us) return "-"

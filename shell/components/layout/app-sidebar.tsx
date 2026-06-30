@@ -1,20 +1,20 @@
 "use client"
 
 import { ComponentProps } from "react"
-import { Sidebar } from "@/components/ui/sidebar"
+import { StackedSidebar } from "@tradalab/lyra/shell"
 import { SidebarConnection } from "@/components/app/sidebar/sidebar-connection"
 import { SidebarBrowser } from "@/components/app/sidebar/sidebar-browser"
 import { useAppContext } from "@/ctx/app.context"
 import { SidebarTool } from "@/components/app/sidebar/sidebar-tool"
 
-export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: ComponentProps<typeof StackedSidebar>) {
   const { selectedTab } = useAppContext()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="overflow-hidden *:data-[sidebar=sidebar]:flex-row" {...props}>
+    <StackedSidebar {...props}>
       <SidebarTool />
       {selectedTab == "/connections" && <SidebarConnection />}
       {selectedTab == "/browser" && <SidebarBrowser />}
-    </Sidebar>
+    </StackedSidebar>
   )
 }

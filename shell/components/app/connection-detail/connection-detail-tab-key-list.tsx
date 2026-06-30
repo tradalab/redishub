@@ -1,10 +1,10 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from "@tradalab/lyra/ui"
 import { useState, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
 import { RefreshCcwIcon, SearchIcon, Trash2Icon, Loader2Icon } from "lucide-react"
 import { Virtuoso } from "react-virtuoso"
 import { useKeyDelete, useKeysList, useKeysMetadata } from "@/hooks/api/client.api"

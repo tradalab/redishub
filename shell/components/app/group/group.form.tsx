@@ -3,13 +3,13 @@
 import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
 import { useTranslation } from "react-i18next"
 import { GroupItem as GroupDO } from "@/types"
 import { useUpsertGroup } from "@/hooks/api/group.api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Input } from "@/components/ui/input"
+import { Input } from "@tradalab/lyra/ui"
 
 export interface PendingState {
   save: boolean

@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
@@ -10,8 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { BookOpenIcon, BugIcon, DatabaseIcon, GithubIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
+} from "@tradalab/lyra/ui"
+import { SidebarDock } from "@tradalab/lyra/shell"
+import { BookOpenIcon, BugIcon, DatabaseIcon, GitBranchIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
@@ -22,7 +22,7 @@ export function SidebarTool() {
   const { t } = useTranslation()
   const { selectedTab, setSelectedTab, selectedDb } = useAppContext()
   return (
-    <Sidebar collapsible="none" className="overflow-hidden w-[calc(var(--sidebar-width-icon)+1px)]! border-r">
+    <SidebarDock>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -75,7 +75,7 @@ export function SidebarTool() {
       <SidebarFooter>
         <SidebarMenu>
           {[
-            { title: "Github", icon: <GithubIcon />, url: "https://github.com/tradalab/redishub" },
+            { title: "Github", icon: <GitBranchIcon />, url: "https://github.com/tradalab/redishub" },
             { title: t("report_issues"), icon: <BugIcon />, url: "https://github.com/tradalab/redishub/issues" },
             { title: t("documentation"), icon: <BookOpenIcon />, url: "https://redishub.tradalab.com/" },
           ].map((item, i) => (
@@ -103,6 +103,6 @@ export function SidebarTool() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-    </Sidebar>
+    </SidebarDock>
   )
 }

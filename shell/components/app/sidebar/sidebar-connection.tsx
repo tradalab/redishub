@@ -3,15 +3,16 @@
 import { useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@/components/ui/sidebar"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@tradalab/lyra/ui"
+import { SidebarPanel } from "@tradalab/lyra/shell"
 import { EditIcon, FolderPlusIcon, LockIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
 import { toast } from "sonner"
-import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@/components/ui/trada-ui/tree"
+import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { buildDbTree, cn } from "@/lib/utils"
 import { useAppContext } from "@/ctx/app.context"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@tradalab/lyra/ui"
+import { useConfirm } from "@tradalab/lyra/blocks"
 import { useConnection } from "@/components/app/connection/connection.context"
 import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList } from "@/hooks/api/group.api"
@@ -39,7 +40,7 @@ export function SidebarConnection() {
 
   return (
     <>
-      <Sidebar variant="sidebar" collapsible="none" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
+      <SidebarPanel variant="sidebar" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">
         <SidebarHeader className="gap-2 border-b p-2">
           <div className="flex items-center justify-between">
             <div className="text-base font-medium">{t("connections")}</div>
@@ -67,7 +68,7 @@ export function SidebarConnection() {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-      </Sidebar>
+      </SidebarPanel>
     </>
   )
 }

@@ -1,8 +1,8 @@
 "use client"
 
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
+import { Spinner } from "@tradalab/lyra/ui"
 import { PlugIcon, PlusIcon, SaveIcon, Trash2Icon } from "lucide-react"
 import { useRef, useState } from "react"
 import { SshReq as SshDO } from "@/types"

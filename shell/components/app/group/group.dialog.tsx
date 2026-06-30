@@ -2,10 +2,10 @@
 
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@tradalab/lyra/ui"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@tradalab/lyra/ui"
 import { GroupForm, GroupFormRef, PendingState } from "./group.form"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 import { SaveIcon } from "lucide-react"
 import { GroupItem as GroupDO } from "@/types"
 

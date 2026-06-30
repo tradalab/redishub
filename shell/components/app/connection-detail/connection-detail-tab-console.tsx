@@ -2,7 +2,7 @@
 
 import "@xterm/xterm/css/xterm.css"
 import React, { useEffect, useRef, useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@tradalab/lyra/ui"
 import { client } from "@/api"
 import { useTranslation } from "react-i18next"
 import { useTheme } from "next-themes"

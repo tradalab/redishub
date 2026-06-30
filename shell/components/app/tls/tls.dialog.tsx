@@ -1,8 +1,8 @@
 "use client"
 
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
+import { Spinner } from "@tradalab/lyra/ui"
 import { PlusIcon, SaveIcon, Trash2Icon } from "lucide-react"
 import { useRef, useState } from "react"
 import { TlsReq as TlsDO } from "@/types"

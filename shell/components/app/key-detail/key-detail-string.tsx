@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { SaveIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@tradalab/lyra/ui"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 
 export type KeyDetailStringProps = {
   databaseId: string

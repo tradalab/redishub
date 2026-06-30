@@ -7,7 +7,7 @@ import scorix from "@/lib/scorix"
 import { system } from "@/api"
 import { cn } from "@/lib/utils"
 import { useSetting } from "@/hooks/api/setting.api"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@tradalab/lyra/ui"
 import { UpdaterContext } from "./updater.context"
 
 export const UpdaterProvider = ({ children }: { children: ReactNode }) => {

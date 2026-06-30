@@ -1,6 +1,6 @@
 "use client"
 
-import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@/components/ui/trada-ui/table"
+import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@tradalab/lyra/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { SetType } from "@/types/set.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
@@ -10,16 +10,16 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { toast } from "sonner"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
+import { Button } from "@tradalab/lyra/ui"
 import { PlusIcon, Trash2Icon } from "lucide-react"
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
+import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { useKeyCreate } from "@/hooks/api/client.api"
 import { useSetMemberDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { useConfirm } from "@/components/ui/trada-ui/confirm/use-confirm"
+import { useConfirm } from "@tradalab/lyra/blocks"
 
 type KeyDetailSetProps = {
   databaseId: string

@@ -1,27 +1,16 @@
 import "./globals.css"
 import * as React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@tradalab/lyra/ui"
 import { AppSidebar } from "@/components/layout/app-sidebar"
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@tradalab/lyra/ui"
 import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/components/app/loading"
 import { ThemeProvider } from "next-themes"
-import { ConfirmProvider } from "@/components/ui/trada-ui/confirm/confirm-provider"
+import { ConfirmProvider } from "@tradalab/lyra/blocks"
 import { ConnectionStatus } from "@/components/app/connection-status"
-import { TooltipProvider } from "@/components/ui/tooltip"
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-})
+import { TooltipProvider } from "@tradalab/lyra/ui"
 
 export const metadata: Metadata = {
   title: configs.app.name,
@@ -31,7 +20,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased overscroll-none touch-none select-none`}>
+      <body className={`antialiased overscroll-none touch-none select-none`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ConfirmProvider>
             <AppProvider>

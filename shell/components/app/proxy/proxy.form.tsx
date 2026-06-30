@@ -7,9 +7,9 @@ import { useTranslation } from "react-i18next"
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react"
 import { toast } from "sonner"
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/trada-ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Input } from "@tradalab/lyra/ui"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
 import { useUpsertProxy, useDeleteProxy } from "@/hooks/api/proxy.api"
 import { ProxyReq as ProxyDO } from "@/types"
 
