@@ -10,7 +10,7 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 
 | Dashboard                                        | Connection Settings | Tab Management |
 |--------------------------------------------------|--------------------|----------------|
-| ![Dashboard](doc/public/assets/en/dashboard.png) | ![New Connection](doc/public/assets/en/new-connection.png) | ![Tab Context Menu](doc/public/assets/en/tab-context-menu.png) |
+| ![Dashboard](https://raw.githubusercontent.com/tradalab/redishub-doc/main/public/assets/en/dashboard.png) | ![New Connection](https://raw.githubusercontent.com/tradalab/redishub-doc/main/public/assets/en/new-connection.png) | ![Tab Context Menu](https://raw.githubusercontent.com/tradalab/redishub-doc/main/public/assets/en/tab-context-menu.png) |
 
 ## Key Features
 
@@ -126,7 +126,6 @@ redishub/
 │   ├── netx/                # SSH tunnel + proxy dialers
 │   └── util/                # Binary key encoding
 ├── shell/                   # Next.js frontend (pnpm workspace) → built into .scorix/dist
-├── doc/                     # Nextra documentation site
 ├── dev/                     # Docker Compose files for local Redis
 ├── scripts/                 # release.sh — version bump helper
 └── docker/                  # Dockerfile_web — web/server image (CI builds & pushes it)
