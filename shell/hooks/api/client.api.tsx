@@ -35,11 +35,7 @@ export function useDisconnect() {
   })
 }
 
-export function useConnectionGeneral(
-  connectionId: string | undefined,
-  databaseIdx: number,
-  options?: { refetchInterval?: number | false; enabled?: boolean }
-) {
+export function useConnectionGeneral(connectionId: string | undefined, databaseIdx: number, options?: { refetchInterval?: number | false; enabled?: boolean }) {
   return useQuery<ClientGeneralRes>({
     queryKey: [GENERAL_BASE, connectionId, databaseIdx],
     queryFn: () => client.general({ connection_id: connectionId!, database_index: databaseIdx }),
@@ -170,13 +166,7 @@ export function useKeysDeleteByPrefix(connectionId: string, databaseIdx: number)
   })
 }
 
-export function useKeyValuePageQuery(
-  connectionId: string,
-  databaseIdx: number,
-  key: string,
-  kind: string,
-  pageSize: number = 200
-) {
+export function useKeyValuePageQuery(connectionId: string, databaseIdx: number, key: string, kind: string, pageSize: number = 200) {
   return useInfiniteQuery<ClientLoadKeyValuePageRes>({
     queryKey: [KEY_VALUE_PAGE_BASE, connectionId, databaseIdx, key, kind],
     enabled: !!connectionId && !!key,

@@ -182,5 +182,14 @@
   "no_matches_in_preview": "No matches in preview list",
   "delete_preview_count": "Delete Preview ({{count}})",
   "delete_everything": "Delete Everything",
-  "deleting": "Deleting..."
+  "deleting": "Deleting...",
+  "copy": "Copy",
+  "copied": "Copied",
+  "refresh": "Refresh",
+  "length": "Length",
+  "memory": "Memory",
+  "encoding": "Encoding",
+  "no_expiry": "No expiry",
+  "expired": "Expired",
+  "no_items": "No items"
 }

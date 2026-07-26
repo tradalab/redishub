@@ -13,13 +13,15 @@ import { toast } from "sonner"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
 import { PlusIcon, Trash2Icon } from "lucide-react"
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Form } from "@tradalab/lyra/blocks"
+import { Label } from "@tradalab/lyra/ui"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import { useKeyCreate } from "@/hooks/api/client.api"
 import { useZsetMemberDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
+import { CellText, EmptyValues } from "@/components/app/key-detail/key-detail-shared"
 
 type KeyDetailZsetProps = {
   databaseId: string
@@ -35,7 +37,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
   const confirm = useConfirm()
-  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "zset", props.reloadToken)
+  const { items, isLoading, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "zset", props.reloadToken)
   const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
   const delMutation = useZsetMemberDel(props.databaseId, props.databaseIdx)
 
@@ -48,12 +50,12 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
     {
       accessorKey: "member",
       header: ({ column }) => <TableColumnHeader column={column} title="Member" />,
-      cell: ({ row }) => row.original.member,
+      cell: ({ row }) => <CellText>{row.original.member}</CellText>,
     },
     {
       accessorKey: "score",
       header: ({ column }) => <TableColumnHeader column={column} title="Score" />,
-      cell: ({ row }) => row.original.score,
+      cell: ({ row }) => <CellText className="tabular-nums">{row.original.score}</CellText>,
     },
     {
       accessorKey: "action",
@@ -163,43 +165,42 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
             {t("insert_row")}
           </Button>
         ) : (
-        <Drawer direction="right">
-          <DrawerTrigger asChild>
-            <Button size="sm" variant="outline" className="mb-2">
-              <PlusIcon />
-              {t("insert_row")}
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <Form {...form}>
-              <form onSubmit={submit} className="grid gap-4">
-                <DrawerHeader>
-                  <DrawerTitle>{t("new_field")}</DrawerTitle>
-                  <DrawerDescription></DrawerDescription>
-                </DrawerHeader>
-                <FormItem>
-                  <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                  <FormControl>
+          <Drawer direction="right">
+            <DrawerTrigger asChild>
+              <Button size="sm" variant="outline" className="mb-2">
+                <PlusIcon />
+                {t("insert_row")}
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <Form {...form}>
+                <form onSubmit={submit} className="grid gap-4">
+                  <DrawerHeader>
+                    <DrawerTitle>{t("new_field")}</DrawerTitle>
+                    <DrawerDescription></DrawerDescription>
+                  </DrawerHeader>
+                  {/* Plain label + container: the editor below owns its own
+                      FormFields, so a bare FormItem here has no FormField context. */}
+                  <div className="grid gap-2">
+                    <Label className="flex items-center justify-between">Value</Label>
                     <KeyAddValueZset form={form} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <DrawerFooter>
-                  <div className="flex items-right">
-                    <Button size="sm" type="submit" disabled={loading}>
-                      {t("save")}
-                    </Button>
-                    <DrawerClose>
-                      <Button size="sm" variant="outline">
-                        {t("cancel")}
-                      </Button>
-                    </DrawerClose>
                   </div>
-                </DrawerFooter>
-              </form>
-            </Form>
-          </DrawerContent>
-        </Drawer>
+                  <DrawerFooter>
+                    <div className="flex items-right">
+                      <Button size="sm" type="submit" disabled={loading}>
+                        {t("save")}
+                      </Button>
+                      <DrawerClose>
+                        <Button size="sm" variant="outline">
+                          {t("cancel")}
+                        </Button>
+                      </DrawerClose>
+                    </div>
+                  </DrawerFooter>
+                </form>
+              </Form>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
       <TableProvider columns={columns} data={items as ZsetType[]}>
@@ -218,6 +219,7 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
           )}
         </TableBody>
       </TableProvider>
+      {!isLoading && items.length === 0 && <EmptyValues label={t("no_items")} />}
       <div ref={sentinelRef} className="h-4" />
     </>
   )

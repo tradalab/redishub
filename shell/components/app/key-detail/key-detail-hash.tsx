@@ -12,7 +12,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Form } from "@tradalab/lyra/blocks"
+import { Label } from "@tradalab/lyra/ui"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { useState } from "react"
 import { useKeyCreate } from "@/hooks/api/client.api"
@@ -20,6 +21,7 @@ import { useHashFieldDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
+import { CellText, EmptyValues } from "@/components/app/key-detail/key-detail-shared"
 
 type KeyDetailHashProps = {
   databaseId: string
@@ -35,7 +37,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingField, setDeletingField] = useState<string | null>(null)
   const confirm = useConfirm()
-  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "hash", props.reloadToken)
+  const { items, isLoading, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "hash", props.reloadToken)
   const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
   const delMutation = useHashFieldDel(props.databaseId, props.databaseIdx)
 
@@ -48,12 +50,12 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
     {
       accessorKey: "key",
       header: ({ column }) => <TableColumnHeader column={column} title="Key" />,
-      cell: ({ row }) => row.original.key,
+      cell: ({ row }) => <CellText>{row.original.key}</CellText>,
     },
     {
       accessorKey: "value",
       header: ({ column }) => <TableColumnHeader column={column} title="Value" />,
-      cell: ({ row }) => row.original.value,
+      cell: ({ row }) => <CellText>{row.original.value}</CellText>,
     },
     {
       accessorKey: "action",
@@ -163,43 +165,42 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
             {t("insert_row")}
           </Button>
         ) : (
-        <Drawer direction="right">
-          <DrawerTrigger asChild>
-            <Button size="sm" variant="outline" className="mb-2">
-              <PlusIcon />
-              {t("insert_row")}
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <Form {...form}>
-              <form onSubmit={submit} className="grid gap-4">
-                <DrawerHeader>
-                  <DrawerTitle>{t("new_field")}</DrawerTitle>
-                  <DrawerDescription></DrawerDescription>
-                </DrawerHeader>
-                <FormItem>
-                  <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                  <FormControl>
+          <Drawer direction="right">
+            <DrawerTrigger asChild>
+              <Button size="sm" variant="outline" className="mb-2">
+                <PlusIcon />
+                {t("insert_row")}
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <Form {...form}>
+                <form onSubmit={submit} className="grid gap-4">
+                  <DrawerHeader>
+                    <DrawerTitle>{t("new_field")}</DrawerTitle>
+                    <DrawerDescription></DrawerDescription>
+                  </DrawerHeader>
+                  {/* Plain label + container: the editor below owns its own
+                      FormFields, so a bare FormItem here has no FormField context. */}
+                  <div className="grid gap-2">
+                    <Label className="flex items-center justify-between">Value</Label>
                     <KeyAddValueHash form={form} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <DrawerFooter>
-                  <div className="flex items-right">
-                    <Button size="sm" type="submit" disabled={loading}>
-                      {t("save")}
-                    </Button>
-                    <DrawerClose>
-                      <Button size="sm" variant="outline">
-                        {t("cancel")}
-                      </Button>
-                    </DrawerClose>
                   </div>
-                </DrawerFooter>
-              </form>
-            </Form>
-          </DrawerContent>
-        </Drawer>
+                  <DrawerFooter>
+                    <div className="flex items-right">
+                      <Button size="sm" type="submit" disabled={loading}>
+                        {t("save")}
+                      </Button>
+                      <DrawerClose>
+                        <Button size="sm" variant="outline">
+                          {t("cancel")}
+                        </Button>
+                      </DrawerClose>
+                    </div>
+                  </DrawerFooter>
+                </form>
+              </Form>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
       <TableProvider columns={columns} data={items as HashType[]}>
@@ -218,6 +219,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
           )}
         </TableBody>
       </TableProvider>
+      {!isLoading && items.length === 0 && <EmptyValues label={t("no_items")} />}
       <div ref={sentinelRef} className="h-4" />
     </>
   )

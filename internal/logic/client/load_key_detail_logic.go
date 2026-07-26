@@ -81,11 +81,16 @@ func (l *LoadKeyDetailLogic) LoadKeyDetail(params *types.ClientLoadKeyDetailReq)
 		return nil, err
 	}
 
+	encoding, _ := cli.Rdb.ObjectEncoding(l.ctx, key).Result()
+	size, _ := cli.Rdb.MemoryUsage(l.ctx, key).Result()
+
 	return &types.ClientLoadKeyDetailRes{
-		Key:   key,
-		Value: valueStr,
-		Kind:  strings.ToLower(kind),
-		Ttl:   ttlSec,
-		Total: total,
+		Key:      key,
+		Value:    valueStr,
+		Kind:     strings.ToLower(kind),
+		Ttl:      ttlSec,
+		Total:    total,
+		Encoding: encoding,
+		Size:     size,
 	}, nil
 }

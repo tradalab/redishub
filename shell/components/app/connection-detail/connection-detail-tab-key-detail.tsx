@@ -11,8 +11,9 @@ import { KeyDetailZset } from "@/components/app/key-detail/key-detail-zset"
 import { KeyDetailStream } from "@/components/app/key-detail/key-detail-stream"
 import { KeyDetailString } from "@/components/app/key-detail/key-detail-string"
 import { Input } from "@tradalab/lyra/ui"
-import { RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { CopyIcon, RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
+import { cn, formatDuration, formatFileSize } from "@/lib/utils"
+import { KindBadge } from "@/components/app/key-detail/key-detail-shared"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -23,7 +24,6 @@ import { useKeyDelete, useKeyDetail, useKeyNameUpdate, useKeyTtlUpdate } from "@
 import { useReadOnly } from "@/hooks/api/connection.api"
 import { Spinner } from "@tradalab/lyra/ui"
 import { ButtonGroup, ButtonGroupText } from "@tradalab/lyra/ui"
-import { Label } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@tradalab/lyra/blocks"
 
@@ -57,8 +57,32 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   const ttl = detail?.ttl
 
+  // Header metadata: element count for collections, character length for strings.
+  const lengthValue = useMemo(() => {
+    if (!detail) return 0
+    if (kind && kind !== "string" && kind !== "json") return detail.total ?? 0
+    return typeof displayValue === "string" ? displayValue.length : 0
+  }, [detail, kind, displayValue])
+
+  const ttlText = useMemo(() => {
+    if (ttl === undefined) return "—"
+    if (ttl === -1) return t("no_expiry")
+    if (ttl === -2) return t("expired")
+    return formatDuration(ttl)
+  }, [ttl, t])
+
   const updateKeyMutation = useKeyNameUpdate(connectionId, databaseIdx)
   const deleteKeyMutation = useKeyDelete(connectionId, databaseIdx)
+
+  const copyKeyName = async () => {
+    if (!selectedKey) return
+    try {
+      await navigator.clipboard.writeText(selectedKey)
+      toast.success(t("copied"))
+    } catch {
+      toast.error(t("unknown_error"))
+    }
+  }
 
   useEffect(() => {
     setNewKeyName(undefined)
@@ -125,42 +149,62 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   return (
     <div className="flex flex-col min-h-0 gap-2 w-full h-full">
-      <div className="flex w-full items-center justify-between gap-2 shrink-0">
-        <ButtonGroup className="w-full">
-          <ButtonGroupText asChild>
-            <Label htmlFor="url">{kind?.toUpperCase()}</Label>
-          </ButtonGroupText>
-          <Input value={newKeyName || selectedKey} onChange={e => setNewKeyName(e.target.value)} disabled={readOnly} />
-          <Button
-            variant="outline"
-            aria-label="Save"
-            className={cn("", { "cursor-pointer": !!newKeyName })}
-            disabled={!newKeyName || readOnly}
-            onClick={() => updateKeyName()}
-          >
-            <SaveIcon />
-          </Button>
-        </ButtonGroup>
-        <div className="flex gap-3.5 items-center justify-center">
-          {readOnly ? (
-            <div className="relative w-full" title={t("read_only_blocked")}>
-              <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
-              <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
-            </div>
-          ) : (
-            <KeyTtlUpdateDialog reload={reload} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
-              <div className="relative w-full cursor-pointer">
-                <TimerIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-gray-400" size={18} />
-                <Input className="pl-10" placeholder="TTL" value={ttl} disabled />
+      <div className="flex shrink-0 flex-col gap-2">
+        <div className="flex w-full items-center gap-2">
+          <ButtonGroup className="min-w-0 flex-1">
+            <ButtonGroupText asChild>
+              <span className="shrink-0">
+                <KindBadge kind={kind} />
+              </span>
+            </ButtonGroupText>
+            <Input className="font-mono" value={newKeyName ?? selectedKey} onChange={e => setNewKeyName(e.target.value)} disabled={readOnly} />
+            <Button variant="outline" aria-label={t("copy")} title={t("copy")} onClick={copyKeyName}>
+              <CopyIcon />
+            </Button>
+            <Button
+              variant="outline"
+              aria-label={t("save")}
+              title={t("save")}
+              className={cn({ "cursor-pointer": !!newKeyName })}
+              disabled={!newKeyName || readOnly}
+              onClick={() => updateKeyName()}
+            >
+              <SaveIcon />
+            </Button>
+          </ButtonGroup>
+          <div className="flex shrink-0 items-center gap-2">
+            {readOnly ? (
+              <div className="relative w-36" title={t("read_only_blocked")}>
+                <TimerIcon className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 dark:text-gray-400" size={16} />
+                <Input className="pl-9" placeholder="TTL" value={ttlText} disabled />
               </div>
-            </KeyTtlUpdateDialog>
-          )}
-          <Button size="icon-sm" variant="outline" onClick={reload}>
-            <RefreshCcwIcon />
-          </Button>
-          <Button size="icon-sm" variant="outline" disabled={readOnly} title={readOnly ? t("read_only_blocked") : undefined} onClick={() => handleDelete(selectedKey)}>
-            <Trash2Icon />
-          </Button>
+            ) : (
+              <KeyTtlUpdateDialog reload={reload} databaseId={connectionId} databaseIdx={databaseIdx} keyName={selectedKey} keyTtl={ttl}>
+                <div className="relative w-36 cursor-pointer" title={t("update_ttl")}>
+                  <TimerIcon className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 dark:text-gray-400" size={16} />
+                  <Input className="cursor-pointer pl-9" placeholder="TTL" value={ttlText} disabled />
+                </div>
+              </KeyTtlUpdateDialog>
+            )}
+            <Button size="icon-sm" variant="outline" aria-label={t("refresh")} title={t("refresh")} onClick={reload}>
+              <RefreshCcwIcon />
+            </Button>
+            <Button
+              size="icon-sm"
+              variant="outline"
+              disabled={readOnly}
+              aria-label={t("delete")}
+              title={readOnly ? t("read_only_blocked") : t("delete")}
+              onClick={() => handleDelete(selectedKey)}
+            >
+              <Trash2Icon />
+            </Button>
+          </div>
+        </div>
+        <div className="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs">
+          <Stat label={t("length")} value={lengthValue.toLocaleString()} />
+          {!!detail?.size && <Stat label={t("memory")} value={formatFileSize(detail.size)} />}
+          {!!detail?.encoding && <Stat label={t("encoding")} value={detail.encoding} mono />}
         </div>
       </div>
       <div className="flex-1 min-h-0 overflow-auto">
@@ -178,6 +222,16 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
         />
       </div>
     </div>
+  )
+}
+
+// A single labelled metric in the key-detail header strip.
+function Stat({ label, value, mono }: { label: string; value: ReactNode; mono?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-muted-foreground/70">{label}</span>
+      <span className={cn("text-foreground font-medium tabular-nums", mono && "font-mono")}>{value}</span>
+    </span>
   )
 }
 
@@ -201,15 +255,60 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reload
     case "json":
       return <CodeEditor value={value} language="json" autoFormat={true} defaultHeight={400} options={{ readOnly: true, minimap: { enabled: false } }} />
     case "list":
-      return <KeyDetailList databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
+      return (
+        <KeyDetailList
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          reloadToken={reloadToken}
+          readOnly={readOnly}
+        />
+      )
     case "hash":
-      return <KeyDetailHash databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
+      return (
+        <KeyDetailHash
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          reloadToken={reloadToken}
+          readOnly={readOnly}
+        />
+      )
     case "set":
-      return <KeyDetailSet databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
+      return (
+        <KeyDetailSet
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          reloadToken={reloadToken}
+          readOnly={readOnly}
+        />
+      )
     case "zset":
-      return <KeyDetailZset databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
+      return (
+        <KeyDetailZset
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          reloadToken={reloadToken}
+          readOnly={readOnly}
+        />
+      )
     case "stream":
-      return <KeyDetailStream databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} reload={reload} reloadToken={reloadToken} readOnly={readOnly} />
+      return (
+        <KeyDetailStream
+          databaseId={databaseId}
+          databaseIdx={databaseIdx}
+          selectedKey={selectedKey}
+          reload={reload}
+          reloadToken={reloadToken}
+          readOnly={readOnly}
+        />
+      )
     case "rejson-rl":
       return <div></div>
     default:

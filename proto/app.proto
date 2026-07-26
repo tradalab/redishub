@@ -233,11 +233,13 @@ message SlowQueryItem {
 }
 
 message ClientLoadKeyDetailRes {
-  string key   = 1;
-  string value = 2;
-  string kind  = 3;
-  double ttl   = 4;
-  int64  total = 5;
+  string key      = 1;
+  string value    = 2;
+  string kind     = 3;
+  double ttl      = 4;
+  int64  total    = 5;
+  string encoding = 6;
+  int64  size     = 7;
 }
 
 message ClientLoadKeyValuePageRes {

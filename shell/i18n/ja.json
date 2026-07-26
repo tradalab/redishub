@@ -182,5 +182,14 @@
   "no_matches_in_preview": "プレビューリストに一致する項目がありません",
   "delete_preview_count": "プレビューを削除 ({{count}})",
   "delete_everything": "すべて削除",
-  "deleting": "削除中..."
+  "deleting": "削除中...",
+  "copy": "コピー",
+  "copied": "コピーしました",
+  "refresh": "更新",
+  "length": "長さ",
+  "memory": "メモリ",
+  "encoding": "エンコーディング",
+  "no_expiry": "有効期限なし",
+  "expired": "期限切れ",
+  "no_items": "項目がありません"
 }
