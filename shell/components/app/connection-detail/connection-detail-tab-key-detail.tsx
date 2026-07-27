@@ -35,8 +35,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   const [newKeyName, setNewKeyName] = useState<string | undefined>()
   const [loading, setLoading] = useState<boolean>(false)
 
-  const { updateTab, removeTab, tabs, activeTabId } = useTabStore()
-  void tabs
+  const { updateTab, removeTab, activeTabId } = useTabStore()
 
   const readOnly = useReadOnly(connectionId)
 
@@ -113,7 +112,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
 
   const reload = () => {
     query.refetch()
-    setReloadToken(t => t + 1)
+    setReloadToken(n => n + 1)
   }
 
   const handleDelete = async (key: string) => {
@@ -253,7 +252,16 @@ function ViewKeyData({ kind, value, databaseId, databaseIdx, selectedKey, reload
     case "string":
       return <KeyDetailString databaseId={databaseId} databaseIdx={databaseIdx} selectedKey={selectedKey} data={value} reload={reload} readOnly={readOnly} />
     case "json":
-      return <CodeEditor value={value} language="json" autoFormat={true} defaultHeight={400} options={{ readOnly: true, minimap: { enabled: false } }} />
+      return (
+        <CodeEditor
+          value={value}
+          language="json"
+          autoFormat={true}
+          defaultHeight={400}
+          className="border-0 shadow-none"
+          options={{ readOnly: true, minimap: { enabled: false } }}
+        />
+      )
     case "list":
       return (
         <KeyDetailList
