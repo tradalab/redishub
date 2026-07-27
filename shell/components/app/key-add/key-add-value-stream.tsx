@@ -34,49 +34,54 @@ export function KeyAddValueStream({ form }: { form: UseFormReturn }) {
   }
 
   return (
-    <div className="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:shadow focus:shadow-blue-300/30 outline-none">
-      <div className="bg-ui-bg-subtle grid grid-cols-2 divide-x rounded-t-lg">
-        <div className="txt-compact-small-plus text-ui-fg-subtle px-2 py-1.5">
+    <div className="rounded-lg border shadow-sm">
+      <div className="bg-muted/50 text-muted-foreground grid grid-cols-[1fr_1fr_auto] divide-x divide-border rounded-t-lg">
+        <div className="px-2.5 py-2 text-xs font-medium">
           <label id="zset-value-key">Field</label>
         </div>
-        <div className="txt-compact-small-plus text-ui-fg-subtle px-2 py-1.5">
+        <div className="px-2.5 py-2 text-xs font-medium">
           <label id="zset-value-value">Value</label>
         </div>
+        <div className="w-9" aria-hidden />
       </div>
       {fields.map((item, index) => (
-        <div className="group/table relative" key={item.id}>
-          <div
-            className={cn("grid grid-cols-2 divide-x", {
-              "overflow-hidden rounded-b-lg": index === fields.length - 1,
-            })}
-          >
-            <FormField
-              control={form.control}
-              name={`value_stream.${index}.field`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <GridInput {...field} placeholder="Field" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name={`value_stream.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <GridInput {...field} placeholder="Value" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-
+        <div
+          key={item.id}
+          className={cn("grid grid-cols-[1fr_1fr_auto] divide-x divide-border border-t border-border", {
+            "overflow-hidden rounded-b-lg": index === fields.length - 1,
+          })}
+        >
+          <FormField
+            control={form.control}
+            name={`value_stream.${index}.field`}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <GridInput {...field} placeholder="Field" />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={`value_stream.${index}.value`}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <GridInput {...field} placeholder="Value" />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <DropdownMenu>
-            <DropdownMenuTrigger className="invisible absolute inset-y-0 -right-2.5 my-auto group-hover/table:visible data-[state='open']:visible" asChild>
-              <EllipsisVerticalIcon className="cursor-pointer" />
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Row actions"
+                className="text-muted-foreground/60 hover:bg-accent hover:text-foreground data-[state=open]:bg-accent data-[state=open]:text-foreground flex w-9 cursor-pointer items-center justify-center self-stretch"
+              >
+                <EllipsisVerticalIcon className="size-4" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="gap-x-2" onClick={() => insertRow(index, "above")}>

@@ -30,8 +30,3 @@ export function KindBadge({ kind, className }: { kind?: string; className?: stri
 export function CellText({ children, className }: { children: ReactNode; className?: string }) {
   return <span className={cn("font-mono text-xs break-all whitespace-pre-wrap", className)}>{children}</span>
 }
-
-// Shared empty state shown under a value table once loading settles with no rows.
-export function EmptyValues({ label }: { label: string }) {
-  return <div className="text-muted-foreground py-10 text-center text-sm">{label}</div>
-}

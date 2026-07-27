@@ -21,8 +21,8 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@tradalab/lyra':
-        specifier: ^1.7.0
-        version: 1.7.0(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
+        specifier: ^1.11.0
+        version: 1.11.0(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -1757,8 +1757,8 @@ packages:
     resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
     engines: {node: '>=12'}
 
-  '@tradalab/lyra@1.7.0':
-    resolution: {integrity: sha512-uYIUHu3Rnddrx9nZsUGICe/3Safno9Gq92Y4DtedCc79u8FXElVC90NClNExGbStS/kR6JhgwKC3o3JXA9PLHA==}
+  '@tradalab/lyra@1.11.0':
+    resolution: {integrity: sha512-BjQm3JFks9k5bDa3HS1WZC7wfF//Mz1fgmj6OX2sfmBDPZknfnUrX2zrlkrTRmAhstq35IkVh0CInOmrEDqNmA==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       next: ^16.0.0
@@ -6227,7 +6227,7 @@ snapshots:
 
   '@tanstack/table-core@8.21.3': {}
 
-  '@tradalab/lyra@1.7.0(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
+  '@tradalab/lyra@1.11.0(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sonner@2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(typescript@5.8.3)':
     dependencies:
       '@tanstack/react-table': 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       class-variance-authority: 0.7.1

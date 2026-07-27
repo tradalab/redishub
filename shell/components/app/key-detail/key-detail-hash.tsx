@@ -1,6 +1,6 @@
 "use client"
 
-import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@tradalab/lyra/data-table"
+import { DataTable } from "@tradalab/lyra/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { HashType } from "@/types/hash.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Form } from "@tradalab/lyra/blocks"
-import { Label } from "@tradalab/lyra/ui"
+import { Spinner } from "@tradalab/lyra/ui"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { useState } from "react"
 import { useKeyCreate } from "@/hooks/api/client.api"
@@ -21,7 +21,7 @@ import { useHashFieldDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
-import { CellText, EmptyValues } from "@/components/app/key-detail/key-detail-shared"
+import { CellText } from "@/components/app/key-detail/key-detail-shared"
 
 type KeyDetailHashProps = {
   databaseId: string
@@ -37,65 +37,71 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingField, setDeletingField] = useState<string | null>(null)
   const confirm = useConfirm()
-  const { items, isLoading, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "hash", props.reloadToken)
+  const { items, isLoading, isFetchingNextPage, hasMore, fetchNextPage } = useKeyValuePage(
+    props.databaseId,
+    props.databaseIdx,
+    props.selectedKey,
+    "hash",
+    props.reloadToken
+  )
   const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
   const delMutation = useHashFieldDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<HashType>[] = [
     {
       accessorKey: "id",
-      header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id + 1,
+      header: "#",
+      cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.id + 1}</span>,
     },
     {
       accessorKey: "key",
-      header: ({ column }) => <TableColumnHeader column={column} title="Key" />,
+      header: "Key",
       cell: ({ row }) => <CellText>{row.original.key}</CellText>,
     },
     {
       accessorKey: "value",
-      header: ({ column }) => <TableColumnHeader column={column} title="Value" />,
+      header: "Value",
       cell: ({ row }) => <CellText>{row.original.value}</CellText>,
     },
     {
-      accessorKey: "action",
-      enableSorting: false,
-      size: 12,
-      header: ({ column }) => <TableColumnHeader column={column} title="" />,
+      id: "action",
+      header: "",
       cell: ({ row }) => {
         if (props.readOnly) return null
         const fieldKey = row.original.key
         const isDeleting = deletingField === fieldKey
 
         return (
-          <span
-            role="button"
-            aria-disabled={isDeleting}
-            onClick={async e => {
-              if (isDeleting) return
-              const ok = await confirm({
-                title: t("confirm_delete"),
-                description: t("confirm_delete_desc", { obj_name: "field", obj_key: fieldKey }),
-                confirmText: t("delete"),
-                danger: true,
-              })
-              if (ok) {
-                await fieldDel(fieldKey)
-              }
-            }}
-            className={cn(
-              "inline-flex items-center justify-center",
-              "w-5 h-5 cursor-pointer",
-              "text-red-600 hover:text-red-700",
-              isDeleting && "cursor-not-allowed opacity-50"
-            )}
-          >
-            {isDeleting ? (
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
-            ) : (
-              <Trash2Icon className="h-4 w-4" />
-            )}
-          </span>
+          <div className="flex justify-end">
+            <span
+              role="button"
+              aria-disabled={isDeleting}
+              onClick={async () => {
+                if (isDeleting) return
+                const ok = await confirm({
+                  title: t("confirm_delete"),
+                  description: t("confirm_delete_desc", { obj_name: "field", obj_key: fieldKey }),
+                  confirmText: t("delete"),
+                  danger: true,
+                })
+                if (ok) {
+                  await fieldDel(fieldKey)
+                }
+              }}
+              className={cn(
+                "inline-flex items-center justify-center",
+                "h-5 w-5 cursor-pointer",
+                "text-red-600 hover:text-red-700",
+                isDeleting && "cursor-not-allowed opacity-50"
+              )}
+            >
+              {isDeleting ? (
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+              ) : (
+                <Trash2Icon className="h-4 w-4" />
+              )}
+            </span>
+          </div>
         )
       },
     },
@@ -172,30 +178,27 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
                 {t("insert_row")}
               </Button>
             </DrawerTrigger>
-            <DrawerContent>
+            <DrawerContent className="sm:max-w-lg">
               <Form {...form}>
-                <form onSubmit={submit} className="grid gap-4">
+                <form onSubmit={submit} className="flex h-full flex-col">
                   <DrawerHeader>
                     <DrawerTitle>{t("new_field")}</DrawerTitle>
-                    <DrawerDescription></DrawerDescription>
+                    <DrawerDescription>{t("insert_row_desc")}</DrawerDescription>
                   </DrawerHeader>
-                  {/* Plain label + container: the editor below owns its own
-                      FormFields, so a bare FormItem here has no FormField context. */}
-                  <div className="grid gap-2">
-                    <Label className="flex items-center justify-between">Value</Label>
+                  {/* Editor owns its own FormFields; this is just a scroll region. */}
+                  <div className="min-h-0 flex-1 overflow-y-auto px-4">
                     <KeyAddValueHash form={form} />
                   </div>
-                  <DrawerFooter>
-                    <div className="flex items-right">
-                      <Button size="sm" type="submit" disabled={loading}>
-                        {t("save")}
+                  <DrawerFooter className="flex-row justify-end">
+                    <DrawerClose asChild>
+                      <Button size="sm" variant="outline" type="button">
+                        {t("cancel")}
                       </Button>
-                      <DrawerClose>
-                        <Button size="sm" variant="outline">
-                          {t("cancel")}
-                        </Button>
-                      </DrawerClose>
-                    </div>
+                    </DrawerClose>
+                    <Button size="sm" type="submit" disabled={loading}>
+                      {loading && <Spinner />}
+                      {t("save")}
+                    </Button>
                   </DrawerFooter>
                 </form>
               </Form>
@@ -203,24 +206,18 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
           </Drawer>
         )}
       </div>
-      <TableProvider columns={columns} data={items as HashType[]}>
-        <TableHeader>
-          {({ headerGroup }) => (
-            <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
-              {({ header }) => <TableHead header={header} key={header.id} />}
-            </TableHeaderGroup>
-          )}
-        </TableHeader>
-        <TableBody>
-          {({ row }) => (
-            <TableRow key={row.id} row={row}>
-              {({ cell }) => <TableCell cell={cell} key={cell.id} />}
-            </TableRow>
-          )}
-        </TableBody>
-      </TableProvider>
-      {!isLoading && items.length === 0 && <EmptyValues label={t("no_items")} />}
-      <div ref={sentinelRef} className="h-4" />
+      <DataTable
+        columns={columns}
+        data={items as HashType[]}
+        className="border-0"
+        loading={isLoading}
+        loadingText={t("loading")}
+        emptyText={t("no_items")}
+        onLoadMore={fetchNextPage}
+        hasMore={hasMore}
+        loadingMore={isFetchingNextPage}
+        loadingMoreText={t("loading")}
+      />
     </>
   )
 }
