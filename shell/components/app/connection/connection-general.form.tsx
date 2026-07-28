@@ -25,25 +25,13 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
       <div className="space-y-4">
         <FormField
           control={form.control}
-          name="group_id"
+          name="name"
           render={({ field }) => {
             return (
               <FormItem>
-                <FormLabel className="flex items-center justify-between">{t("group")}</FormLabel>
+                <FormLabel className="flex items-center justify-between">{t("name")}</FormLabel>
                 <FormControl>
-                  <Select value={field.value || "none"} onValueChange={val => field.onChange(val === "none" ? null : val)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("none")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t("none")}</SelectItem>
-                      {groups?.map((e: GroupDO) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input {...field} placeholder="Project Alpha" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,13 +65,25 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
           />
           <FormField
             control={form.control}
-            name="name"
+            name="group_id"
             render={({ field }) => {
               return (
                 <FormItem>
-                  <FormLabel className="flex items-center justify-between">{t("name")}</FormLabel>
+                  <FormLabel className="flex items-center justify-between">{t("group")}</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Project Alpha" />
+                    <Select value={field.value || "none"} onValueChange={val => field.onChange(val === "none" ? null : val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={t("none")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t("none")}</SelectItem>
+                        {groups?.map((e: GroupDO) => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {e.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
