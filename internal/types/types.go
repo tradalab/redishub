@@ -128,11 +128,13 @@ type ClientLoadKeyDetailReq struct {
 }
 
 type ClientLoadKeyDetailRes struct {
-	Key   string  `json:"key"`
-	Value string  `json:"value"`
-	Kind  string  `json:"kind"`
-	Ttl   float64 `json:"ttl"`
-	Total int64   `json:"total"`
+	Key      string  `json:"key"`
+	Value    string  `json:"value"`
+	Kind     string  `json:"kind"`
+	Ttl      float64 `json:"ttl"`
+	Total    int64   `json:"total"`
+	Encoding string  `json:"encoding"`
+	Size     int64   `json:"size"`
 }
 
 type ClientLoadKeyValuePageReq struct {

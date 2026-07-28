@@ -68,6 +68,7 @@ export function KeyDetailString(props: KeyDetailStringProps) {
         language="txt"
         autoFormat={true}
         defaultHeight={400}
+        className="border-0 shadow-none"
         options={{ readOnly: loading || props.readOnly, minimap: { enabled: false } }}
         onChange={val => {
           if (!changed) {

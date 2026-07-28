@@ -39,6 +39,7 @@
   "light": "Light",
   "load_all": "Load All",
   "load_more": "Load More",
+  "loading": "Loading…",
   "name": "Name",
   "new_connection": "New Connection",
   "new_field": "New Field",
@@ -55,6 +56,7 @@
   "report_issues": "Report Issues",
   "save": "Save",
   "saved": "Saved",
+  "insert_row_desc": "Add one or more entries below, then save.",
   "select_db": "Select DB",
   "settings": "Settings",
   "slow_query": "Slow Query",
@@ -182,5 +184,14 @@
   "no_matches_in_preview": "No matches in preview list",
   "delete_preview_count": "Delete Preview ({{count}})",
   "delete_everything": "Delete Everything",
-  "deleting": "Deleting..."
+  "deleting": "Deleting...",
+  "copy": "Copy",
+  "copied": "Copied",
+  "refresh": "Refresh",
+  "length": "Length",
+  "memory": "Memory",
+  "encoding": "Encoding",
+  "no_expiry": "No expiry",
+  "expired": "Expired",
+  "no_items": "No items"
 }

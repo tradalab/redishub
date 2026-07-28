@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
-import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@tradalab/lyra/data-table"
+import { DataTable } from "@tradalab/lyra/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { StreamType } from "@/types/stream.type"
 import { useKeyCreate } from "@/hooks/api/client.api"
@@ -12,14 +12,16 @@ import { cn } from "@/lib/utils"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@tradalab/lyra/blocks"
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Form } from "@tradalab/lyra/blocks"
+import { Spinner } from "@tradalab/lyra/ui"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { KeyKindEnum } from "@/types/key-kind.enum"
 import { KeyAddValueStream } from "@/components/app/key-add/key-add-value-stream"
+import { CellText } from "@/components/app/key-detail/key-detail-shared"
 
 type Props = {
   databaseId: string
@@ -40,60 +42,66 @@ export function KeyDetailStream(props: Props) {
 
   const [loading, setLoading] = useState(false)
   const [deletingEntry, setDeletingEntry] = useState<string | null>(null)
-  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "stream", props.reloadToken)
+  const { items, isLoading, isFetchingNextPage, hasMore, fetchNextPage } = useKeyValuePage(
+    props.databaseId,
+    props.databaseIdx,
+    props.selectedKey,
+    "stream",
+    props.reloadToken
+  )
   const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
   const delMutation = useStreamEntryDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<StreamType>[] = [
     {
       accessorKey: "id",
-      header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id,
+      header: "ID",
+      cell: ({ row }) => <CellText className="text-muted-foreground">{row.original.id}</CellText>,
     },
     {
       accessorKey: "value",
-      header: ({ column }) => <TableColumnHeader column={column} title="Value" />,
-      cell: ({ row }) => row.original.value,
+      header: "Value",
+      cell: ({ row }) => <CellText>{row.original.value}</CellText>,
     },
     {
-      accessorKey: "action",
-      enableSorting: false,
-      size: 12,
-      header: ({ column }) => <TableColumnHeader column={column} title="" />,
+      id: "action",
+      header: "",
       cell: ({ row }) => {
         if (props.readOnly) return null
         const entryId = row.original.id
         const isDeleting = deletingEntry === entryId
 
         return (
-          <span
-            role="button"
-            aria-disabled={isDeleting}
-            onClick={async () => {
-              if (isDeleting) return
-              const ok = await confirm({
-                title: t("confirm_delete"),
-                description: t("confirm_delete_desc", { obj_name: "entry", obj_key: entryId }),
-                confirmText: t("delete"),
-                danger: true,
-              })
-              if (ok) {
-                await entryDel(entryId)
-              }
-            }}
-            className={cn(
-              "inline-flex items-center justify-center",
-              "w-5 h-5 cursor-pointer",
-              "text-red-600 hover:text-red-700",
-              isDeleting && "cursor-not-allowed opacity-50"
-            )}
-          >
-            {isDeleting ? (
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
-            ) : (
-              <Trash2Icon className="h-4 w-4" />
-            )}
-          </span>
+          <div className="flex justify-end">
+            <span
+              role="button"
+              aria-disabled={isDeleting}
+              onClick={async () => {
+                if (isDeleting) return
+                const ok = await confirm({
+                  title: t("confirm_delete"),
+                  description: t("confirm_delete_desc", { obj_name: "entry", obj_key: entryId }),
+                  confirmText: t("delete"),
+                  danger: true,
+                })
+                if (ok) {
+                  await entryDel(entryId)
+                }
+              }}
+              className={cn(
+                "inline-flex items-center justify-center",
+                "h-5 w-5 cursor-pointer",
+                "text-red-600 hover:text-red-700",
+                isDeleting && "cursor-not-allowed opacity-50"
+              )}
+            >
+              {isDeleting ? (
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+              ) : (
+                <Trash2Icon className="h-4 w-4" />
+              )}
+            </span>
+          </div>
         )
       },
     },
@@ -109,9 +117,7 @@ export function KeyDetailStream(props: Props) {
   const submit = form.handleSubmit(async values => {
     setLoading(true)
     try {
-      const entries = Object.fromEntries(
-        (values.value_stream ?? []).filter((i: any) => i?.field !== "").map((i: any) => [i?.field, i?.value])
-      )
+      const entries = Object.fromEntries((values.value_stream ?? []).filter((i: any) => i?.field !== "").map((i: any) => [i?.field, i?.value]))
       await createMutation.mutateAsync({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
@@ -165,61 +171,53 @@ export function KeyDetailStream(props: Props) {
           {t("insert_row")}
         </Button>
       ) : (
-      <Drawer direction="right">
-        <DrawerTrigger asChild>
-          <Button size="sm" variant="outline" className="mb-2">
-            <PlusIcon />
-            {t("insert_row")}
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <Form {...form}>
-            <form onSubmit={submit} className="grid gap-4">
-              <DrawerHeader>
-                <DrawerTitle>{t("new_field")}</DrawerTitle>
-              </DrawerHeader>
-              <FormItem>
-                <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                <FormControl>
+        <Drawer direction="right">
+          <DrawerTrigger asChild>
+            <Button size="sm" variant="outline" className="mb-2">
+              <PlusIcon />
+              {t("insert_row")}
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent className="sm:max-w-lg">
+            <Form {...form}>
+              <form onSubmit={submit} className="flex h-full flex-col">
+                <DrawerHeader>
+                  <DrawerTitle>{t("new_field")}</DrawerTitle>
+                  <DrawerDescription>{t("insert_row_desc")}</DrawerDescription>
+                </DrawerHeader>
+                {/* Editor owns its own FormFields; this is just a scroll region. */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-4">
                   <KeyAddValueStream form={form} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-              <DrawerFooter>
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" type="submit" disabled={loading}>
-                    {loading ? t("saving") : t("save")}
-                  </Button>
+                </div>
+                <DrawerFooter className="flex-row justify-end">
                   <DrawerClose asChild>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" type="button">
                       {t("cancel")}
                     </Button>
                   </DrawerClose>
-                </div>
-              </DrawerFooter>
-            </form>
-          </Form>
-        </DrawerContent>
-      </Drawer>
+                  <Button size="sm" type="submit" disabled={loading}>
+                    {loading && <Spinner />}
+                    {t("save")}
+                  </Button>
+                </DrawerFooter>
+              </form>
+            </Form>
+          </DrawerContent>
+        </Drawer>
       )}
 
-      <TableProvider columns={columns} data={items as StreamType[]}>
-        <TableHeader>
-          {({ headerGroup }) => (
-            <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
-              {({ header }) => <TableHead header={header} key={header.id} />}
-            </TableHeaderGroup>
-          )}
-        </TableHeader>
-        <TableBody>
-          {({ row }) => (
-            <TableRow key={row.id} row={row}>
-              {({ cell }) => <TableCell cell={cell} key={cell.id} />}
-            </TableRow>
-          )}
-        </TableBody>
-      </TableProvider>
-      <div ref={sentinelRef} className="h-4" />
+      <DataTable
+        columns={columns}
+        data={items as StreamType[]}
+        className="border-0"
+        loading={isLoading}
+        loadingText={t("loading")}
+        emptyText={t("no_items")}
+        onLoadMore={fetchNextPage}
+        hasMore={hasMore}
+        loadingMore={isFetchingNextPage}
+        loadingMoreText={t("loading")}
+      />
     </>
   )
 }

@@ -5,6 +5,7 @@ import React, { useRef, useCallback, useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import type * as monaco from "monaco-editor"
 import { debounce } from "lodash"
+import { cn } from "@/lib/utils"
 
 if (typeof window !== "undefined") {
   loader.config({
@@ -65,7 +66,10 @@ export function CodeEditor({ className, autoHeight = false, autoFormat = false, 
 
   return (
     <div
-      className={`w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:shadow focus:shadow-blue-300/30 outline-none py-3 ${className ?? ""}`}
+      className={cn(
+        "w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 focus:shadow focus:shadow-blue-300/30 outline-none py-3",
+        className
+      )}
     >
       <div
         ref={containerRef}

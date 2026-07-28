@@ -1,6 +1,6 @@
 "use client"
 
-import { TableBody, TableCell, TableColumnHeader, TableHead, TableHeader, TableHeaderGroup, TableProvider, TableRow } from "@tradalab/lyra/data-table"
+import { DataTable } from "@tradalab/lyra/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { ZsetType } from "@/types/zset.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
@@ -13,13 +13,15 @@ import { toast } from "sonner"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
 import { PlusIcon, Trash2Icon } from "lucide-react"
-import { Form, FormControl, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
+import { Form } from "@tradalab/lyra/blocks"
+import { Spinner } from "@tradalab/lyra/ui"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import { useKeyCreate } from "@/hooks/api/client.api"
 import { useZsetMemberDel } from "@/hooks/api/key.api"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
+import { CellText } from "@/components/app/key-detail/key-detail-shared"
 
 type KeyDetailZsetProps = {
   databaseId: string
@@ -35,65 +37,71 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingMember, setDeletingMember] = useState<string | null>(null)
   const confirm = useConfirm()
-  const { items, sentinelRef } = useKeyValuePage(props.databaseId, props.databaseIdx, props.selectedKey, "zset", props.reloadToken)
+  const { items, isLoading, isFetchingNextPage, hasMore, fetchNextPage } = useKeyValuePage(
+    props.databaseId,
+    props.databaseIdx,
+    props.selectedKey,
+    "zset",
+    props.reloadToken
+  )
   const createMutation = useKeyCreate(props.databaseId, props.databaseIdx)
   const delMutation = useZsetMemberDel(props.databaseId, props.databaseIdx)
 
   const columns: ColumnDef<ZsetType>[] = [
     {
       accessorKey: "id",
-      header: ({ column }) => <TableColumnHeader column={column} title="#" />,
-      cell: ({ row }) => row.original.id + 1,
+      header: "#",
+      cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.id + 1}</span>,
     },
     {
       accessorKey: "member",
-      header: ({ column }) => <TableColumnHeader column={column} title="Member" />,
-      cell: ({ row }) => row.original.member,
+      header: "Member",
+      cell: ({ row }) => <CellText>{row.original.member}</CellText>,
     },
     {
       accessorKey: "score",
-      header: ({ column }) => <TableColumnHeader column={column} title="Score" />,
-      cell: ({ row }) => row.original.score,
+      header: "Score",
+      cell: ({ row }) => <CellText className="tabular-nums">{row.original.score}</CellText>,
     },
     {
-      accessorKey: "action",
-      enableSorting: false,
-      size: 12,
-      header: ({ column }) => <TableColumnHeader column={column} title="" />,
+      id: "action",
+      header: "",
       cell: ({ row }) => {
         if (props.readOnly) return null
         const memberKey = row.original.member
         const isDeleting = deletingMember === memberKey
 
         return (
-          <span
-            role="button"
-            aria-disabled={isDeleting}
-            onClick={async e => {
-              if (isDeleting) return
-              const ok = await confirm({
-                title: t("confirm_delete"),
-                description: t("confirm_delete_desc", { obj_name: "member", obj_key: memberKey }),
-                confirmText: t("delete"),
-                danger: true,
-              })
-              if (ok) {
-                await memberDel(memberKey)
-              }
-            }}
-            className={cn(
-              "inline-flex items-center justify-center",
-              "w-5 h-5 cursor-pointer",
-              "text-red-600 hover:text-red-700",
-              isDeleting && "cursor-not-allowed opacity-50"
-            )}
-          >
-            {isDeleting ? (
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
-            ) : (
-              <Trash2Icon className="h-4 w-4" />
-            )}
-          </span>
+          <div className="flex justify-end">
+            <span
+              role="button"
+              aria-disabled={isDeleting}
+              onClick={async () => {
+                if (isDeleting) return
+                const ok = await confirm({
+                  title: t("confirm_delete"),
+                  description: t("confirm_delete_desc", { obj_name: "member", obj_key: memberKey }),
+                  confirmText: t("delete"),
+                  danger: true,
+                })
+                if (ok) {
+                  await memberDel(memberKey)
+                }
+              }}
+              className={cn(
+                "inline-flex items-center justify-center",
+                "h-5 w-5 cursor-pointer",
+                "text-red-600 hover:text-red-700",
+                isDeleting && "cursor-not-allowed opacity-50"
+              )}
+            >
+              {isDeleting ? (
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+              ) : (
+                <Trash2Icon className="h-4 w-4" />
+              )}
+            </span>
+          </div>
         )
       },
     },
@@ -163,62 +171,53 @@ export function KeyDetailZset(props: KeyDetailZsetProps) {
             {t("insert_row")}
           </Button>
         ) : (
-        <Drawer direction="right">
-          <DrawerTrigger asChild>
-            <Button size="sm" variant="outline" className="mb-2">
-              <PlusIcon />
-              {t("insert_row")}
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <Form {...form}>
-              <form onSubmit={submit} className="grid gap-4">
-                <DrawerHeader>
-                  <DrawerTitle>{t("new_field")}</DrawerTitle>
-                  <DrawerDescription></DrawerDescription>
-                </DrawerHeader>
-                <FormItem>
-                  <FormLabel className="flex items-center justify-between">Value</FormLabel>
-                  <FormControl>
+          <Drawer direction="right">
+            <DrawerTrigger asChild>
+              <Button size="sm" variant="outline" className="mb-2">
+                <PlusIcon />
+                {t("insert_row")}
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="sm:max-w-lg">
+              <Form {...form}>
+                <form onSubmit={submit} className="flex h-full flex-col">
+                  <DrawerHeader>
+                    <DrawerTitle>{t("new_field")}</DrawerTitle>
+                    <DrawerDescription>{t("insert_row_desc")}</DrawerDescription>
+                  </DrawerHeader>
+                  {/* Editor owns its own FormFields; this is just a scroll region. */}
+                  <div className="min-h-0 flex-1 overflow-y-auto px-4">
                     <KeyAddValueZset form={form} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                <DrawerFooter>
-                  <div className="flex items-right">
-                    <Button size="sm" type="submit" disabled={loading}>
-                      {t("save")}
-                    </Button>
-                    <DrawerClose>
-                      <Button size="sm" variant="outline">
+                  </div>
+                  <DrawerFooter className="flex-row justify-end">
+                    <DrawerClose asChild>
+                      <Button size="sm" variant="outline" type="button">
                         {t("cancel")}
                       </Button>
                     </DrawerClose>
-                  </div>
-                </DrawerFooter>
-              </form>
-            </Form>
-          </DrawerContent>
-        </Drawer>
+                    <Button size="sm" type="submit" disabled={loading}>
+                      {loading && <Spinner />}
+                      {t("save")}
+                    </Button>
+                  </DrawerFooter>
+                </form>
+              </Form>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
-      <TableProvider columns={columns} data={items as ZsetType[]}>
-        <TableHeader>
-          {({ headerGroup }) => (
-            <TableHeaderGroup headerGroup={headerGroup} key={headerGroup.id}>
-              {({ header }) => <TableHead header={header} key={header.id} />}
-            </TableHeaderGroup>
-          )}
-        </TableHeader>
-        <TableBody>
-          {({ row }) => (
-            <TableRow key={row.id} row={row}>
-              {({ cell }) => <TableCell cell={cell} key={cell.id} />}
-            </TableRow>
-          )}
-        </TableBody>
-      </TableProvider>
-      <div ref={sentinelRef} className="h-4" />
+      <DataTable
+        columns={columns}
+        data={items as ZsetType[]}
+        className="border-0"
+        loading={isLoading}
+        loadingText={t("loading")}
+        emptyText={t("no_items")}
+        onLoadMore={fetchNextPage}
+        hasMore={hasMore}
+        loadingMore={isFetchingNextPage}
+        loadingMoreText={t("loading")}
+      />
     </>
   )
 }

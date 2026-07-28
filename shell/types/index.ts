@@ -133,6 +133,8 @@ export interface ClientLoadKeyDetailRes {
   kind: string;
   ttl: number;
   total: number;
+  encoding: string;
+  size: number;
 }
 
 export interface ClientLoadKeyValuePageReq {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useKeyValuePageQuery } from "@/hooks/api/client.api"
 import { HashType } from "@/types/hash.type"
@@ -28,14 +28,7 @@ function mapItems(rawItems: any[], kind: string, offset: number): PageItem[] {
   }
 }
 
-export function useKeyValuePage(
-  connectionId: string,
-  databaseIdx: number,
-  selectedKey: string,
-  kind: string,
-  reloadToken: number,
-  pageSize: number = 200
-) {
+export function useKeyValuePage(connectionId: string, databaseIdx: number, selectedKey: string, kind: string, reloadToken: number, pageSize: number = 200) {
   const qc = useQueryClient()
   const query = useKeyValuePageQuery(connectionId, databaseIdx, selectedKey, kind, pageSize)
 
@@ -58,58 +51,14 @@ export function useKeyValuePage(
     return out
   }, [query.data, kind])
 
-  const isLoading = query.isLoading || query.isFetchingNextPage
-  const hasMore = !!query.hasNextPage
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
-  const stateRef = useRef({ hasMore, isLoading })
-  stateRef.current = { hasMore, isLoading }
-  const fetchNextPage = query.fetchNextPage
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-
-    const check = () => {
-      if (!stateRef.current.hasMore || stateRef.current.isLoading) return
-      const rect = sentinel.getBoundingClientRect()
-      if (rect.top < window.innerHeight + 200) {
-        fetchNextPage()
-      }
-    }
-
-    let scrollEl: Element | null = sentinel.parentElement
-    while (scrollEl && scrollEl !== document.documentElement) {
-      const { overflow, overflowY } = window.getComputedStyle(scrollEl)
-      if (overflow === "auto" || overflow === "scroll" || overflowY === "auto" || overflowY === "scroll") {
-        break
-      }
-      scrollEl = scrollEl.parentElement
-    }
-    const scrollTarget: EventTarget = scrollEl && scrollEl !== document.documentElement ? scrollEl : window
-
-    scrollTarget.addEventListener("scroll", check, { passive: true })
-    const raf = requestAnimationFrame(check)
-    return () => {
-      scrollTarget.removeEventListener("scroll", check)
-      cancelAnimationFrame(raf)
-    }
-  }, [fetchNextPage])
-
-  // After each page load, re-check if sentinel still visible — scroll handler only fires on user scroll.
-  const wasLoadingRef = useRef(false)
-  useEffect(() => {
-    const justFinishedLoading = wasLoadingRef.current && !isLoading
-    wasLoadingRef.current = isLoading
-    if (!justFinishedLoading) return
-    const raf = requestAnimationFrame(() => {
-      if (!stateRef.current.hasMore || stateRef.current.isLoading) return
-      const sentinel = sentinelRef.current
-      if (!sentinel) return
-      const rect = sentinel.getBoundingClientRect()
-      if (rect.top < window.innerHeight) fetchNextPage()
-    })
-    return () => cancelAnimationFrame(raf)
-  }, [isLoading, fetchNextPage])
-
-  return { items, isLoading, hasMore, sentinelRef }
+  // The bottom-sentinel + IntersectionObserver wiring now lives in lyra's
+  // <DataTable> (infinite mode); this hook just exposes the react-query paging
+  // primitives the table drives.
+  return {
+    items,
+    isLoading: query.isLoading,
+    isFetchingNextPage: query.isFetchingNextPage,
+    hasMore: !!query.hasNextPage,
+    fetchNextPage: query.fetchNextPage,
+  }
 }

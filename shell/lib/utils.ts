@@ -9,6 +9,24 @@ export function cn(...inputs: ClassValue[]) {
 
 export const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
+export function formatDuration(totalSeconds: number): string {
+  const s = Math.floor(totalSeconds)
+  if (s <= 0) return "0s"
+
+  const days = Math.floor(s / 86400)
+  const hours = Math.floor((s % 86400) / 3600)
+  const mins = Math.floor((s % 3600) / 60)
+  const secs = s % 60
+
+  const parts: string[] = []
+  if (days) parts.push(`${days}d`)
+  if (hours) parts.push(`${hours}h`)
+  if (mins) parts.push(`${mins}m`)
+  if (secs && !days && !hours) parts.push(`${secs}s`)
+
+  return parts.slice(0, 2).join(" ") || `${secs}s`
+}
+
 export function formatFileSize(bytes: number, decimalPlaces: number = 2): string {
   if (bytes === 0) {
     return "0 Bytes"
