@@ -5,10 +5,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next"
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react"
-import { toast } from "sonner"
-
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
-import { Input } from "@tradalab/lyra/ui"
+import { Input, toast } from "@tradalab/lyra/ui"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
 import { useUpsertProxy, useDeleteProxy } from "@/hooks/api/proxy.api"
 import { ProxyReq as ProxyDO } from "@/types"
@@ -80,10 +78,10 @@ export const ProxyForm = forwardRef<ProxyFormRef, ProxyFormProps>(({ proxy, onPe
   const onSubmit = async (values: ProxyFormValues) => {
     try {
       await upsert.mutateAsync(values)
-      toast.success(t("saved"))
+      toast.add({ title: t("saved"), type: "success" })
       onSaved?.()
     } catch (error: any) {
-      toast.error(error?.message ?? t("unknown_error"))
+      toast.add({ title: error?.message ?? t("unknown_error"), type: "error" })
     }
   }
 
@@ -91,10 +89,10 @@ export const ProxyForm = forwardRef<ProxyFormRef, ProxyFormProps>(({ proxy, onPe
     if (!proxy?.id) return
     try {
       await remove.mutateAsync(proxy.id)
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       onDeleted?.()
     } catch (error: any) {
-      toast.error(error?.message ?? t("unknown_error"))
+      toast.add({ title: error?.message ?? t("unknown_error"), type: "error" })
     }
   }
 
@@ -102,7 +100,7 @@ export const ProxyForm = forwardRef<ProxyFormRef, ProxyFormProps>(({ proxy, onPe
     console.error("[ProxyForm] Validation Errors:", errors)
     const firstError = Object.values(errors)[0]
     if (firstError) {
-      toast.error(`${t("validation_error")}: ${firstError.message}`)
+      toast.add({ title: `${t("validation_error")}: ${firstError.message}`, type: "error" })
     }
   })
 

@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect, useMemo, useState } from "react"
 import { useTabStore } from "@/stores/tab.store"
-import { toast } from "sonner"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyDetailHash } from "@/components/app/key-detail/key-detail-hash"
 import { KeyDetailList } from "@/components/app/key-detail/key-detail-list"
@@ -10,7 +9,7 @@ import { KeyDetailSet } from "@/components/app/key-detail/key-detail-set"
 import { KeyDetailZset } from "@/components/app/key-detail/key-detail-zset"
 import { KeyDetailStream } from "@/components/app/key-detail/key-detail-stream"
 import { KeyDetailString } from "@/components/app/key-detail/key-detail-string"
-import { Input } from "@tradalab/lyra/ui"
+import { Input, toast } from "@tradalab/lyra/ui"
 import { CopyIcon, RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
 import { cn, formatDuration, formatFileSize } from "@/lib/utils"
 import { KindBadge } from "@/components/app/key-detail/key-detail-shared"
@@ -77,9 +76,9 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
     if (!selectedKey) return
     try {
       await navigator.clipboard.writeText(selectedKey)
-      toast.success(t("copied"))
+      toast.add({ title: t("copied"), type: "success" })
     } catch {
-      toast.error(t("unknown_error"))
+      toast.add({ title: t("unknown_error"), type: "error" })
     }
   }
 
@@ -90,7 +89,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   useEffect(() => {
     if (query.error) {
       const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }, [query.error, t])
 
@@ -104,9 +103,9 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
         new_name: newKeyName,
       })
       updateTab(activeTabId, { key: newKeyName, title: newKeyName })
-      toast.success(t("updated"))
+      toast.add({ title: t("updated"), type: "success" })
     } catch (e: any) {
-      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
     }
   }
 
@@ -127,9 +126,9 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
       try {
         await deleteKeyMutation.mutateAsync({ connection_id: connectionId, database_index: databaseIdx, key })
         removeTab(activeTabId)
-        toast.success(t("deleted"))
+        toast.add({ title: t("deleted"), type: "success" })
       } catch (e: any) {
-        toast.error(e instanceof Error ? e.message : t("unknown_error"))
+        toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
       }
     }
   }
@@ -351,13 +350,13 @@ function KeyTtlUpdateDialog({ children, reload, databaseId, databaseIdx, keyName
         key_name: keyName,
         key_ttl: values.ttl,
       })
-      toast.success(t("updated"))
+      toast.add({ title: t("updated"), type: "success" })
       setOpen(false)
       form.reset()
       reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   })
 

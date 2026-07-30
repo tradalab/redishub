@@ -2,14 +2,13 @@
 
 import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
 import { useTranslation } from "react-i18next"
 import { GroupItem as GroupDO } from "@/types"
 import { useUpsertGroup } from "@/hooks/api/group.api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Input } from "@tradalab/lyra/ui"
+import { Input, toast } from "@tradalab/lyra/ui"
 
 export interface PendingState {
   save: boolean
@@ -55,10 +54,10 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
           async values => {
             try {
               await upsertGroup.mutateAsync({ ...values, id: group?.id })
-              toast.success(t("saved"))
+              toast.add({ title: t("saved"), type: "success" })
               resolve(true)
             } catch (e: any) {
-              toast.error(e?.message ?? t("unknown_error"))
+              toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
               resolve(false)
             }
           },

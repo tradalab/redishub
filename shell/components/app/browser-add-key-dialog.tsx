@@ -1,7 +1,7 @@
 "use client"
 
 import { ReactNode, useState } from "react"
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@tradalab/lyra/ui"
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, toast } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
 import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
@@ -17,7 +17,6 @@ import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { KeyAddValueSet } from "@/components/app/key-add/key-add-value-set"
 import { KeyAddValueZset } from "@/components/app/key-add/key-add-value-zset"
 import { useKeyCreate } from "@/hooks/api/client.api"
-import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { KeyAddValueStream } from "@/components/app/key-add/key-add-value-stream"
 
@@ -68,12 +67,12 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
         database_index: selectedDbIdx,
         ...values,
       })
-      toast.success(t("created"))
+      toast.add({ title: t("created"), type: "success" })
       setOpen(false)
       form.reset()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   })
 

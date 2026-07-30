@@ -7,12 +7,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { StreamType } from "@/types/stream.type"
 import { useKeyCreate } from "@/hooks/api/client.api"
 import { useStreamEntryDel } from "@/hooks/api/key.api"
-import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@tradalab/lyra/blocks"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger, toast } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
 import { Form } from "@tradalab/lyra/blocks"
 import { Spinner } from "@tradalab/lyra/ui"
@@ -132,12 +131,12 @@ export function KeyDetailStream(props: Props) {
         },
       })
 
-      toast.success(t("saved"))
+      toast.add({ title: t("saved"), type: "success" })
       form.reset({ value_stream: {} })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setLoading(false)
     }
@@ -153,11 +152,11 @@ export function KeyDetailStream(props: Props) {
         key: props.selectedKey,
         entry_id: id,
       })
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setDeletingEntry(null)
     }

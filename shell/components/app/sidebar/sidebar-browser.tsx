@@ -1,6 +1,6 @@
 "use client"
 
-import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@tradalab/lyra/ui"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu, toast } from "@tradalab/lyra/ui"
 import { SidebarPanel } from "@tradalab/lyra/shell"
 import {
   ArrowDownToLineIcon,
@@ -20,7 +20,6 @@ import {
 } from "lucide-react"
 import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
-import { toast } from "sonner"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { Virtuoso } from "react-virtuoso"
@@ -61,9 +60,9 @@ export function SidebarBrowser() {
     if (!selectedDb || setReadOnly.isPending) return
     try {
       await setReadOnly.mutateAsync({ connectionId: selectedDb, databaseIdx: selectedDbIdx, readOnly: !readOnly })
-      toast.success(!readOnly ? t("read_only_enabled") : t("read_only_disabled"))
+      toast.add({ title: !readOnly ? t("read_only_enabled") : t("read_only_disabled"), type: "success" })
     } catch (e: any) {
-      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
     }
   }
 
@@ -91,24 +90,24 @@ export function SidebarBrowser() {
   const deleteKey = async (key: string) => {
     try {
       await deleteMutation.mutateAsync({ connection_id: selectedDb || "", database_index: selectedDbIdx, key })
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
     } catch (e: any) {
-      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
     }
   }
   const deleteByPrefix = async (prefix: string, keys?: string[]) => {
-    const toastId = toast.loading(t("deleting"))
+    const toastId = toast.add({ title: t("deleting"), type: "loading" })
     try {
       await deleteByPrefixMutation.mutateAsync({
         prefix,
         keys,
         onProgress: data => {
-          toast.loading(`${t("deleting")} (${data.deleted})`, { id: toastId })
+          toast.add({ title: `${t("deleting")} (${data.deleted})`, id: toastId, type: "loading" })
         },
       })
-      toast.success(t("deleted"), { id: toastId })
+      toast.add({ title: t("deleted"), id: toastId, type: "success" })
     } catch (e: any) {
-      toast.error(e instanceof Error ? e.message : t("unknown_error"), { id: toastId })
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), id: toastId, type: "error" })
     }
   }
   const scanByPrefix = async (prefix: string, _cursor: string = "0", _limit: number = 1000) => {
@@ -121,7 +120,7 @@ export function SidebarBrowser() {
       })
       return { keys: res.keys || [], nextCursor: res.next_cursor }
     } catch (e: any) {
-      toast.error(e instanceof Error ? e.message : t("unknown_error"))
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
       return { keys: [], nextCursor: "0" }
     }
   }
@@ -219,7 +218,7 @@ export function SidebarBrowser() {
       setDbs((res.databases || []) as DbInfo[])
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }
 
@@ -238,14 +237,14 @@ export function SidebarBrowser() {
       const res = await connection.list({})
       const conn = (res.items || []).find(c => c.id === selectedDb)
       if (!conn) {
-        toast.error(t("conn_not_exist"))
+        toast.add({ title: t("conn_not_exist"), type: "error" })
         return
       }
       await connect(conn, idx)
       setSelectedDbIdx(idx)
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }
 

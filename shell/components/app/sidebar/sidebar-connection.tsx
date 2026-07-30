@@ -3,10 +3,9 @@
 import { useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
-import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu } from "@tradalab/lyra/ui"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu, toast } from "@tradalab/lyra/ui"
 import { SidebarPanel } from "@tradalab/lyra/shell"
 import { EditIcon, FolderPlusIcon, LockIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
-import { toast } from "sonner"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeContent, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { filterTree, sortTree, TreeItem } from "@/components/app/tree"
 import { buildDbTree, cn } from "@/lib/utils"
@@ -153,11 +152,11 @@ const ActionButton = memo(function ActionButton({ item, reload }: ActionButtonPr
       } else {
         await deleteConnection.mutateAsync(item.id)
       }
-      toast.success("Deleted!")
+      toast.add({ title: "Deleted!", type: "success" })
       reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }
 

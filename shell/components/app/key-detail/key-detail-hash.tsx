@@ -4,14 +4,13 @@ import { DataTable } from "@tradalab/lyra/data-table"
 import { ColumnDef } from "@tanstack/react-table"
 import { HashType } from "@/types/hash.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
-import { Button } from "@tradalab/lyra/ui"
+import { Button, toast } from "@tradalab/lyra/ui"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
 import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { toast } from "sonner"
 import { Form } from "@tradalab/lyra/blocks"
 import { Spinner } from "@tradalab/lyra/ui"
 import { KeyKindEnum } from "@/types/key-kind.enum"
@@ -132,11 +131,11 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
         value_hash: values.value_hash,
         value_stream: { id: "", values: "" },
       })
-      toast.success(t("updated"))
+      toast.add({ title: t("updated"), type: "success" })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setLoading(false)
     }
@@ -152,11 +151,11 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
         key: props.selectedKey,
         field: field,
       })
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setDeletingField(null)
     }

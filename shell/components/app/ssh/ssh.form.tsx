@@ -2,10 +2,9 @@
 
 import { useEffect, forwardRef, useImperativeHandle, useMemo } from "react"
 import { useForm } from "react-hook-form"
-import { Input } from "@tradalab/lyra/ui"
+import { Input, toast } from "@tradalab/lyra/ui"
 import { Textarea } from "@tradalab/lyra/ui"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
-import { toast } from "sonner"
 import { SshReq as SshDO } from "@/types"
 import { SshKindEnum } from "@/types/ssh-kind.enum"
 import { useDeleteSsh, useTestSsh, useUpsertSsh } from "@/hooks/api/ssh.api"
@@ -96,16 +95,16 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
     async values => {
       try {
         await upsertSsh.mutateAsync(values)
-        toast.success(t("saved"))
+        toast.add({ title: t("saved"), type: "success" })
         onSaved?.()
       } catch (e: any) {
-        toast.error(e?.message ?? t("unknown_error"))
+        toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
       }
     },
     errors => {
       const firstError = Object.values(errors)[0]
       if (firstError) {
-        toast.error(`${t("validation_error")}: ${firstError.message}`)
+        toast.add({ title: `${t("validation_error")}: ${firstError.message}`, type: "error" })
       }
     }
   )
@@ -113,10 +112,10 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
   const testConn = form.handleSubmit(async values => {
     try {
       await testSsh.mutateAsync(values)
-      toast.success(t("conn_success"))
+      toast.add({ title: t("conn_success"), type: "success" })
     } catch (e) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
-      toast.error(t("conn_failed"), { description: msg })
+      toast.add({ title: t("conn_failed"), description: msg, type: "error" })
     }
   })
 
@@ -124,10 +123,10 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, onPendingChange, on
     if (!ssh?.id) return
     try {
       await deleteSsh.mutateAsync(ssh.id)
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       onDeleted?.()
     } catch (e: any) {
-      toast.error(e?.message ?? t("unknown_error"))
+      toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
     }
   }
 

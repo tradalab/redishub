@@ -1,10 +1,9 @@
 "use client"
 
-import { toast } from "sonner"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useSlowQuery } from "@/hooks/api/client.api"
-import { Spinner } from "@tradalab/lyra/ui"
+import { Spinner, toast } from "@tradalab/lyra/ui"
 
 function formatDuration(us: number | string | undefined): string {
   if (!us) return "-"
@@ -23,7 +22,7 @@ export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { co
   useEffect(() => {
     if (query.error) {
       const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }, [query.error, t])
 

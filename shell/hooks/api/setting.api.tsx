@@ -2,7 +2,7 @@
 
 import { useCallback } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 import { setting } from "@/api"
 import type { SettingListRes } from "@/types"
@@ -47,11 +47,11 @@ export function useSetting(key: string, options?: { silent?: boolean }) {
       })
     },
     onSuccess: () => {
-      if (!silent) toast.success(t("updated"))
+      if (!silent) toast.add({ title: t("updated"), type: "success" })
     },
     onError: e => {
       const msg = e instanceof Error ? e.message : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     },
   })
 

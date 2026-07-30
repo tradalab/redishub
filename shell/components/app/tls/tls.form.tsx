@@ -2,10 +2,9 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useMemo } from "react"
 import { useForm } from "react-hook-form"
-import { Input } from "@tradalab/lyra/ui"
+import { Input, toast } from "@tradalab/lyra/ui"
 import { Textarea } from "@tradalab/lyra/ui"
 import { Switch } from "@tradalab/lyra/ui"
-import { toast } from "sonner"
 import { TlsReq as TlsDO } from "@/types"
 import { useDeleteTls, useUpsertTls } from "@/hooks/api/tls.api"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@tradalab/lyra/blocks"
@@ -88,16 +87,16 @@ export const TlsForm = forwardRef<TlsFormRef, Props>(({ tls, onPendingChange, on
     async values => {
       try {
         await upsertTls.mutateAsync(values as Partial<TlsDO>)
-        toast.success(t("saved"))
+        toast.add({ title: t("saved"), type: "success" })
         onSaved?.()
       } catch (e: any) {
-        toast.error(e?.message ?? t("unknown_error"))
+        toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
       }
     },
     errors => {
       const firstError = Object.values(errors)[0]
       if (firstError) {
-        toast.error(`${t("validation_error")}: ${firstError.message}`)
+        toast.add({ title: `${t("validation_error")}: ${firstError.message}`, type: "error" })
       }
     }
   )
@@ -106,10 +105,10 @@ export const TlsForm = forwardRef<TlsFormRef, Props>(({ tls, onPendingChange, on
     if (!tls?.id) return
     try {
       await deleteTls.mutateAsync(tls.id)
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       onDeleted?.()
     } catch (e: any) {
-      toast.error(e?.message ?? t("unknown_error"))
+      toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
     }
   }
 

@@ -2,12 +2,11 @@
 
 import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { system } from "@/api"
 import { cn } from "@/lib/utils"
 import { useSetting } from "@/hooks/api/setting.api"
-import { Spinner } from "@tradalab/lyra/ui"
+import { Spinner, toast } from "@tradalab/lyra/ui"
 import { UpdaterContext } from "./updater.context"
 
 export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
@@ -32,7 +31,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
         const isNoUpdate = msg === "no update available"
 
         if (!options?.silent && !isNoUpdate && !msg.includes("No connection could be made because the target machine actively refused it")) {
-          toast.error(t(msg as any, { defaultValue: msg }))
+          toast.add({ title: t(msg as any, { defaultValue: msg }), type: "error" })
         }
 
         if (isNoUpdate) {
@@ -57,7 +56,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
       await scorix.invoke("mod:updater:FullUpdate", {})
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "unknown_error"
-      toast.error(t(msg as any, { defaultValue: msg }))
+      toast.add({ title: t(msg as any, { defaultValue: msg }), type: "error" })
     } finally {
       setLoading(false)
     }
@@ -66,37 +65,39 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   const popup = useCallback(() => {
     if (!newVersion || !notes) return
 
-    toast(t("update_available", { v: newVersion }), {
+    // Base UI's `actionProps` describes a single <button>, so the two-button
+    // row lives in `description` instead. `timeout: 0` is Base UI's "never
+    // auto-dismiss" (sonner spelled it `duration: Infinity`), and the classes
+    // sonner applied via `classNames` are inlined here.
+    toast.add({
       id: "updater",
-      description: <div>{notes}</div>,
-      action: (
-        <div className="flex gap-2 mt-2">
-          <button
-            data-button="true"
-            data-cancel="true"
-            disabled={loading}
-            className={cn("", { "!text-muted-foreground !cursor-not-allowed": loading })}
-            onClick={() => toast.dismiss("updater")}
-          >
-            {t("later")}
-          </button>
-          <button
-            data-button="true"
-            data-action="true"
-            disabled={loading}
-            className={cn("", { "!text-muted-foreground !cursor-not-allowed": loading })}
-            onClick={() => fullUpdate()}
-          >
-            {loading && <Spinner />} {t("update")}
-          </button>
+      title: t("update_available", { v: newVersion }),
+      description: (
+        <div className="w-full">
+          <div className="whitespace-pre-line">{notes}</div>
+          <div className="flex gap-2 mt-2">
+            <button
+              data-button="true"
+              data-cancel="true"
+              disabled={loading}
+              className={cn("", { "!text-muted-foreground !cursor-not-allowed": loading })}
+              onClick={() => toast.close("updater")}
+            >
+              {t("later")}
+            </button>
+            <button
+              data-button="true"
+              data-action="true"
+              disabled={loading}
+              className={cn("", { "!text-muted-foreground !cursor-not-allowed": loading })}
+              onClick={() => fullUpdate()}
+            >
+              {loading && <Spinner />} {t("update")}
+            </button>
+          </div>
         </div>
       ),
-      duration: Infinity,
-      classNames: {
-        toast: "flex flex-wrap",
-        content: "w-full",
-        description: "whitespace-pre-line",
-      },
+      timeout: 0,
     })
   }, [newVersion, notes, t, loading, fullUpdate])
 

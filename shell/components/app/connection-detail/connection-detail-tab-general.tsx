@@ -1,8 +1,7 @@
 "use client"
 
-import { toast } from "sonner"
 import { useEffect, useState, useMemo } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@tradalab/lyra/ui"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 import { Spinner } from "@tradalab/lyra/ui"
 import {
@@ -94,7 +93,7 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
   useEffect(() => {
     if (query.error) {
       const msg = query.error instanceof Error ? query.error.message : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }, [query.error, t])
 

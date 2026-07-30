@@ -2,10 +2,9 @@
 
 import { useState } from "react"
 import { SaveIcon } from "lucide-react"
-import { Button } from "@tradalab/lyra/ui"
+import { Button, toast } from "@tradalab/lyra/ui"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyKindEnum } from "@/types/key-kind.enum"
-import { toast } from "sonner"
 import scorix from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import { Spinner } from "@tradalab/lyra/ui"
@@ -37,11 +36,11 @@ export function KeyDetailString(props: KeyDetailStringProps) {
       })
       .then(() => {
         props.reload()
-        toast.success(t("updated"))
+        toast.add({ title: t("updated"), type: "success" })
       })
       .catch(e => {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-        toast.error(msg)
+        toast.add({ title: msg, type: "error" })
       })
       .finally(() => {
         setLoading(false)

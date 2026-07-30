@@ -4,7 +4,7 @@ import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { toast } from "sonner"
+import { toast } from "@tradalab/lyra/ui"
 import { Form } from "@tradalab/lyra/blocks"
 import { useTranslation } from "react-i18next"
 
@@ -209,10 +209,10 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
             const data = values as FormOutput
             try {
               await upsertConnection.mutateAsync(data as any)
-              toast.success(t("saved"))
+              toast.add({ title: t("saved"), type: "success" })
               resolve(true)
             } catch (e: any) {
-              toast.error(e?.message ?? t("unknown_error"))
+              toast.add({ title: e?.message ?? t("unknown_error"), type: "error" })
               resolve(false)
             }
           },
@@ -228,10 +228,10 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
         const data = values as FormOutput
         try {
           await testConnection.mutateAsync(data as any)
-          toast.success(t("conn_success"))
+          toast.add({ title: t("conn_success"), type: "success" })
         } catch (e: any) {
           const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
-          toast.error(t("conn_failed"), { description: msg })
+          toast.add({ title: t("conn_failed"), description: msg, type: "error" })
         }
       })(),
     [form, t, testConnection]

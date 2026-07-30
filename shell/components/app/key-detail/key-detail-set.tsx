@@ -9,8 +9,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { KeyKindEnum } from "@/types/key-kind.enum"
-import { toast } from "sonner"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger, toast } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
 import { PlusIcon, Trash2Icon } from "lucide-react"
 import { Form } from "@tradalab/lyra/blocks"
@@ -127,11 +126,11 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
         value_set: values.value_set,
         value_stream: { id: "", values: "" },
       })
-      toast.success(t("updated"))
+      toast.add({ title: t("updated"), type: "success" })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setLoading(false)
     }
@@ -147,11 +146,11 @@ export function KeyDetailSet(props: KeyDetailSetProps) {
         key: props.selectedKey,
         member: member,
       })
-      toast.success(t("deleted"))
+      toast.add({ title: t("deleted"), type: "success" })
       props.reload()
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setDeletingMember(null)
     }

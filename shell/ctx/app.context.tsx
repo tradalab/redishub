@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react"
 import { useTabStore } from "@/stores/tab.store"
-import { toast } from "sonner"
+import { toast } from "@tradalab/lyra/ui"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
 import { ConnectionReq as ConnectionDO } from "@/types"
@@ -129,7 +129,7 @@ function AppContextInner({ children }: { children: ReactNode }) {
         })
         return
       }
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     } finally {
       setLoading(false)
     }
@@ -141,10 +141,10 @@ function AppContextInner({ children }: { children: ReactNode }) {
       await disconnectMutation.mutateAsync({ connection_id: database.id, database_index: 0 })
       setSelectedDb(undefined)
       setSelectedDbIdx(0)
-      toast.success("Disconnected!")
+      toast.add({ title: "Disconnected!", type: "success" })
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      toast.error(msg)
+      toast.add({ title: msg, type: "error" })
     }
   }
 
