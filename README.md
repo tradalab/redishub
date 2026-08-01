@@ -16,6 +16,7 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 
 - **Hybrid Platform Support**: Use it as a native desktop application or deploy it as a central web server for team collaboration.
 - **Multi-Tab Interface**: Navigate multiple connections and tasks simultaneously.
+- **Rich Key Inspector**: Redesigned key-detail view with a type badge, one-click copy, humanized TTL, live memory (`MEMORY USAGE`) and encoding (`OBJECT ENCODING`) insights, and infinite-scroll value tables for large collections.
 - **Enhanced Tab Management**: Pin important connections and use bulk closing actions (Close All, Close Others).
 - **Proxy Support**: Connect securely through HTTP and SOCKS5 proxies.
 - **Advanced Topology Discovery**: Automatic node discovery for Sentinel and Cluster setups.

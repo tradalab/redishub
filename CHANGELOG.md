@@ -2,6 +2,26 @@
 
 ---
 
+## [1.14.0]
+
+### 🚀 Features
+
+- **shell:** Redesign the key-detail view — a richer header (type badge, one-click copy, humanized TTL) and a live metadata strip showing length, memory footprint (`MEMORY USAGE`), and internal encoding (`OBJECT ENCODING`) (#89)
+- **shell:** Add infinite-scroll loading to the collection value tables (Hash, List, Set, ZSet, Stream) for smoother browsing of large keys
+
+### ♻️ Improvements & Refactors
+
+- **ui:** Adopt the **Lyra** design system across the app for a more consistent, polished interface
+- **shell:** Rework the Insert Row drawer and inline value editors
+- **shell:** Refine the connection form layout
+- **ui:** Always-visible row actions in value tables (previously revealed only on hover)
+
+### 🔧 Chores
+
+- **ui:** Use the official GitHub mark for the sidebar link
+
+---
+
 ## [1.13.0]
 
 ### 🚀 Features
