@@ -2,9 +2,6 @@
 @plugin "tailwind-scrollbar-hide";
 
 :root {
-  /* Square corners — overrides lyra's default --radius (0.625rem). */
-  --radius: 0rem;
-
   /* Density tokens (redishub-only; not in lyra). */
   --tab-height: 2.75rem;
   --tree-item-py: 0.375rem;
