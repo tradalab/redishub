@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import scorix from "@/lib/scorix"
+import { openExternal } from "@/lib/open-external"
 import { system } from "@/api"
 import { cn } from "@/lib/utils"
 import { useSetting, useSettings } from "@/hooks/api/setting.api"
@@ -51,7 +52,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
     try {
       const info = await system.info({})
       if (info.os === "linux" || info.os === "darwin") {
-        await scorix.invoke("mod:browser:OpenUrl", { url: "https://github.com/tradalab/redishub/releases" })
+        openExternal("https://github.com/tradalab/redishub/releases")
         return
       }
       await scorix.invoke("mod:updater:FullUpdate", {})

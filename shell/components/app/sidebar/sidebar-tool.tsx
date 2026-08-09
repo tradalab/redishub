@@ -16,7 +16,7 @@ import { configs } from "@/configs"
 import { SettingDialog } from "@/components/app/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
 import { useTranslation } from "react-i18next"
-import scorix from "@/lib/scorix"
+import { openExternal } from "@/lib/open-external"
 
 function GithubIcon() {
   return (
@@ -97,7 +97,7 @@ export function SidebarTool() {
                 tooltip={{ children: item.title, hidden: false }}
                 onClick={e => {
                   e.preventDefault()
-                  scorix.invoke("mod:browser:OpenUrl", { url: item.url })
+                  openExternal(item.url)
                 }}
               >
                 {item.icon}

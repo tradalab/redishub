@@ -4,7 +4,7 @@ import { ReactNode } from "react"
 import { SlidersHorizontal } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@tradalab/lyra/ui"
 import { version } from "../../../package.json"
-import scorix from "@/lib/scorix"
+import { openExternal } from "@/lib/open-external"
 import { useTranslation } from "react-i18next"
 import { Panel } from "@tradalab/lyra/blocks"
 import { SettingPanelGeneral } from "./setting-panel-general"
@@ -42,7 +42,7 @@ export function SettingDialog({ children }: { children: ReactNode }) {
                   href="#"
                   onClick={e => {
                     e.preventDefault()
-                    scorix.invoke("mod:browser:OpenUrl", { url: item.url })
+                    openExternal(item.url)
                   }}
                   className="text-blue-500 underline"
                 >
