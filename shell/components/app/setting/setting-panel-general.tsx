@@ -89,7 +89,7 @@ export function SettingPanelGeneral() {
             <Checkbox
               id="autoupdate-checkbox"
               name="autoupdate-checkbox"
-              checked={autoupdate == "true"}
+              checked={autoupdate !== "false"}
               onCheckedChange={val => setAutoupdate(val ? "true" : "false")}
             />
             <Label htmlFor="autoupdate-checkbox" className="font-normal">

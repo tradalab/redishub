@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import scorix from "@/lib/scorix"
 import { system } from "@/api"
 import { cn } from "@/lib/utils"
-import { useSetting } from "@/hooks/api/setting.api"
+import { useSetting, useSettings } from "@/hooks/api/setting.api"
 import { Spinner, toast } from "@tradalab/lyra/ui"
 import { UpdaterContext } from "./updater.context"
 
@@ -14,6 +14,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false)
   const [newVersion, setNewVersion] = useState<string | undefined>()
   const [notes, setNotes] = useState<string | undefined>()
+  const { loading: settingsLoading } = useSettings()
   const [autoupdate] = useSetting("autoupdate")
   const [lastCheck, setLastCheck] = useSetting("last_update_check", { silent: true })
 
@@ -107,6 +108,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
   popupRef.current = popup
 
   useEffect(() => {
+    if (settingsLoading) return
     if (autoupdate === "false") return
 
     const last = parseInt(lastCheck || "0")
@@ -115,7 +117,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
     checkUpdateRef.current({ silent: true }).then(res => {
       if (res) popupRef.current()
     })
-  }, [autoupdate, lastCheck])
+  }, [settingsLoading, autoupdate, lastCheck])
 
   return <UpdaterContext.Provider value={{ loading, newVersion, notes, checkUpdate, fullUpdate, popup }}>{children}</UpdaterContext.Provider>
 }
