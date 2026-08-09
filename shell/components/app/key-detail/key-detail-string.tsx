@@ -5,7 +5,7 @@ import { SaveIcon } from "lucide-react"
 import { Button, toast } from "@tradalab/lyra/ui"
 import { CodeEditor } from "@/components/x/code-editor"
 import { KeyKindEnum } from "@/types/key-kind.enum"
-import scorix from "@/lib/scorix"
+import { client } from "@/api"
 import { useTranslation } from "react-i18next"
 import { Spinner } from "@tradalab/lyra/ui"
 
@@ -26,13 +26,13 @@ export function KeyDetailString(props: KeyDetailStringProps) {
 
   const update = async () => {
     setLoading(true)
-    await scorix
-      .invoke("client:key-value-update", {
+    await client
+      .keyValueUpdate({
         connection_id: props.databaseId,
         database_index: props.databaseIdx,
-        key_name: props.selectedKey,
-        key_kind: KeyKindEnum.STRING,
-        key_value_string: newVal,
+        key: props.selectedKey,
+        kind: KeyKindEnum.STRING,
+        value: newVal,
       })
       .then(() => {
         props.reload()

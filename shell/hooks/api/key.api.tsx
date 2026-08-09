@@ -53,3 +53,35 @@ export function useStreamEntryDel(connectionId: string, databaseIdx: number) {
     onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
   })
 }
+
+export function useHashFieldUpdate(connectionId: string, databaseIdx: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: keyApi.hashFieldUpdate,
+    onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
+  })
+}
+
+export function useListItemUpdate(connectionId: string, databaseIdx: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: keyApi.listItemUpdate,
+    onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
+  })
+}
+
+export function useSetMemberUpdate(connectionId: string, databaseIdx: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: keyApi.setMemberUpdate,
+    onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
+  })
+}
+
+export function useZsetMemberUpdate(connectionId: string, databaseIdx: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: keyApi.zSetMemberUpdate,
+    onSuccess: (_, vars) => invalidatePage(qc, connectionId, databaseIdx, vars.key),
+  })
+}

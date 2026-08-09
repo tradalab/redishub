@@ -399,6 +399,41 @@ message KeyZSetMemberDelReq {
   string member         = 4;
 }
 
+message KeyHashFieldUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string field          = 4; // current field name (identity)
+  string new_field      = 5; // new field name (== field when unchanged)
+  string value          = 6;
+}
+
+message KeyListItemUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  int64  index          = 4;
+  string old_value      = 5; // optimistic guard against concurrent edits
+  string value          = 6; // new value
+}
+
+message KeySetMemberUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string member         = 4; // current member
+  string new_member     = 5; // new member value (rename)
+}
+
+message KeyZSetMemberUpdateReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string key            = 3;
+  string member         = 4; // current member (identity)
+  string new_member     = 5; // new member (== member when unchanged)
+  double score          = 6;
+}
+
 message MonitorReq {
   string connection_id  = 1;
   int32  database_index = 2;
@@ -494,11 +529,15 @@ service conn {
 
 service key {
   rpc HashFieldDel(KeyHashFieldDelReq) returns (Empty);
+  rpc HashFieldUpdate(KeyHashFieldUpdateReq) returns (Empty);
   rpc ListItemDel(KeyListItemDelReq) returns (Empty);
+  rpc ListItemUpdate(KeyListItemUpdateReq) returns (Empty);
   rpc Load(KeyLoadReq) returns (KeyLoadRes);
   rpc SetMemberDel(KeySetMemberDelReq) returns (Empty);
+  rpc SetMemberUpdate(KeySetMemberUpdateReq) returns (Empty);
   rpc StreamEntryDel(KeyStreamEntryDelReq) returns (Empty);
   rpc ZSetMemberDel(KeyZSetMemberDelReq) returns (Empty);
+  rpc ZSetMemberUpdate(KeyZSetMemberUpdateReq) returns (Empty);
 }
 
 service monitor {

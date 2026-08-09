@@ -155,9 +155,21 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "key:hash-field-update", func(ctx context.Context, r *types.KeyHashFieldUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewHashFieldUpdateLogic(ctx, svcCtx).HashFieldUpdate(a.(*types.KeyHashFieldUpdateReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "key:list-item-del", func(ctx context.Context, r *types.KeyListItemDelReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return key.NewListItemDelLogic(ctx, svcCtx).ListItemDel(a.(*types.KeyListItemDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:list-item-update", func(ctx context.Context, r *types.KeyListItemUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewListItemUpdateLogic(ctx, svcCtx).ListItemUpdate(a.(*types.KeyListItemUpdateReq))
 		}
 		return h(ctx, r)
 	})
@@ -173,6 +185,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "key:set-member-update", func(ctx context.Context, r *types.KeySetMemberUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewSetMemberUpdateLogic(ctx, svcCtx).SetMemberUpdate(a.(*types.KeySetMemberUpdateReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "key:stream-entry-del", func(ctx context.Context, r *types.KeyStreamEntryDelReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return key.NewStreamEntryDelLogic(ctx, svcCtx).StreamEntryDel(a.(*types.KeyStreamEntryDelReq))
@@ -182,6 +200,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 	reg(a, "key:z-set-member-del", func(ctx context.Context, r *types.KeyZSetMemberDelReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return key.NewZSetMemberDelLogic(ctx, svcCtx).ZSetMemberDel(a.(*types.KeyZSetMemberDelReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "key:z-set-member-update", func(ctx context.Context, r *types.KeyZSetMemberUpdateReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return key.NewZSetMemberUpdateLogic(ctx, svcCtx).ZSetMemberUpdate(a.(*types.KeyZSetMemberUpdateReq))
 		}
 		return h(ctx, r)
 	})

@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { HashType } from "@/types/hash.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { Button, toast } from "@tradalab/lyra/ui"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@tradalab/lyra/ui"
 import { KeyAddValueHash } from "@/components/app/key-add/key-add-value-hash"
 import { useForm } from "react-hook-form"
@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
 import { CellText } from "@/components/app/key-detail/key-detail-shared"
+import { KeyEditDrawer } from "@/components/app/key-detail/key-edit-drawer"
 
 type KeyDetailHashProps = {
   databaseId: string
@@ -35,6 +36,7 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingField, setDeletingField] = useState<string | null>(null)
+  const [editing, setEditing] = useState<HashType | null>(null)
   const confirm = useConfirm()
   const { items, isLoading, isFetchingNextPage, hasMore, fetchNextPage } = useKeyValuePage(
     props.databaseId,
@@ -71,7 +73,14 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
         const isDeleting = deletingField === fieldKey
 
         return (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <span
+              role="button"
+              onClick={() => setEditing(row.original)}
+              className="inline-flex h-5 w-5 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground"
+            >
+              <PencilIcon className="h-4 w-4" />
+            </span>
             <span
               role="button"
               aria-disabled={isDeleting}
@@ -216,6 +225,16 @@ export function KeyDetailHash(props: KeyDetailHashProps) {
         hasMore={hasMore}
         loadingMore={isFetchingNextPage}
         loadingMoreText={t("loading")}
+      />
+      <KeyEditDrawer
+        connectionId={props.databaseId}
+        databaseIdx={props.databaseIdx}
+        keyName={props.selectedKey}
+        item={editing ? { kind: "hash", field: editing.key, value: editing.value } : null}
+        onOpenChange={o => {
+          if (!o) setEditing(null)
+        }}
+        onSaved={props.reload}
       />
     </>
   )

@@ -31,11 +31,15 @@ export const conn = {
 
 export const key = {
   hashFieldDel: (params: T.KeyHashFieldDelReq) => scorix.invoke<T.Empty>("key:hash-field-del", params),
+  hashFieldUpdate: (params: T.KeyHashFieldUpdateReq) => scorix.invoke<T.Empty>("key:hash-field-update", params),
   listItemDel: (params: T.KeyListItemDelReq) => scorix.invoke<T.Empty>("key:list-item-del", params),
+  listItemUpdate: (params: T.KeyListItemUpdateReq) => scorix.invoke<T.Empty>("key:list-item-update", params),
   load: (params: T.KeyLoadReq) => scorix.invoke<T.KeyLoadRes>("key:load", params),
   setMemberDel: (params: T.KeySetMemberDelReq) => scorix.invoke<T.Empty>("key:set-member-del", params),
+  setMemberUpdate: (params: T.KeySetMemberUpdateReq) => scorix.invoke<T.Empty>("key:set-member-update", params),
   streamEntryDel: (params: T.KeyStreamEntryDelReq) => scorix.invoke<T.Empty>("key:stream-entry-del", params),
   zSetMemberDel: (params: T.KeyZSetMemberDelReq) => scorix.invoke<T.Empty>("key:z-set-member-del", params),
+  zSetMemberUpdate: (params: T.KeyZSetMemberUpdateReq) => scorix.invoke<T.Empty>("key:z-set-member-update", params),
 };
 
 export const monitor = {

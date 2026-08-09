@@ -6,7 +6,7 @@ import { ListType } from "@/types/list.type"
 import { useKeyValuePage } from "@/hooks/use-key-value-page"
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger, toast } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { Form } from "@tradalab/lyra/blocks"
 import { Spinner } from "@tradalab/lyra/ui"
 import { KeyAddValueList } from "@/components/app/key-add/key-add-value-list"
@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { useConfirm } from "@tradalab/lyra/blocks"
 import { CellText } from "@/components/app/key-detail/key-detail-shared"
+import { KeyEditDrawer } from "@/components/app/key-detail/key-edit-drawer"
 
 type KeyDetailListProps = {
   databaseId: string
@@ -35,6 +36,7 @@ export function KeyDetailList(props: KeyDetailListProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [deletingIdx, setDeletingIdx] = useState<number | null>(null)
+  const [editing, setEditing] = useState<ListType | null>(null)
   const confirm = useConfirm()
   const { items, isLoading, isFetchingNextPage, hasMore, fetchNextPage } = useKeyValuePage(
     props.databaseId,
@@ -66,7 +68,14 @@ export function KeyDetailList(props: KeyDetailListProps) {
         const isDeleting = deletingIdx === idx
 
         return (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-1">
+            <span
+              role="button"
+              onClick={() => setEditing(row.original)}
+              className="inline-flex h-5 w-5 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground"
+            >
+              <PencilIcon className="h-4 w-4" />
+            </span>
             <span
               role="button"
               aria-disabled={isDeleting}
@@ -212,6 +221,16 @@ export function KeyDetailList(props: KeyDetailListProps) {
         hasMore={hasMore}
         loadingMore={isFetchingNextPage}
         loadingMoreText={t("loading")}
+      />
+      <KeyEditDrawer
+        connectionId={props.databaseId}
+        databaseIdx={props.databaseIdx}
+        keyName={props.selectedKey}
+        item={editing ? { kind: "list", index: editing.id, value: editing.value } : null}
+        onOpenChange={o => {
+          if (!o) setEditing(null)
+        }}
+        onSaved={props.reload}
       />
     </>
   )

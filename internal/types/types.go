@@ -258,11 +258,29 @@ type KeyHashFieldDelReq struct {
 	Field         string `json:"field"`
 }
 
+type KeyHashFieldUpdateReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Key           string `json:"key"`
+	Field         string `json:"field"`
+	NewField      string `json:"new_field"`
+	Value         string `json:"value"`
+}
+
 type KeyListItemDelReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
 	Key           string `json:"key"`
 	Index         int64  `json:"index"`
+	Value         string `json:"value"`
+}
+
+type KeyListItemUpdateReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Key           string `json:"key"`
+	Index         int64  `json:"index"`
+	OldValue      string `json:"old_value"`
 	Value         string `json:"value"`
 }
 
@@ -293,6 +311,14 @@ type KeySetMemberDelReq struct {
 	Member        string `json:"member"`
 }
 
+type KeySetMemberUpdateReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Key           string `json:"key"`
+	Member        string `json:"member"`
+	NewMember     string `json:"new_member"`
+}
+
 type KeyStreamEntryDelReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
@@ -319,6 +345,15 @@ type KeyZSetMemberDelReq struct {
 	DatabaseIndex int32  `json:"database_index"`
 	Key           string `json:"key"`
 	Member        string `json:"member"`
+}
+
+type KeyZSetMemberUpdateReq struct {
+	ConnectionId  string  `json:"connection_id"`
+	DatabaseIndex int32   `json:"database_index"`
+	Key           string  `json:"key"`
+	Member        string  `json:"member"`
+	NewMember     string  `json:"new_member"`
+	Score         float64 `json:"score"`
 }
 
 type MonitorFrame struct {

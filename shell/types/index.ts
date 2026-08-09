@@ -258,11 +258,29 @@ export interface KeyHashFieldDelReq {
   field: string;
 }
 
+export interface KeyHashFieldUpdateReq {
+  connection_id: string;
+  database_index: number;
+  key: string;
+  field: string;
+  new_field: string;
+  value: string;
+}
+
 export interface KeyListItemDelReq {
   connection_id: string;
   database_index: number;
   key: string;
   index: number;
+  value: string;
+}
+
+export interface KeyListItemUpdateReq {
+  connection_id: string;
+  database_index: number;
+  key: string;
+  index: number;
+  old_value: string;
   value: string;
 }
 
@@ -293,6 +311,14 @@ export interface KeySetMemberDelReq {
   member: string;
 }
 
+export interface KeySetMemberUpdateReq {
+  connection_id: string;
+  database_index: number;
+  key: string;
+  member: string;
+  new_member: string;
+}
+
 export interface KeyStreamEntryDelReq {
   connection_id: string;
   database_index: number;
@@ -319,6 +345,15 @@ export interface KeyZSetMemberDelReq {
   database_index: number;
   key: string;
   member: string;
+}
+
+export interface KeyZSetMemberUpdateReq {
+  connection_id: string;
+  database_index: number;
+  key: string;
+  member: string;
+  new_member: string;
+  score: number;
 }
 
 export interface MonitorFrame {

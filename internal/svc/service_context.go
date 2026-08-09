@@ -12,7 +12,6 @@ import (
 	"github.com/tradalab/rdms/internal/model"
 	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
 	_ "modernc.org/sqlite"
-
 	// scorix:model:imports:end
 	"github.com/tradalab/scorix/app"
 )
