@@ -1,0 +1,60 @@
+name: redishub
+image:
+  repository: ghcr.io/tradalab/redishub
+  tag: "1.14.0" # keep in sync with scorix.yaml app.version
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+replicas: 1
+container:
+  command: [] # image default entrypoint
+  args: []
+  port: 8080
+env:
+  - name: SCORIX_MODE
+    value: "web"
+  - name: SCORIX_WEB_HOST
+    value: "0.0.0.0"
+  - name: SCORIX_WEB_PORT
+    value: "8080"
+service:
+  enabled: true
+  port: 8080
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+config:
+  enabled: false
+infisical:
+  enabled: true
+migrate:
+  enabled: false
+persistence:
+  enabled: true
+  size: 500Mi
+  storageClass: local-path
+  accessModes:
+    - ReadWriteOnce
+  mountPath: /root/.local/share/RedisHub
+ingress:
+  enabled: true
+  host: redis.tradalab.com
+  pathPrefix: ""
+  priority: 0
+  tlsSecretName: redis-tradalab-com-tls
+  redirect: true
+  requestHeaders:
+    X-Forwarded-Proto: "https"
+    Connection: "upgrade"
+    Upgrade: "websocket"
+  sticky: true
+  flushInterval: 100ms
+certificate:
+  enabled: true
+  host: redis.tradalab.com
+  secretName: redis-tradalab-com-tls
+  issuerName: letsencrypt-prod
+  issuerKind: ClusterIssuer
