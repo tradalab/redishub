@@ -108,6 +108,27 @@ type ClientKeysScanByPrefixRes struct {
 	NextCursor string   `json:"next_cursor"`
 }
 
+type ClientKeysSearchEvent struct {
+	Keys      []string `json:"keys"`
+	Scanned   uint64   `json:"scanned"`
+	Matched   uint64   `json:"matched"`
+	Cursor    string   `json:"cursor"`
+	Done      bool     `json:"done"`
+	Truncated bool     `json:"truncated"`
+}
+
+type ClientKeysSearchReq struct {
+	ConnectionId  string      `json:"connection_id"`
+	DatabaseIndex int32       `json:"database_index"`
+	Filters       []KeyFilter `json:"filters"`
+	MatchAll      bool        `json:"match_all"`
+	KeyType       string      `json:"key_type"`
+	ScanCount     int64       `json:"scan_count"`
+	Limit         int64       `json:"limit"`
+	Cursor        string      `json:"cursor"`
+	BudgetMs      int64       `json:"budget_ms"`
+}
+
 type ClientLoadAllKeysReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
@@ -249,6 +270,13 @@ type GroupUpsertReq struct {
 
 type IdReq struct {
 	Id string `json:"id"`
+}
+
+type KeyFilter struct {
+	Pattern    string `json:"pattern"`
+	Mode       string `json:"mode"`
+	Exclude    bool   `json:"exclude"`
+	IgnoreCase bool   `json:"ignore_case"`
 }
 
 type KeyHashFieldDelReq struct {
@@ -418,6 +446,28 @@ type PubsubMessageEvent struct {
 	Channel      string `json:"channel"`
 	Message      string `json:"message"`
 	Pattern      string `json:"pattern"`
+}
+
+type SearchPresetItem struct {
+	Id        string      `json:"id"`
+	Name      string      `json:"name"`
+	Filters   []KeyFilter `json:"filters"`
+	MatchAll  bool        `json:"match_all"`
+	KeyType   string      `json:"key_type"`
+	CreatedAt int64       `json:"created_at"`
+	UpdatedAt int64       `json:"updated_at"`
+}
+
+type SearchPresetListRes struct {
+	Items []SearchPresetItem `json:"items"`
+}
+
+type SearchPresetUpsertReq struct {
+	Id       string      `json:"id"`
+	Name     string      `json:"name"`
+	Filters  []KeyFilter `json:"filters"`
+	MatchAll bool        `json:"match_all"`
+	KeyType  string      `json:"key_type"`
 }
 
 type SettingGetReq struct {

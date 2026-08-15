@@ -12,6 +12,7 @@ import (
 	"github.com/tradalab/rdms/internal/logic/group"
 	"github.com/tradalab/rdms/internal/logic/key"
 	"github.com/tradalab/rdms/internal/logic/monitor"
+	"github.com/tradalab/rdms/internal/logic/preset"
 	"github.com/tradalab/rdms/internal/logic/proxy"
 	"github.com/tradalab/rdms/internal/logic/pubsub"
 	"github.com/tradalab/rdms/internal/logic/setting"
@@ -131,6 +132,9 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	app.RegisterServerStream(a, "client:keys-search", func(ctx context.Context, req *types.ClientKeysSearchReq, out app.Sink[types.ClientKeysSearchEvent]) error {
+		return client.NewKeysSearchLogic(ctx, svcCtx).KeysSearch(req, out)
+	})
 	reg(a, "client:search-keys", func(ctx context.Context, r *types.ClientSearchKeysReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return client.NewSearchKeysLogic(ctx, svcCtx).SearchKeys(a.(*types.ClientSearchKeysReq))
@@ -146,6 +150,24 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 	reg(a, "conn:test", func(ctx context.Context, r *types.ConnectionReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return conn.NewTestLogic(ctx, svcCtx).Test(a.(*types.ConnectionReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "preset:list", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return preset.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "preset:upsert", func(ctx context.Context, r *types.SearchPresetUpsertReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return preset.NewUpsertLogic(ctx, svcCtx).Upsert(a.(*types.SearchPresetUpsertReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "preset:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return preset.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
 		}
 		return h(ctx, r)
 	})

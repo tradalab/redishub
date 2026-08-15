@@ -215,6 +215,56 @@ message ClientSearchKeysReq {
   int64  count          = 4;
   string cursor         = 5;
 }
+
+message KeyFilter {
+  string pattern     = 1;
+  string mode        = 2;
+  bool   exclude     = 3;
+  bool   ignore_case = 4;
+}
+
+message ClientKeysSearchReq {
+  string   connection_id  = 1;
+  int32    database_index = 2;
+  repeated KeyFilter filters = 3;
+  bool     match_all      = 4;
+  string   key_type       = 5;
+  int64    scan_count     = 6;
+  int64    limit          = 7;
+  string   cursor         = 8;
+  int64    budget_ms      = 9;
+}
+
+message SearchPresetItem {
+  string   id         = 1;
+  string   name       = 2;
+  repeated KeyFilter filters = 3;
+  bool     match_all  = 4;
+  string   key_type   = 5;
+  int64    created_at = 6;
+  int64    updated_at = 7;
+}
+
+message SearchPresetListRes {
+  repeated SearchPresetItem items = 1;
+}
+
+message SearchPresetUpsertReq {
+  string   id        = 1;
+  string   name      = 2;
+  repeated KeyFilter filters = 3;
+  bool     match_all = 4;
+  string   key_type  = 5;
+}
+
+message ClientKeysSearchEvent {
+  repeated string keys      = 1;
+  uint64          scanned   = 2;
+  uint64          matched   = 3;
+  string          cursor    = 4;
+  bool            done      = 5;
+  bool            truncated = 6;
+}
 message ClientSearchKeysRes {
   repeated string keys = 1;
 }
@@ -519,12 +569,19 @@ service client {
   rpc KeysMetadata(ClientKeysMetadataReq) returns (ClientKeysMetadataRes);
   rpc KeysDeleteByPrefix(ClientKeysDeleteByPrefixReq) returns (stream ClientKeysDeleteProgressEvent);
   rpc KeysScanByPrefix(ClientKeysDeleteByPrefixReq) returns (ClientKeysScanByPrefixRes);
+  rpc KeysSearch(ClientKeysSearchReq) returns (stream ClientKeysSearchEvent);
   rpc SearchKeys(ClientSearchKeysReq) returns (ClientSearchKeysRes);
   rpc SetReadOnly(ClientSetReadOnlyReq) returns (Empty);
 }
 
 service conn {
   rpc Test(ConnectionReq) returns (Empty);
+}
+
+service preset {
+  rpc List(Empty) returns (SearchPresetListRes);
+  rpc Upsert(SearchPresetUpsertReq) returns (UpsertRes);
+  rpc Delete(IdReq) returns (Empty);
 }
 
 service key {

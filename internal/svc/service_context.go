@@ -21,12 +21,13 @@ type ServiceContext struct {
 	RedisManager *ClientManager
 	sqlx         *scorixsqlx.Module
 	// scorix:model:fields:start
-	ConnectionModel model.ConnectionModel
-	SshModel        model.SshModel
-	TlsModel        model.TlsModel
-	ProxyModel      model.ProxyModel
-	GroupModel      model.GroupModel
-	SettingModel    model.SettingModel
+	ConnectionModel   model.ConnectionModel
+	SshModel          model.SshModel
+	TlsModel          model.TlsModel
+	ProxyModel        model.ProxyModel
+	GroupModel        model.GroupModel
+	SearchPresetModel model.SearchPresetModel
+	SettingModel      model.SettingModel
 	// scorix:model:fields:end
 
 	emit   func(name string, data any)
@@ -46,12 +47,13 @@ func NewServiceContext(a *app.App) *ServiceContext {
 		RedisManager: NewManager(),
 		sqlx:         sqlxMod,
 		// scorix:model:assigns:start
-		ConnectionModel: model.NewConnectionModel(sqlxMod.Conn),
-		SshModel:        model.NewSshModel(sqlxMod.Conn),
-		TlsModel:        model.NewTlsModel(sqlxMod.Conn),
-		ProxyModel:      model.NewProxyModel(sqlxMod.Conn),
-		GroupModel:      model.NewGroupModel(sqlxMod.Conn),
-		SettingModel:    model.NewSettingModel(sqlxMod.Conn),
+		ConnectionModel:   model.NewConnectionModel(sqlxMod.Conn),
+		SshModel:          model.NewSshModel(sqlxMod.Conn),
+		TlsModel:          model.NewTlsModel(sqlxMod.Conn),
+		ProxyModel:        model.NewProxyModel(sqlxMod.Conn),
+		GroupModel:        model.NewGroupModel(sqlxMod.Conn),
+		SearchPresetModel: model.NewSearchPresetModel(sqlxMod.Conn),
+		SettingModel:      model.NewSettingModel(sqlxMod.Conn),
 		// scorix:model:assigns:end
 		emit:   a.Emit,
 		emitTo: a.EmitTo,

@@ -1,15 +1,17 @@
 "use client"
 
-import { Input } from "@tradalab/lyra/ui"
 import { useState, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
-import { RefreshCcwIcon, SearchIcon, Trash2Icon, Loader2Icon } from "lucide-react"
+import { RefreshCcwIcon, Trash2Icon, Loader2Icon } from "lucide-react"
 import { Virtuoso } from "react-virtuoso"
-import { useKeyDelete, useKeysList, useKeysMetadata } from "@/hooks/api/client.api"
+import { useKeyDelete, useKeysMetadata } from "@/hooks/api/client.api"
+import { useKeysSearch } from "@/hooks/api/keys-search"
+import { KeyFilterBar, emptyFilters } from "@/components/app/key-filter-bar"
 import { formatFileSize } from "@/lib/utils"
 import { useTabStore } from "@/stores/tab.store"
+import type { KeyFilter } from "@/types"
 
 type KeyMetadata = {
   key: string
@@ -20,27 +22,30 @@ type KeyMetadata = {
 
 export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { connectionId: string; databaseIdx: number }) {
   const { t } = useTranslation()
-  const keysQuery = useKeysList(connectionId, databaseIdx)
   const deleteMutation = useKeyDelete(connectionId, databaseIdx)
   const metadataMutation = useKeysMetadata()
 
-  const keys = useMemo(() => {
-    const all = (keysQuery.data?.pages ?? []).flatMap(p => p.keys ?? [])
-    return Array.from(new Set(all))
-  }, [keysQuery.data])
-
-  const isLoading = keysQuery.isLoading || keysQuery.isFetching
-
   const { addTab } = useTabStore()
-  const [filter, setFilter] = useState("")
   const [metadata, setMetadata] = useState<Record<string, KeyMetadata>>({})
   const [fetchingKeys, setFetchingKeys] = useState<Set<string>>(new Set())
   const [sortConfig, setSortConfig] = useState<{ key: keyof KeyMetadata; direction: "asc" | "desc" } | null>(null)
 
-  const filteredKeys = useMemo(() => keys.filter(k => k.toLowerCase().includes(filter.toLowerCase())), [keys, filter])
+  const [filters, setFilters] = useState<KeyFilter[]>(emptyFilters)
+  const [matchAll, setMatchAll] = useState(false)
+  const [keyType, setKeyType] = useState("")
+  const {
+    keys,
+    isLoading,
+    scanned,
+    matched,
+    error: searchError,
+    reload,
+    loadMore,
+    cancel,
+  } = useKeysSearch(connectionId, databaseIdx, { filters, matchAll, keyType })
 
   const sortedKeys = useMemo(() => {
-    const items = [...filteredKeys]
+    const items = [...keys]
     if (sortConfig) {
       items.sort((a, b) => {
         const metaA = metadata[a]
@@ -54,7 +59,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
       })
     }
     return items
-  }, [filteredKeys, metadata, sortConfig])
+  }, [keys, metadata, sortConfig])
 
   const fetchMetadata = useCallback(
     async (keysToFetch: string[]) => {
@@ -119,15 +124,9 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
     })
   }
 
-  const reload = () => {
+  const reloadKeys = () => {
     setMetadata({})
-    keysQuery.refetch()
-  }
-
-  const loadMore = () => {
-    if (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) {
-      keysQuery.fetchNextPage()
-    }
+    reload()
   }
 
   const deleteKey = (key: string) => {
@@ -155,12 +154,22 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
             {keys.length} Total
           </Badge>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative w-64">
-            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t("filter")} className="pl-9 h-9" value={filter} onChange={e => setFilter(e.target.value)} />
-          </div>
-          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={reload} disabled={isLoading}>
+        <div className="flex items-start gap-2">
+          <KeyFilterBar
+            className="w-96"
+            filters={filters}
+            onFiltersChange={setFilters}
+            matchAll={matchAll}
+            onMatchAllChange={setMatchAll}
+            keyType={keyType}
+            onKeyTypeChange={setKeyType}
+            isLoading={isLoading}
+            scanned={scanned}
+            matched={matched}
+            error={searchError}
+            onStop={cancel}
+          />
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={reloadKeys} disabled={isLoading}>
             {isLoading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <RefreshCcwIcon className="h-4 w-4" />}
           </Button>
         </div>

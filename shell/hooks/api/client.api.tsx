@@ -7,12 +7,11 @@ import type {
   ClientGetSlowQueryRes,
   ClientKeysDeleteProgressEvent,
   ClientKeysMetadataRes,
-  ClientLoadAllKeysRes,
   ClientLoadKeyDetailRes,
   ClientLoadKeyValuePageRes,
 } from "@/types"
 
-const KEYS_BASE = "redis-keys"
+export const KEYS_BASE = "redis-keys"
 const KEY_VALUE_PAGE_BASE = "redis-key-value-page"
 const GENERAL_BASE = "client-general"
 const KEY_DETAIL_BASE = "client-key-detail"
@@ -68,24 +67,6 @@ export function useKeyDetail(connectionId: string | undefined, databaseIdx: numb
     queryKey: [KEY_DETAIL_BASE, connectionId, databaseIdx, key],
     queryFn: () => client.loadKeyDetail({ connection_id: connectionId!, database_index: databaseIdx, key: key! }),
     enabled: !!connectionId && !!key,
-  })
-}
-
-export function useKeysList(connectionId: string, databaseIdx: number, opts?: { count?: number }) {
-  const count = opts?.count ?? 10000
-  return useInfiniteQuery<ClientLoadAllKeysRes>({
-    queryKey: [KEYS_BASE, connectionId, databaseIdx],
-    enabled: !!connectionId,
-    initialPageParam: "0",
-    queryFn: ({ pageParam }) =>
-      client.loadAllKeys({
-        connection_id: connectionId,
-        database_index: databaseIdx,
-        prefix: "",
-        cursor: pageParam as string,
-        count,
-      }),
-    getNextPageParam: last => (last.cursor && last.cursor !== "0" ? last.cursor : undefined),
   })
 }
 

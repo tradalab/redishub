@@ -21,12 +21,19 @@ export const client = {
   keysMetadata: (params: T.ClientKeysMetadataReq) => scorix.invoke<T.ClientKeysMetadataRes>("client:keys-metadata", params),
   keysDeleteByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.serverStream<T.ClientKeysDeleteProgressEvent>("client:keys-delete-by-prefix", params),
   keysScanByPrefix: (params: T.ClientKeysDeleteByPrefixReq) => scorix.invoke<T.ClientKeysScanByPrefixRes>("client:keys-scan-by-prefix", params),
+  keysSearch: (params: T.ClientKeysSearchReq) => scorix.serverStream<T.ClientKeysSearchEvent>("client:keys-search", params),
   searchKeys: (params: T.ClientSearchKeysReq) => scorix.invoke<T.ClientSearchKeysRes>("client:search-keys", params),
   setReadOnly: (params: T.ClientSetReadOnlyReq) => scorix.invoke<T.Empty>("client:set-read-only", params),
 };
 
 export const conn = {
   test: (params: T.ConnectionReq) => scorix.invoke<T.Empty>("conn:test", params),
+};
+
+export const preset = {
+  list: (params: T.Empty) => scorix.invoke<T.SearchPresetListRes>("preset:list", params),
+  upsert: (params: T.SearchPresetUpsertReq) => scorix.invoke<T.UpsertRes>("preset:upsert", params),
+  delete: (params: T.IdReq) => scorix.invoke<T.Empty>("preset:delete", params),
 };
 
 export const key = {

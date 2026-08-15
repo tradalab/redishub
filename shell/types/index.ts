@@ -108,6 +108,27 @@ export interface ClientKeysScanByPrefixRes {
   next_cursor: string;
 }
 
+export interface ClientKeysSearchEvent {
+  keys?: string[];
+  scanned: number;
+  matched: number;
+  cursor: string;
+  done: boolean;
+  truncated: boolean;
+}
+
+export interface ClientKeysSearchReq {
+  connection_id: string;
+  database_index: number;
+  filters?: KeyFilter[];
+  match_all: boolean;
+  key_type: string;
+  scan_count: number;
+  limit: number;
+  cursor: string;
+  budget_ms: number;
+}
+
 export interface ClientLoadAllKeysReq {
   connection_id: string;
   database_index: number;
@@ -249,6 +270,13 @@ export interface GroupUpsertReq {
 
 export interface IdReq {
   id: string;
+}
+
+export interface KeyFilter {
+  pattern: string;
+  mode: string;
+  exclude: boolean;
+  ignore_case: boolean;
 }
 
 export interface KeyHashFieldDelReq {
@@ -418,6 +446,28 @@ export interface PubsubMessageEvent {
   channel: string;
   message: string;
   pattern: string;
+}
+
+export interface SearchPresetItem {
+  id: string;
+  name: string;
+  filters?: KeyFilter[];
+  match_all: boolean;
+  key_type: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface SearchPresetListRes {
+  items?: SearchPresetItem[];
+}
+
+export interface SearchPresetUpsertReq {
+  id: string;
+  name: string;
+  filters?: KeyFilter[];
+  match_all: boolean;
+  key_type: string;
 }
 
 export interface SettingGetReq {

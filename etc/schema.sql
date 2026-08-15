@@ -83,6 +83,17 @@ CREATE TABLE IF NOT EXISTS "group" (
     deleted_at  DATETIME
 );
 
+CREATE TABLE IF NOT EXISTS search_preset (
+    id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
+    name        TEXT NOT NULL DEFAULT '',
+    filters     TEXT NOT NULL DEFAULT '[]',
+    match_all   INTEGER NOT NULL DEFAULT 0,
+    key_type    TEXT NOT NULL DEFAULT '',
+    created_at  DATETIME,
+    updated_at  DATETIME,
+    deleted_at  DATETIME
+);
+
 CREATE TABLE IF NOT EXISTS "setting" (
     id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
     key         TEXT NOT NULL DEFAULT '' UNIQUE,

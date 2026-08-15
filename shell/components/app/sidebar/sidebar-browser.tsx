@@ -1,6 +1,6 @@
 "use client"
 
-import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu, toast } from "@tradalab/lyra/ui"
+import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, toast } from "@tradalab/lyra/ui"
 import { SidebarPanel } from "@tradalab/lyra/shell"
 import {
   ArrowDownToLineIcon,
@@ -18,8 +18,8 @@ import {
   LockIcon,
   PanelsTopLeftIcon,
 } from "lucide-react"
-import { filterTree, flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
+import { flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/components/app/tree"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { Virtuoso } from "react-virtuoso"
@@ -28,7 +28,10 @@ import { BrowserAddKeyDialog } from "@/components/app/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
 import { DbInfo } from "@/types"
 import { client, connection } from "@/api"
-import { useKeyDelete, useKeysDeleteByPrefix, useKeysList } from "@/hooks/api/client.api"
+import { useKeyDelete, useKeysDeleteByPrefix } from "@/hooks/api/client.api"
+import { useKeysSearch } from "@/hooks/api/keys-search"
+import { KeyFilterBar, emptyFilters } from "@/components/app/key-filter-bar"
+import type { KeyFilter } from "@/types"
 import { useConnectionList, useSetReadOnly } from "@/hooks/api/connection.api"
 import { Badge } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
@@ -41,7 +44,9 @@ import { BrowserBulkDeleteDialog } from "@/components/app/browser-bulk-delete-di
 export function SidebarBrowser() {
   const { t } = useTranslation()
   const [dataset, setDataset] = useState<TreeItem[]>([])
-  const [keyword, setKeyword] = useState("")
+  const [filters, setFilters] = useState<KeyFilter[]>(emptyFilters)
+  const [matchAll, setMatchAll] = useState(false)
+  const [keyType, setKeyType] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [dbs, setDbs] = useState<DbInfo[]>([])
@@ -66,27 +71,22 @@ export function SidebarBrowser() {
     }
   }
 
-  const keysQuery = useKeysList(selectedDb || "", selectedDbIdx, { count: currentConnection?.key_size })
-  const keys = useMemo(() => {
-    const all = (keysQuery.data?.pages ?? []).flatMap(p => p.keys ?? [])
-    return Array.from(new Set(all))
-  }, [keysQuery.data])
-  const isLoading = keysQuery.isLoading || keysQuery.isFetching
+  const {
+    keys,
+    isLoading,
+    hasMore,
+    scanned,
+    matched,
+    error: searchError,
+    reload,
+    loadMore,
+    loadAll,
+    cancel,
+  } = useKeysSearch(selectedDb || "", selectedDbIdx, { filters, matchAll, keyType, limit: currentConnection?.key_size || undefined })
 
   const deleteMutation = useKeyDelete(selectedDb || "", selectedDbIdx)
   const deleteByPrefixMutation = useKeysDeleteByPrefix(selectedDb || "", selectedDbIdx)
 
-  const reload = () => keysQuery.refetch()
-  const loadMore = () => {
-    if (keysQuery.hasNextPage && !keysQuery.isFetchingNextPage) keysQuery.fetchNextPage()
-  }
-  const loadAll = async () => {
-    if (!keysQuery.hasNextPage) return
-    let res = await keysQuery.fetchNextPage()
-    while (res.hasNextPage) {
-      res = await keysQuery.fetchNextPage()
-    }
-  }
   const deleteKey = async (key: string) => {
     try {
       await deleteMutation.mutateAsync({ connection_id: selectedDb || "", database_index: selectedDbIdx, key })
@@ -141,7 +141,7 @@ export function SidebarBrowser() {
     const timer = setTimeout(() => {
       setDataset(sortTree(buildTree(keys)))
       setIsBuildingTree(false)
-    }, 50)
+    }, 250)
     return () => clearTimeout(timer)
   }, [keys])
 
@@ -222,15 +222,9 @@ export function SidebarBrowser() {
     }
   }
 
-  const deferredKeyword = useDeferredValue(keyword)
-
-  const filteredDataset = useMemo(() => {
-    return filterTree(dataset, deferredKeyword)
-  }, [dataset, deferredKeyword])
-
   const flattenedData = useMemo(() => {
-    return flattenTree(filteredDataset, expandedIds)
-  }, [filteredDataset, expandedIds])
+    return flattenTree(dataset, expandedIds)
+  }, [dataset, expandedIds])
 
   const onChangeDbIdx = async (idx: number) => {
     try {
@@ -394,14 +388,26 @@ export function SidebarBrowser() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button size="icon-sm" variant="outline" title={"load_more"} disabled={isLoading} onClick={loadMore}>
+          <Button size="icon-sm" variant="outline" title={"load_more"} disabled={isLoading || !hasMore} onClick={loadMore}>
             {isLoading ? <Spinner /> : <ArrowDownToLineIcon />}
           </Button>
-          <Button size="icon-sm" variant="outline" title={"load_all"} disabled={isLoading} onClick={loadAll}>
+          <Button size="icon-sm" variant="outline" title={"load_all"} disabled={isLoading || !hasMore} onClick={loadAll}>
             {isLoading ? <Spinner /> : <ListEndIcon />}
           </Button>
         </div>
-        <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e?.target?.value)} />
+        <KeyFilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          matchAll={matchAll}
+          onMatchAllChange={setMatchAll}
+          keyType={keyType}
+          onKeyTypeChange={setKeyType}
+          isLoading={isLoading}
+          scanned={scanned}
+          matched={matched}
+          error={searchError}
+          onStop={cancel}
+        />
       </SidebarHeader>
       <SidebarContent className="overflow-hidden! p-0 flex flex-col h-full">
         <SidebarGroup className="p-0 flex-1 min-h-0 flex flex-col">
