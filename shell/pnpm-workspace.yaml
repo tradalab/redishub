@@ -1,0 +1,17 @@
+allowBuilds:
+  "@parcel/watcher": false
+  "@swc/core": false
+  "@tailwindcss/oxide": false
+  core-js: false
+  esbuild: false
+  msgpackr-extract: false
+  msw: true
+  sharp: true
+  unrs-resolver: true
+# pnpm 11 holds newly published packages back for 24h (minimumReleaseAge:
+# 1440) as supply-chain protection. That protection is aimed at packages we
+# do not control, and it is kept at the default for them. Our own are excluded
+# by scope so a freshly published @tradalab/* is installable immediately —
+# waiting a day to consume a package we just built ourselves buys nothing.
+minimumReleaseAgeExclude:
+  - "@tradalab/*"
