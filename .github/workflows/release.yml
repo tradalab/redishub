@@ -20,6 +20,5 @@ jobs:
     # No app-prefix: nothing is published to the CDN.
     uses: tradalab/scorix/.github/workflows/scorix-release.yml@v0.26.0
     with:
-      wix-version: "6.0.2"
       web-image: true
     secrets: inherit
