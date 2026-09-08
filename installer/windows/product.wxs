@@ -7,7 +7,7 @@
     Name="$(var.ProductName)"
     Manufacturer="$(var.Manufacturer)"
     Version="$(var.ProductVersion)"
-    UpgradeCode="deae281f-e7ee-41cd-bc53-b3d37b5b3737"
+    UpgradeCode="$(var.UpgradeCode)"
     Scope="perMachine">
 
     <!-- USE UI -->
