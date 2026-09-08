@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// proxyModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// proxyModel - per-table CRUD only. Relations stitched in internal/logic/.
 	proxyModel interface {
 		Insert(ctx context.Context, data *Proxy) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Proxy, error)

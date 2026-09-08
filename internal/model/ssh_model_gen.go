@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// sshModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// sshModel - per-table CRUD only. Relations stitched in internal/logic/.
 	sshModel interface {
 		Insert(ctx context.Context, data *Ssh) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Ssh, error)

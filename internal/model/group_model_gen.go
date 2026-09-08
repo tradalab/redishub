@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// groupModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// groupModel - per-table CRUD only. Relations stitched in internal/logic/.
 	groupModel interface {
 		Insert(ctx context.Context, data *Group) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Group, error)

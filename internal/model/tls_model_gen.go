@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// tlsModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// tlsModel - per-table CRUD only. Relations stitched in internal/logic/.
 	tlsModel interface {
 		Insert(ctx context.Context, data *Tls) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Tls, error)

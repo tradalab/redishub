@@ -13,6 +13,19 @@
   <string>com.tradalab.redishub</string>
   <key>CFBundleVersion</key>
   <string>1.0.0</string>
+  <!-- Both version keys are rewritten from scorix.yaml at package time, but only
+       if they are already here: the patcher replaces, it never inserts. A plist
+       copied before the scaffold carried this key never gained one, so the
+       bundle shipped with no marketing version at all. -->
+  <key>CFBundleShortVersionString</key>
+  <string>1.0.0</string>
+  <!-- Names the icon inside Contents/Resources. Without it Finder shows the
+       generic application icon even with AppIcon.icns sitting right there. -->
+  <key>CFBundleIconFile</key>
+  <string>AppIcon</string>
+  <!-- Without this the webview renders at 1x and is scaled up on Retina. -->
+  <key>NSHighResolutionCapable</key>
+  <true/>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>

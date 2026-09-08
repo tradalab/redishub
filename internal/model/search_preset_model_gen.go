@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// searchPresetModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// searchPresetModel - per-table CRUD only. Relations stitched in internal/logic/.
 	searchPresetModel interface {
 		Insert(ctx context.Context, data *SearchPreset) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*SearchPreset, error)

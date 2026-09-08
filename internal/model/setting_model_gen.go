@@ -23,7 +23,7 @@ const (
 )
 
 type (
-	// settingModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// settingModel - per-table CRUD only. Relations stitched in internal/logic/.
 	settingModel interface {
 		Insert(ctx context.Context, data *Setting) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Setting, error)

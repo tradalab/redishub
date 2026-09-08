@@ -22,7 +22,7 @@ const (
 )
 
 type (
-	// connectionModel — per-table CRUD only. Relations stitched in internal/logic/.
+	// connectionModel - per-table CRUD only. Relations stitched in internal/logic/.
 	connectionModel interface {
 		Insert(ctx context.Context, data *Connection) (sql.Result, error)
 		FindOne(ctx context.Context, id string) (*Connection, error)
