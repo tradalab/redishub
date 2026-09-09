@@ -18,7 +18,7 @@ jobs:
     # updater.provider is github here, so the pipeline skips the R2 steps and the
     # GitHub Release IS the distribution channel - which is why this repo is public.
     # No app-prefix: nothing is published to the CDN.
-    uses: tradalab/scorix/.github/workflows/scorix-release.yml@v0.26.0
+    uses: tradalab/scorix/.github/workflows/scorix-release.yml@v0.27.1
     with:
       web-image: true
     secrets: inherit
