@@ -1,6 +1,7 @@
 "use client"
 
 import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
+import { isWebMode } from "@/lib/mode"
 import { useTranslation } from "react-i18next"
 import scorix from "@/lib/scorix"
 import { openExternal } from "@/lib/open-external"
@@ -110,6 +111,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (settingsLoading) return
+    if (isWebMode()) return
     if (autoupdate === "false") return
 
     const last = parseInt(lastCheck || "0")

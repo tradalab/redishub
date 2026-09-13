@@ -13,6 +13,7 @@ import (
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/scorix/app"
 	browsermod "github.com/tradalab/scorix/module/browser"
+	envmod "github.com/tradalab/scorix/module/env"
 	traymod "github.com/tradalab/scorix/module/systemtray"
 	updatermod "github.com/tradalab/scorix/module/updater"
 )
@@ -52,6 +53,8 @@ func main() {
 
 	a.Module(traymod.New(trayIcon))
 	a.Module(browsermod.New())
+	// About reads platform, arch, locale and the version scorix built with.
+	a.Module(envmod.New())
 	a.Module(updatermod.New())
 
 	sc := svc.NewServiceContext(a)

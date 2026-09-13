@@ -1,13 +1,14 @@
 "use client"
 
 import { ReactNode } from "react"
-import { SlidersHorizontal } from "lucide-react"
+import { Info, SlidersHorizontal } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@tradalab/lyra/ui"
 import { version } from "../../../package.json"
 import { openExternal } from "@/lib/open-external"
 import { useTranslation } from "react-i18next"
 import { Panel } from "@tradalab/lyra/blocks"
 import { SettingPanelGeneral } from "./setting-panel-general"
+import { SettingPanelAbout } from "./setting-panel-about"
 
 export function SettingDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
@@ -26,6 +27,12 @@ export function SettingDialog({ children }: { children: ReactNode }) {
               label: t("general"),
               icon: SlidersHorizontal,
               content: <SettingPanelGeneral />,
+            },
+            {
+              key: "about",
+              label: t("about"),
+              icon: Info,
+              content: <SettingPanelAbout />,
             },
           ]}
         />

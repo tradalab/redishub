@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
+import { isWebMode } from "@/lib/mode"
 import { useUpdater } from "@/app/_components/updater/updater.context"
 import { useTheme } from "next-themes"
 import { useState } from "react"
@@ -21,6 +22,7 @@ export function SettingPanelGeneral() {
   const [checked, setChecked] = useState(false)
   const { language, setLanguage, compactMode, setCompactMode } = useAppContext()
   const [autoupdate, setAutoupdate] = useSetting("autoupdate")
+  const web = isWebMode()
 
   const languages = [
     { value: "en", label: "🇺🇸 English" },
@@ -90,13 +92,15 @@ export function SettingPanelGeneral() {
             <Checkbox
               id="autoupdate-checkbox"
               name="autoupdate-checkbox"
-              checked={autoupdate !== "false"}
+              checked={autoupdate !== "false" && !web}
+              disabled={web}
               onCheckedChange={val => setAutoupdate(val ? "true" : "false")}
             />
             <Label htmlFor="autoupdate-checkbox" className="font-normal">
               {t("auto_check")}
             </Label>
           </Field>
+          {web ? <FieldDescription>{t("updates_web_mode")}</FieldDescription> : null}
         </Field>
         <Field>
           <FieldLabel>{t("check_update")}</FieldLabel>
@@ -105,7 +109,7 @@ export function SettingPanelGeneral() {
             size="sm"
             variant={checked && newVersion ? "default" : "outline"}
             onClick={checked && newVersion ? () => fullUpdate() : () => handleCheck()}
-            disabled={loading}
+            disabled={loading || web}
           >
             {loading ? (
               <>

@@ -1,11 +1,11 @@
 name: github.com/tradalab/rdms
-proto: proto/app.proto
+proto: idl/app.proto
 shell:
   type: nextjs
   dir: shell
   dist: .scorix/dist
 model:
-  schema: etc/schema.sql
+  schema: idl/schema.sql
   dialect: sqlite
 package:
   manufacturer: TradaLab
@@ -18,16 +18,19 @@ package:
     - { os: linux, arch: amd64, format: appimage }
   windows:
     upgrade_code: deae281f-e7ee-41cd-bc53-b3d37b5b3737
+  # SIGNING IS OFF ON PURPOSE (2026-09-11), not pending. Leaving it enabled makes
+  # every build warn about credentials that are not coming, and the download page
+  # already tells the user what to expect from SmartScreen and Gatekeeper.
   sign:
     windows:
-      enabled: true
+      enabled: false
       cert_env: REDISHUB_WIN_CERT
       password_env: REDISHUB_WIN_CERT_PW
       timestamp_url: http://timestamp.digicert.com
     macos:
-      enabled: true
+      enabled: false
       identity_env: MACOS_SIGN_IDENTITY        # "Developer ID Application: ... (TEAMID)"
-      notarize: true
+      notarize: false
       apple_id_env: APPLE_ID
       team_id_env: APPLE_TEAM_ID
       password_env: APPLE_APP_PASSWORD          # app-specific password
@@ -72,6 +75,7 @@ security:
   csp: default
   allow_right_click: true
   allowlist:
+    env: true
     shell: true # browser module OpenUrl only
 
 logger:
@@ -83,6 +87,9 @@ logger:
   max_age: 7 # days
 
 modules:
+  # The only source of platform, arch, OS locale and the built version.
+  env:
+    enabled: true
   systemtray:
     enabled: true
     title: RedisHub
@@ -96,3 +103,10 @@ modules:
     public_key_base_64: XoPvqQ8+pJPXLzD0zlpTLVo7WCTzKK47gWYsz25TL9E=
     platform_key:
     force_elevate: true
+
+# What `scorix test` and `scorix lint` do here beyond the baseline. This used
+# to live in the Makefile, where every app spelled it differently and a green
+# CI meant something else in each repo.
+check:
+  lint:
+    scripts: ["lint"]

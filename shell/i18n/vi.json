@@ -291,5 +291,14 @@
   "graph_reset_view": "Đặt lại khung nhìn",
   "graph_read_only_hint": "Chế độ chỉ đọc: server sẽ từ chối truy vấn có ghi",
   "graph_create_hint": "Cypher tạo đồ thị",
-  "graph_cypher_required": "Nhập một câu lệnh Cypher"
+  "graph_cypher_required": "Nhập một câu lệnh Cypher",
+  "about": "Giới thiệu",
+  "version": "Phiên bản",
+  "platform": "Nền tảng",
+  "system_language": "Ngôn ngữ hệ thống",
+  "run_mode": "Chế độ chạy",
+  "run_mode_app": "Ứng dụng desktop",
+  "run_mode_web": "Chế độ web",
+  "unknown": "không rõ",
+  "updates_web_mode": "Ở chế độ web, app chạy từ một container image nên cập nhật bằng cách kéo image mới. Cập nhật trong app bị tắt."
 }

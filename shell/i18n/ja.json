@@ -291,5 +291,14 @@
   "graph_reset_view": "表示をリセット",
   "graph_read_only_hint": "読み取り専用モード: 書き込むクエリはサーバーが拒否します",
   "graph_create_hint": "グラフを作成する Cypher",
-  "graph_cypher_required": "Cypher 文を入力してください"
+  "graph_cypher_required": "Cypher 文を入力してください",
+  "about": "情報",
+  "version": "バージョン",
+  "platform": "プラットフォーム",
+  "system_language": "システムの言語",
+  "run_mode": "実行モード",
+  "run_mode_app": "デスクトップアプリ",
+  "run_mode_web": "Web モード",
+  "unknown": "不明",
+  "updates_web_mode": "Web モードではコンテナイメージから動くため、更新は新しいイメージを取得して行います。アプリ内の更新は無効です。"
 }

@@ -291,5 +291,14 @@
   "graph_reset_view": "Reset view",
   "graph_read_only_hint": "Read-only mode: the server refuses a query that writes",
   "graph_create_hint": "Cypher that creates the graph",
-  "graph_cypher_required": "Enter a Cypher statement"
+  "graph_cypher_required": "Enter a Cypher statement",
+  "about": "About",
+  "version": "Version",
+  "platform": "Platform",
+  "system_language": "System language",
+  "run_mode": "Run mode",
+  "run_mode_app": "Desktop app",
+  "run_mode_web": "Web mode",
+  "unknown": "unknown",
+  "updates_web_mode": "In web mode the app runs from a container image, so it updates by pulling a new image. In-app updates are off."
 }
