@@ -6,6 +6,7 @@ shell:
   dist: .scorix/dist
 model:
   schema: idl/schema.sql
+  migrations: idl/migration
   dialect: sqlite
 package:
   manufacturer: TradaLab

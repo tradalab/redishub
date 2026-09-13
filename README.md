@@ -49,7 +49,7 @@ points at it, so the two can't drift apart:
 - **[Getting Started](https://redishub.tradalab.com/docs/development/setup)** — prerequisites,
   runtime dependencies, workspace init, the local Redis topologies and their ports, project structure.
 - **[Adding IPC Commands](https://redishub.tradalab.com/docs/development/extending)** — the
-  proto-driven `service:method` flow, from `proto/app.proto` through `make generate` to the frontend call.
+  proto-driven `service:method` flow, from `idl/app.proto` through `make generate` to the frontend call.
 - **[Commands Reference](https://redishub.tradalab.com/docs/development/commands)** — every `make` target.
 - **Building** — [Windows](https://redishub.tradalab.com/docs/development/build-windows) ·
   [macOS](https://redishub.tradalab.com/docs/development/build-macos) ·

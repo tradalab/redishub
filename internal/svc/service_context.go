@@ -8,7 +8,7 @@ import (
 	"github.com/tradalab/rdms/internal/config"
 	// scorix:model:imports:start
 	"github.com/jmoiron/sqlx"
-	"github.com/tradalab/rdms/etc"
+	"github.com/tradalab/rdms/idl/migration"
 	"github.com/tradalab/rdms/internal/model"
 	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
 	_ "modernc.org/sqlite"
@@ -38,7 +38,7 @@ type ServiceContext struct {
 func NewServiceContext(a *app.App) *ServiceContext {
 	initSecretCodec()
 	// scorix:model:init:start
-	sqlxMod := scorixsqlx.New(scorixsqlx.WithSchema(etc.SchemaSQL))
+	sqlxMod := scorixsqlx.New(scorixsqlx.WithMigrations(migration.FS, migration.Dir), scorixsqlx.WithDriver("sqlite"))
 	sqlxMod.RegisterDriver("sqlite", func(dsn string) (*sqlx.DB, error) { return sqlx.Connect("sqlite", dsn) })
 	a.Module(sqlxMod)
 	// scorix:model:init:end
