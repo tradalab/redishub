@@ -90,12 +90,18 @@ describe("CommandEngine", () => {
   it("runs middleware in order and short-circuits without exec", async () => {
     const engine = new CommandEngine()
     const order: string[] = []
-    engine.use(async (_c, next) => { order.push("a"); return next() })
-    engine.use(async (c) => {
+    engine.use(async (_c, next) => {
+      order.push("a")
+      return next()
+    })
+    engine.use(async c => {
       order.push("b")
       return { id: c.id, status: "error", stderr: "blocked", executionTimeMs: 0 }
     })
-    engine.use(async (_c, next) => { order.push("c"); return next() })
+    engine.use(async (_c, next) => {
+      order.push("c")
+      return next()
+    })
 
     const res = await engine.execute(ctx("FLUSHALL", "req-mw"))
     expect(order).toEqual(["a", "b"])

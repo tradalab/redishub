@@ -37,7 +37,7 @@ export const confirmDangerousMiddleware = async (ctx: CommandContext, next: Midd
         id: ctx.id,
         status: "error",
         stderr: `\x1b[33m⚠ Dangerous command detected\x1b[0m\r\nPlease re-type the command to confirm: \x1b[31m${normalized}\x1b[0m`,
-        executionTimeMs: 0
+        executionTimeMs: 0,
       }
     }
 
@@ -47,7 +47,7 @@ export const confirmDangerousMiddleware = async (ctx: CommandContext, next: Midd
         id: ctx.id,
         status: "error",
         stderr: `\x1b[31mCommand mismatch.\x1b[0m Please re-type the same command to confirm.`,
-        executionTimeMs: 0
+        executionTimeMs: 0,
       }
     }
 

@@ -17,11 +17,7 @@ export function usePubSubPublish() {
   return useMutation({ mutationFn: pubsub.publish })
 }
 
-export function usePubSubStream(
-  connectionId: string,
-  databaseIdx: number,
-  onMessage: (payload: T.PubsubMessageEvent) => void,
-) {
+export function usePubSubStream(connectionId: string, databaseIdx: number, onMessage: (payload: T.PubsubMessageEvent) => void) {
   const onMessageRef = useRef(onMessage)
   onMessageRef.current = onMessage
 

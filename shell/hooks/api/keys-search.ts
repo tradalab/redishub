@@ -8,7 +8,7 @@ import type { KeyFilter } from "@/types"
 
 export type KeysSearchState = {
   keys: string[]
-  /** Keys examined server-side — the denominator that makes a slow filter legible. */
+  /** Keys examined server-side - the denominator that makes a slow filter legible. */
   scanned: number
   /** Keys kept so far. Tracks keys.length except while a batch is in flight. */
   matched: number
@@ -28,7 +28,7 @@ type Options = {
   filters?: KeyFilter[]
   matchAll?: boolean
   keyType?: string
-  /** Matches per run — one press of "load more". */
+  /** Matches per run - one press of "load more". */
   limit?: number
 }
 

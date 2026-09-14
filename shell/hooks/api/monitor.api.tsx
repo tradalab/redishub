@@ -14,11 +14,7 @@ export function useMonitorStatus(connectionId: string | undefined, databaseIdx: 
   })
 }
 
-export function useMonitorSession(
-  connectionId: string,
-  databaseIdx: number,
-  onMessage: (line: string) => void,
-) {
+export function useMonitorSession(connectionId: string, databaseIdx: number, onMessage: (line: string) => void) {
   const [active, setActive] = useState(false)
   const [loading, setLoading] = useState(false)
   const streamRef = useRef<ServerStream<MonitorFrame> | null>(null)
@@ -55,7 +51,7 @@ export function useMonitorSession(
       streamRef.current?.cancel()
       streamRef.current = null
     },
-    [],
+    []
   )
 
   return { active, loading, start, stop }

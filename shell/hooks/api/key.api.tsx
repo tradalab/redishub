@@ -5,12 +5,7 @@ import { key as keyApi } from "@/api"
 
 const KEY_VALUE_PAGE_BASE = "redis-key-value-page"
 
-function invalidatePage(
-  qc: ReturnType<typeof useQueryClient>,
-  connectionId: string,
-  databaseIdx: number,
-  key: string
-) {
+function invalidatePage(qc: ReturnType<typeof useQueryClient>, connectionId: string, databaseIdx: number, key: string) {
   qc.invalidateQueries({ queryKey: [KEY_VALUE_PAGE_BASE, connectionId, databaseIdx, key] })
 }
 

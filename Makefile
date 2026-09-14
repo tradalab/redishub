@@ -96,7 +96,7 @@ lint-go: _ensure-embed
 ## copied by the shell's own pnpm build.)
 _ensure-embed:
 	@if [ ! -d "$(SCORIX_DIST)" ]; then \
-		echo "==> .scorix/dist missing — building frontend first"; \
+		echo "==> .scorix/dist missing - building frontend first"; \
 		cd $(SHELL_DIR) && pnpm build; \
 		mkdir -p ../$(SCORIX_DIST); \
 		cp -R dist/. ../$(SCORIX_DIST)/; \

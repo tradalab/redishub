@@ -22,8 +22,8 @@ export const useCommandStore = create<CommandStoreState>()(
   persist(
     (set, get) => ({
       history: [],
-      addHistory: (item) => {
-        set((state) => {
+      addHistory: item => {
+        set(state => {
           const newItem: CommandHistoryItem = {
             ...item,
             id: crypto.randomUUID(),
@@ -33,16 +33,16 @@ export const useCommandStore = create<CommandStoreState>()(
           return { history: newHistory }
         })
       },
-      clearHistory: (connectionId) => {
-        set((state) => ({
-          history: connectionId ? state.history.filter((h) => h.connectionId !== connectionId) : [],
+      clearHistory: connectionId => {
+        set(state => ({
+          history: connectionId ? state.history.filter(h => h.connectionId !== connectionId) : [],
         }))
       },
       getHistoryForConnection: (connectionId, databaseIdx) => {
         const { history } = get()
-        let filtered = history.filter((h) => h.connectionId === connectionId)
+        let filtered = history.filter(h => h.connectionId === connectionId)
         if (databaseIdx !== undefined) {
-          filtered = filtered.filter((h) => h.databaseIdx === databaseIdx)
+          filtered = filtered.filter(h => h.databaseIdx === databaseIdx)
         }
         return filtered
       },

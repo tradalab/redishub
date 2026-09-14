@@ -51,11 +51,11 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
         newKeys = [...newKeys, ...(result.keys || [])]
         totalCollected += (result.keys || []).length
         currentCursor = result.nextCursor
-        
+
         if (totalCollected >= 1000 || currentCursor === "0") {
           break
         }
-        
+
         if (newKeys.length > 0) {
           setKeys(prev => [...prev, ...newKeys])
           newKeys = []
@@ -125,7 +125,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[550px]" onPointerDownOutside={e => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-red-600">
             <Trash2Icon className="h-5 w-5" />
@@ -138,21 +138,14 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
 
           <div className="relative mb-3">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("search_preview_placeholder")}
-              className="pl-9 h-9 text-xs"
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-            />
+            <Input placeholder={t("search_preview_placeholder")} className="pl-9 h-9 text-xs" value={filter} onChange={e => setFilter(e.target.value)} />
           </div>
 
           <div className="border rounded-md bg-muted/30 overflow-hidden flex flex-col">
             <div className="px-3 py-2 border-b bg-muted/50 text-xs font-medium flex justify-between items-center h-10 shrink-0">
               <div className="flex items-center gap-2">
                 <span>{t("preview_list")}</span>
-                <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-muted-foreground">
-                  {t("keys_loaded", { count: keys.length })}
-                </span>
+                <span className="bg-muted px-1.5 py-0.5 rounded text-[10px] text-muted-foreground">{t("keys_loaded", { count: keys.length })}</span>
               </div>
               <div className="flex items-center gap-2 h-7">
                 {isScanning ? (
@@ -163,11 +156,21 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
                 ) : (
                   scanCursor !== "0" && (
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" className="h-6 text-[10px] px-1.5 font-normal hover:bg-primary/10 hover:text-primary" onClick={() => loadNextBatch(scanCursor)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-[10px] px-1.5 font-normal hover:bg-primary/10 hover:text-primary"
+                        onClick={() => loadNextBatch(scanCursor)}
+                      >
                         <ChevronDownIcon className="h-3 w-3 mr-1" />
                         {t("load_more")}
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-6 text-[10px] px-1.5 font-normal hover:bg-primary/10 hover:text-primary" onClick={handleLoadAll}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 text-[10px] px-1.5 font-normal hover:bg-primary/10 hover:text-primary"
+                        onClick={handleLoadAll}
+                      >
                         <ListIcon className="h-3 w-3 mr-1" />
                         {t("load_all")}
                       </Button>
@@ -182,13 +185,14 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
                   <Loader2Icon className="h-6 w-6 animate-spin text-muted-foreground opacity-50" />
                 </div>
               ) : filteredKeys.length === 0 ? (
-                <div className="p-10 text-center text-xs text-muted-foreground">
-                  {keys.length === 0 ? t("no_keys_found") : t("no_matches_in_preview")}
-                </div>
+                <div className="p-10 text-center text-xs text-muted-foreground">{keys.length === 0 ? t("no_keys_found") : t("no_matches_in_preview")}</div>
               ) : (
                 <div className="p-2 space-y-0.5">
                   {filteredKeys.map(key => (
-                    <div key={key} className="px-2 py-1 text-[11px] font-mono truncate hover:bg-muted/80 rounded transition-colors border border-transparent hover:border-border/50">
+                    <div
+                      key={key}
+                      className="px-2 py-1 text-[11px] font-mono truncate hover:bg-muted/80 rounded transition-colors border border-transparent hover:border-border/50"
+                    >
                       {key}
                     </div>
                   ))}
@@ -202,7 +206,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
           <Button variant="outline" className="sm:mr-auto" onClick={() => onOpenChange(false)} disabled={isDeleting}>
             {t("cancel")}
           </Button>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="destructive"
@@ -213,12 +217,8 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
               {isDeleting && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
               {t("delete_preview_count", { count: keys.length })}
             </Button>
-            
-            <Button
-              variant="destructive"
-              onClick={handleDeleteAll}
-              disabled={isDeleting || (isScanning && keys.length === 0)}
-            >
+
+            <Button variant="destructive" onClick={handleDeleteAll} disabled={isDeleting || (isScanning && keys.length === 0)}>
               {isDeleting && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
               <AlertTriangleIcon className="h-4 w-4 mr-2" />
               {t("delete_everything")}

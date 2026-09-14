@@ -215,7 +215,7 @@ func commonPrefix(a, b string) string {
 
 // globMatch implements Redis' own glob (the stringmatchlen in util.c): `*`, `?`,
 // `[...]` with `[^...]` negation and `a-z` ranges, and `\` escaping. Go's
-// path.Match is NOT a substitute — there `*` refuses to cross a `/`, which would
+// path.Match is NOT a substitute - there `*` refuses to cross a `/`, which would
 // silently drop every key with a slash in it.
 func globMatch(pattern, s string) bool {
 	p, k := 0, 0
@@ -257,7 +257,7 @@ func globMatch(pattern, s string) bool {
 			for {
 				if p == len(pattern) {
 					// Unterminated class. Redis treats it as a literal run rather
-					// than an error, and so do we — the user is mid-typing.
+					// than an error, and so do we - the user is mid-typing.
 					p--
 					break
 				}

@@ -25,7 +25,13 @@ const eslintConfig = defineConfig([
       "react-hooks/immutability": "off",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**", "dist/**", ".scorix/**"]),
+  // public/ is served verbatim; monaco alone puts a 5.5MB single-line tsWorker.js
+  // there, and building an AST for that runs the linter out of memory rather than
+  // failing - the run just dies with no output.
+  //
+  // types/index.ts and api/index.ts carry "DO NOT EDIT": scorix regenerates them,
+  // so a lint fix there survives exactly until the next `make generate`.
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**", "dist/**", ".scorix/**", "public/**", "types/index.ts", "api/index.ts"]),
 ])
 
 export default eslintConfig
