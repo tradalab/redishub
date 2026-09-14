@@ -1,17 +1,89 @@
 import type * as Monaco from "monaco-editor"
 
-const KEYWORDS =
-  "MATCH OPTIONAL WHERE RETURN WITH CREATE MERGE DELETE DETACH SET REMOVE ORDER BY ASC DESC SKIP LIMIT UNWIND AS DISTINCT ON CALL YIELD UNION ALL AND OR XOR NOT IN STARTS ENDS CONTAINS IS NULL TRUE FALSE CASE WHEN THEN ELSE END FOREACH INDEX CONSTRAINT EXPLAIN PROFILE".split(
-    " "
-  )
+const KEYWORDS = [
+  "MATCH",
+  "OPTIONAL",
+  "WHERE",
+  "RETURN",
+  "WITH",
+  "CREATE",
+  "MERGE",
+  "DELETE",
+  "DETACH",
+  "SET",
+  "REMOVE",
+  "ORDER",
+  "BY",
+  "ASC",
+  "DESC",
+  "SKIP",
+  "LIMIT",
+  "UNWIND",
+  "AS",
+  "DISTINCT",
+  "ON",
+  "CALL",
+  "YIELD",
+  "UNION",
+  "ALL",
+  "AND",
+  "OR",
+  "XOR",
+  "NOT",
+  "IN",
+  "STARTS",
+  "ENDS",
+  "CONTAINS",
+  "IS",
+  "NULL",
+  "TRUE",
+  "FALSE",
+  "CASE",
+  "WHEN",
+  "THEN",
+  "ELSE",
+  "END",
+  "FOREACH",
+  "INDEX",
+  "CONSTRAINT",
+  "EXPLAIN",
+  "PROFILE",
+]
 
-const FUNCTIONS =
-  "count collect sum avg min max size labels type id keys properties toInteger toFloat toString toUpper toLower substring replace split trim coalesce range head last tail exists timestamp".split(
-    " "
-  )
+const FUNCTIONS = [
+  "count",
+  "collect",
+  "sum",
+  "avg",
+  "min",
+  "max",
+  "size",
+  "labels",
+  "type",
+  "id",
+  "keys",
+  "properties",
+  "toInteger",
+  "toFloat",
+  "toString",
+  "toUpper",
+  "toLower",
+  "substring",
+  "replace",
+  "split",
+  "trim",
+  "coalesce",
+  "range",
+  "head",
+  "last",
+  "tail",
+  "exists",
+  "timestamp",
+]
 
-// Registered once, but the graph it completes for changes with every key opened,
-// so it reads through this holder instead of closing over one snapshot.
+// The completion provider is registered once, but the graph it completes for
+// changes with every key the user opens - so it reads the schema through this
+// holder instead of closing over one snapshot of it.
 let schema: { labels: string[]; relationships: string[]; properties: string[] } = {
   labels: [],
   relationships: [],

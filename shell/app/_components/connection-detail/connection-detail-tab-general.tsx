@@ -91,10 +91,11 @@ export function ConnectionDetailTabGeneral({ connectionId, databaseIdx }: { conn
     }
   }, [query.error, t])
 
+  const rawInfo = query.data?.info
   const info = useMemo(() => {
-    if (!query.data?.info) return undefined
-    return parseRedisInfo(query.data.info) as Record<string, Record<string, any>>
-  }, [query.data?.info])
+    if (!rawInfo) return undefined
+    return parseRedisInfo(rawInfo) as Record<string, Record<string, any>>
+  }, [rawInfo])
 
   const loading = query.isLoading || query.isFetching
 

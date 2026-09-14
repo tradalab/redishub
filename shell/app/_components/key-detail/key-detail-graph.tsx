@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { NetworkIcon, PlayIcon, TableIcon } from "lucide-react"
 import { Badge, Button, Kbd, Spinner, ToggleGroup, ToggleGroupItem } from "@tradalab/lyra/ui"
@@ -41,30 +41,44 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
     [mutate]
   )
 
-  // Every dep is load-bearing: this component keeps its place in the tree when
-  // the database changes, and reloadToken is the refresh button's only route in.
+  // One look at the graph the moment the key opens, the way the analysis tab
+  // runs its cheapest profile without being asked.
   useEffect(() => {
     execute(DEFAULT_QUERY)
     setQuery(DEFAULT_QUERY)
-  }, [props.selectedKey, props.databaseId, props.databaseIdx, props.reloadToken, execute])
+  }, [props.selectedKey, execute])
+
+  // Re-runs what is on screen rather than the default: a typed query is the
+  // user's work, and reload means refresh, not discard. Skips the first pass,
+  // which the effect above already covers.
+  const mounted = useRef(false)
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
+    execute(query)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.reloadToken])
 
   useEffect(() => {
     setCypherSchema(schema.data ?? {})
   }, [schema.data])
 
   const result = run.data
-  const nodes = useMemo(() => result?.nodes ?? [], [result])
-  const edges = useMemo(() => result?.edges ?? [], [result])
+  const columns = result?.columns ?? []
+  const nodes = result?.nodes ?? []
+  const edges = result?.edges ?? []
 
   const tableColumns: ColumnDef<Row>[] = useMemo(
     () =>
-      (result?.columns ?? []).map((name, i) => ({
+      columns.map((name, i) => ({
         id: `c${i}`,
         accessorKey: `c${i}`,
         header: name,
         cell: ({ row }) => <CellText className="line-clamp-3">{row.original[`c${i}`]}</CellText>,
       })),
-    [result]
+    [columns]
   )
 
   const tableRows: Row[] = useMemo(
@@ -117,7 +131,7 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
         </div>
       </div>
 
-      {!!(schema.data?.labels?.length || schema.data?.relationships?.length) && (
+      {(schema.data?.labels?.length || schema.data?.relationships?.length) && (
         <div className="flex flex-wrap items-center gap-1">
           {(schema.data?.labels ?? []).map(l => (
             <Badge key={`l-${l}`} variant="secondary" className="cursor-pointer font-normal" onClick={() => setQuery(`MATCH (n:${l})\nRETURN n\nLIMIT 25`)}>
