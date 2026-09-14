@@ -11,7 +11,7 @@ require (
 	github.com/pressly/goose/v3 v3.27.1
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/samber/lo v1.53.0
-	github.com/tradalab/scorix v0.27.1
+	github.com/tradalab/scorix v0.28.0
 	golang.org/x/crypto v0.50.0
 	golang.org/x/net v0.53.0
 	modernc.org/sqlite v1.52.0

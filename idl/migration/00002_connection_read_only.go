@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/pressly/goose/v3"
+	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
 )
 
 // read_only shipped after the app did. It used to reach existing databases
@@ -16,7 +17,7 @@ func init() {
 }
 
 func upConnectionReadOnly(ctx context.Context, tx *sql.Tx) error {
-	return addColumn(ctx, tx, "connection", "read_only", "INTEGER NOT NULL DEFAULT 0")
+	return scorixsqlx.AddColumn(ctx, tx, "connection", "read_only", "INTEGER NOT NULL DEFAULT 0")
 }
 
 // No down: it would lose which connections the user marked read-only.
