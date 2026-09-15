@@ -292,6 +292,8 @@
   "graph_read_only_hint": "読み取り専用モード: 書き込むクエリはサーバーが拒否します",
   "graph_create_hint": "グラフを作成する Cypher",
   "graph_cypher_required": "Cypher 文を入力してください",
+  "graph_module_missing": "このサーバーにはグラフモジュールがありません。RedisGraph は保守が終了しています。保守が続いているフォークは FalkorDB で、同じコマンドを解します。",
+  "graph_ro_unsupported": "このサーバーにはグラフモジュールがありますが、GRAPH.RO_QUERY はありません。グラフを閲覧するには、この接続の読み取り専用を解除してください。",
   "about": "情報",
   "version": "バージョン",
   "platform": "プラットフォーム",

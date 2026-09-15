@@ -20,6 +20,7 @@ import { useKeyCreate } from "@/hooks/api/client.api"
 import { useTranslation } from "react-i18next"
 import { KeyAddValueStream } from "@/app/_components/key-add/key-add-value-stream"
 import { registerCypher } from "@/lib/cypher"
+import { isScorixError } from "@/lib/scorix"
 
 // Unlike every other type there is no value to type, only a statement to run,
 // so the editor opens on one that builds something.
@@ -97,7 +98,8 @@ export function BrowserAddKeyDialog({ children }: { children: ReactNode }) {
       setOpen(false)
       form.reset()
     } catch (e: any) {
-      const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
+      const missing = isScorixError(e) && e.code === "graph_module_missing"
+      const msg = missing ? t("graph_module_missing") : e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.add({ title: msg, type: "error" })
     }
   })

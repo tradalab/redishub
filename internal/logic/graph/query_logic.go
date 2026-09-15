@@ -35,9 +35,10 @@ func (l *QueryLogic) Query(params *types.GraphQueryReq) (*types.GraphQueryRes, e
 		return nil, errors.New("query is empty")
 	}
 
-	reply, err := cli.Rdb.Do(l.ctx, readCmd(cli), params.Graph, query).Result()
+	cmd := readCmd(cli)
+	reply, err := cli.Rdb.Do(l.ctx, cmd, params.Graph, query).Result()
 	if err != nil {
-		return nil, err
+		return nil, cli.ClassifyGraphErr(l.ctx, err, cmd)
 	}
 
 	res, err := graphreply.Parse(reply)

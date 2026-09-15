@@ -54,9 +54,10 @@ func (l *SchemaLogic) Schema(params *types.GraphSchemaReq) (*types.GraphSchemaRe
 // Schema reads never mutate, but the entry point still follows the connection:
 // hardcoding the RO twin would break every server too old to have the command.
 func (l *SchemaLogic) query(cli *svc.Client, graph, cypher string) (*graphreply.Result, error) {
-	reply, err := cli.Rdb.Do(l.ctx, readCmd(cli), graph, cypher).Result()
+	cmd := readCmd(cli)
+	reply, err := cli.Rdb.Do(l.ctx, cmd, graph, cypher).Result()
 	if err != nil {
-		return nil, err
+		return nil, cli.ClassifyGraphErr(l.ctx, err, cmd)
 	}
 	return graphreply.Parse(reply)
 }

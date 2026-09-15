@@ -292,6 +292,8 @@
   "graph_read_only_hint": "Read-only mode: the server refuses a query that writes",
   "graph_create_hint": "Cypher that creates the graph",
   "graph_cypher_required": "Enter a Cypher statement",
+  "graph_module_missing": "This server has no graph module. RedisGraph is no longer maintained; FalkorDB is the maintained fork and speaks the same commands.",
+  "graph_ro_unsupported": "This server has the graph module but not GRAPH.RO_QUERY. Turn read-only off for this connection to browse the graph.",
   "about": "About",
   "version": "Version",
   "platform": "Platform",

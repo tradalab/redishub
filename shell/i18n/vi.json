@@ -292,6 +292,8 @@
   "graph_read_only_hint": "Chế độ chỉ đọc: server sẽ từ chối truy vấn có ghi",
   "graph_create_hint": "Cypher tạo đồ thị",
   "graph_cypher_required": "Nhập một câu lệnh Cypher",
+  "graph_module_missing": "Server này không có module đồ thị. RedisGraph không còn được bảo trì; FalkorDB là bản fork còn được bảo trì và hiểu cùng bộ lệnh.",
+  "graph_ro_unsupported": "Server này có module đồ thị nhưng không có GRAPH.RO_QUERY. Hãy tắt chế độ chỉ đọc cho kết nối này để xem đồ thị.",
   "about": "Giới thiệu",
   "version": "Phiên bản",
   "platform": "Nền tảng",

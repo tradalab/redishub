@@ -11,6 +11,7 @@ import { CellText } from "@/app/_components/key-detail/key-detail-shared"
 import { GraphCanvas } from "@/app/_components/key-detail/graph-canvas"
 import { useGraphQuery, useGraphSchema } from "@/hooks/api/graph.api"
 import { registerCypher, setCypherSchema } from "@/lib/cypher"
+import { isScorixError } from "@/lib/scorix"
 
 const DEFAULT_QUERY = "MATCH (n)-[r]->(m)\nRETURN n, r, m\nLIMIT 25"
 
@@ -50,16 +51,19 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
 
   // Re-runs what is on screen rather than the default: a typed query is the
   // user's work, and reload means refresh, not discard. Skips the first pass,
-  // which the effect above already covers.
+  // which the effect above already covers. Flipping read-only switches the
+  // command the server gets, so a refusal shown for the old mode is stale.
+  const { refetch: refetchSchema } = schema
   const mounted = useRef(false)
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true
       return
     }
+    refetchSchema()
     execute(query)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.reloadToken])
+  }, [props.reloadToken, props.readOnly])
 
   useEffect(() => {
     setCypherSchema(schema.data ?? {})
@@ -93,7 +97,8 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
     [result]
   )
 
-  const error = run.error?.message
+  const blocked = graphBlock(schema.error) ?? graphBlock(run.error)
+  const error = blocked ? undefined : run.error?.message
   const stats = result?.stats ?? []
 
   return (
@@ -112,11 +117,14 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
         )}
 
         <div className="text-muted-foreground ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          {/* A count the server never gave is not 0, which would read as an empty graph. */}
           <span>
-            {t("graph_nodes")} <span className="text-foreground font-medium tabular-nums">{(schema.data?.nodes ?? 0).toLocaleString()}</span>
+            {t("graph_nodes")}{" "}
+            <span className="text-foreground font-medium tabular-nums">{schema.error ? "—" : (schema.data?.nodes ?? 0).toLocaleString()}</span>
           </span>
           <span>
-            {t("graph_edges")} <span className="text-foreground font-medium tabular-nums">{(schema.data?.edges ?? 0).toLocaleString()}</span>
+            {t("graph_edges")}{" "}
+            <span className="text-foreground font-medium tabular-nums">{schema.error ? "—" : (schema.data?.edges ?? 0).toLocaleString()}</span>
           </span>
           <ToggleGroup type="single" size="sm" value={view} onValueChange={v => v && setView(v as "graph" | "table")}>
             <ToggleGroupItem value="graph" className="h-7 px-2 text-xs" aria-label={t("graph_view_graph")}>
@@ -164,10 +172,11 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
         }}
       />
 
+      {blocked && <p className="text-muted-foreground bg-muted/40 rounded-md px-3 py-2 text-xs">{t(blocked)}</p>}
       {error && <p className="text-destructive bg-destructive/10 rounded-md px-3 py-2 font-mono text-xs break-all">{error}</p>}
 
       <div className="min-h-0 flex-1">
-        {view === "graph" ? (
+        {blocked ? null : view === "graph" ? (
           <GraphCanvas nodes={nodes} edges={edges} />
         ) : (
           <DataTable
@@ -184,4 +193,11 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
       {stats.length > 0 && <p className="text-muted-foreground shrink-0 truncate text-xs">{stats.join(" · ")}</p>}
     </div>
   )
+}
+
+const BLOCKED = ["graph_module_missing", "graph_ro_unsupported"] as const
+
+function graphBlock(e: unknown): (typeof BLOCKED)[number] | undefined {
+  if (!isScorixError(e)) return undefined
+  return BLOCKED.find(c => c === e.code)
 }
