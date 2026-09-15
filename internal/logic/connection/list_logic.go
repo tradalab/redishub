@@ -55,6 +55,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.ConnectionListRes, error) 
 			TlsEnable:        c.TlsEnable > 0,
 			TlsId:            c.TlsID,
 			ReadOnly:         c.ReadOnly > 0,
+			Color:            c.Color,
 		})
 	}
 

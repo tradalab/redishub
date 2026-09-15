@@ -23,7 +23,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Username:         "redis_user",
 			Password:         "redis_pass",
 		}
-		opts, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 1)
+		opts, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 1)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -61,7 +61,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Mode:  "cluster",
 			Addrs: "127.0.0.1:7000,127.0.0.1:7001",
 		}
-		opts, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0)
+		opts, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0)
 		if err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
@@ -78,7 +78,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 
 	t.Run("DialerAlwaysSet", func(t *testing.T) {
 		cfg := &model.Connection{Mode: "standalone", Network: "tcp", Host: "127.0.0.1", Port: 6379}
-		opts, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0)
+		opts, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -97,7 +97,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			{"tls", &model.Connection{Network: "tcp", TlsEnable: 1}},
 		}
 		for _, tc := range cases {
-			if _, err := m.buildOptions(context.TODO(), tc.cfg, nil, nil, nil, 0); err == nil {
+			if _, _, err := m.buildOptions(context.TODO(), tc.cfg, nil, nil, nil, 0); err == nil {
 				t.Errorf("%s enabled with nil config must error", tc.name)
 			}
 		}
@@ -106,7 +106,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 	t.Run("SSHTunnelOptions", func(t *testing.T) {
 		cfg := &model.Connection{Network: "tcp", Host: "10.0.0.5", Port: 6379, SshEnable: 1}
 		ssh := &model.Ssh{Host: "bastion", Port: 22, Username: "u", Kind: "password", Password: "p"}
-		opts, err := m.buildOptions(context.TODO(), cfg, ssh, nil, nil, 0)
+		opts, _, err := m.buildOptions(context.TODO(), cfg, ssh, nil, nil, 0)
 		if err != nil {
 			t.Skipf("ssh build returned %v (no bastion in unit env) — option-shape check skipped", err)
 		}
@@ -121,7 +121,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 	t.Run("TLSConfigBuilt", func(t *testing.T) {
 		cfg := &model.Connection{Network: "tcp", Host: "127.0.0.1", Port: 6379, TlsEnable: 1}
 		tls := &model.Tls{Verify: 0}
-		opts, err := m.buildOptions(context.TODO(), cfg, nil, nil, tls, 0)
+		opts, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, tls, 0)
 		if err != nil {
 			t.Fatalf("tls build: %v", err)
 		}
@@ -138,7 +138,7 @@ func TestClientManager_BuildOptions(t *testing.T) {
 			Mode: "standalone", Network: "tcp", Host: "127.0.0.1", Port: 6379,
 			AddrMapping: "10.0.0.1:6379=1.2.3.4:6379\nbad-line-no-eq",
 		}
-		if _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0); err != nil {
+		if _, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0); err != nil {
 			t.Fatalf("addr mapping must parse leniently, got %v", err)
 		}
 	})

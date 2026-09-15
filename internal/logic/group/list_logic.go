@@ -33,6 +33,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.GroupListRes, error) {
 			Name:      g.Name,
 			CreatedAt: g.CreatedAt.Unix(),
 			UpdatedAt: g.UpdatedAt.Unix(),
+			Color:     g.Color,
 		})
 	}
 

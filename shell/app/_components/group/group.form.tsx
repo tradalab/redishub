@@ -9,6 +9,7 @@ import { useUpsertGroup } from "@/hooks/api/group.api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Input, toast } from "@tradalab/lyra/ui"
+import { ColorSwatches } from "@/app/_components/connection/color-swatches"
 
 export interface PendingState {
   save: boolean
@@ -28,6 +29,7 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
 
   const groupSchema = z.object({
     name: z.string().min(1, { message: "Name must contain at least 1 character(s)" }).max(255, { message: "Name must contain at most 255 character(s)" }),
+    color: z.string().optional(),
   })
 
   type GroupFormValues = z.infer<typeof groupSchema>
@@ -75,7 +77,7 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
 
   return (
     <Form {...form}>
-      <form onSubmit={submit} className="flex flex-col flex-1 min-h-0 p-2">
+      <form onSubmit={submit} className="flex flex-col flex-1 min-h-0 gap-4 p-2">
         <FormField
           control={form.control}
           name="name"
@@ -90,6 +92,18 @@ export const GroupForm = forwardRef<GroupFormRef, Props>(({ group, onPendingChan
               </FormItem>
             )
           }}
+        />
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("color")}</FormLabel>
+              <FormControl>
+                <ColorSwatches value={field.value} onChange={field.onChange} emptyLabel={t("none")} />
+              </FormControl>
+            </FormItem>
+          )}
         />
       </form>
     </Form>

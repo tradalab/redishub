@@ -10,6 +10,7 @@ import { Loading } from "@/app/_components/loading"
 import { ThemeProvider } from "next-themes"
 import { ConfirmProvider } from "@tradalab/lyra/blocks"
 import { ConnectionStatus } from "@/app/_components/connection-status"
+import { ConnectionStateSync } from "@/app/_components/connection/connection-state-sync"
 import { TooltipProvider } from "@tradalab/lyra/ui"
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                     <Toaster />
                     <Loading />
                     <ConnectionStatus />
+                    <ConnectionStateSync />
                   </SidebarInset>
                 </SidebarProvider>
               </TooltipProvider>

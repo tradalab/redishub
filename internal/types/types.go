@@ -78,8 +78,7 @@ type ClientConnectReq struct {
 }
 
 type ClientDisconnectReq struct {
-	ConnectionId  string `json:"connection_id"`
-	DatabaseIndex int32  `json:"database_index"`
+	ConnectionId string `json:"connection_id"`
 }
 
 type ClientGeneralReq struct {
@@ -245,6 +244,10 @@ type ClientLoadKeyValuePageRes struct {
 	HasMore    bool               `json:"has_more"`
 }
 
+type ClientProbeReq struct {
+	ConnectionId string `json:"connection_id"`
+}
+
 type ClientSearchKeysReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
@@ -261,6 +264,18 @@ type ClientSetReadOnlyReq struct {
 	ConnectionId  string `json:"connection_id"`
 	DatabaseIndex int32  `json:"database_index"`
 	ReadOnly      bool   `json:"read_only"`
+}
+
+type ClientStateEvent struct {
+	ConnectionId string `json:"connection_id"`
+	State        string `json:"state"`
+	Error        string `json:"error"`
+	LatencyMs    int64  `json:"latency_ms"`
+	Since        int64  `json:"since"`
+}
+
+type ClientStatesRes struct {
+	Items []ClientStateEvent `json:"items"`
 }
 
 type ConnectionListRes struct {
@@ -297,6 +312,7 @@ type ConnectionReq struct {
 	GroupId          string   `json:"group_id"`
 	LastDb           int32    `json:"last_db"`
 	ReadOnly         bool     `json:"read_only"`
+	Color            string   `json:"color"`
 }
 
 type ConsoleInputEvent struct {
@@ -376,6 +392,7 @@ type GroupItem struct {
 	Name      string `json:"name"`
 	CreatedAt int64  `json:"created_at"`
 	UpdatedAt int64  `json:"updated_at"`
+	Color     string `json:"color"`
 }
 
 type GroupListRes struct {
@@ -383,8 +400,9 @@ type GroupListRes struct {
 }
 
 type GroupUpsertReq struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id    string `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
 }
 
 type IdReq struct {

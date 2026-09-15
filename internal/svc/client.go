@@ -27,6 +27,8 @@ type Client struct {
 	MonitorMu     sync.Mutex
 	ReadOnly      atomic.Bool
 	writeCmds     map[string]struct{}
+	tunnel        *sshTunnel
+	stopBeat      context.CancelFunc
 }
 
 func NewClient(rdb redis.UniversalClient, cfg *model.Connection, ssh *model.Ssh, proxy *model.Proxy, tls *model.Tls, dbIdx int) *Client {
@@ -49,6 +51,15 @@ func (c *Client) closeStreams() {
 	}
 	c.PubSubActive = false
 	c.PubSubMu.Unlock()
+}
+
+func (c *Client) close() {
+	if c.stopBeat != nil {
+		c.stopBeat()
+	}
+	c.closeStreams()
+	_ = c.Rdb.Close()
+	_ = c.tunnel.Close()
 }
 
 func (c *Client) GetInfo(ctx context.Context, sections ...string) (map[string]map[string]string, error) {

@@ -118,17 +118,6 @@ function AppContextInner({ children }: { children: ReactNode }) {
       return {}
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"
-      if (msg == `client ${database.id}:${dbIdx} already exists`) {
-        setSelectedTab("/browser")
-        addTab({
-          type: "general",
-          title: database.name || "General",
-          connectionId: database.id,
-          connectionName: database.name,
-          databaseIdx: dbIdx,
-        })
-        return
-      }
       toast.add({ title: msg, type: "error" })
     } finally {
       setLoading(false)
@@ -138,9 +127,12 @@ function AppContextInner({ children }: { children: ReactNode }) {
   const disconnect = async (database: ConnectionDO | undefined) => {
     if (!database) return
     try {
-      await disconnectMutation.mutateAsync({ connection_id: database.id, database_index: 0 })
-      setSelectedDb(undefined)
-      setSelectedDbIdx(0)
+      await disconnectMutation.mutateAsync({ connection_id: database.id })
+      useTabStore.getState().removeConnectionTabs(database.id)
+      if (selectedDb === database.id) {
+        setSelectedDb(undefined)
+        setSelectedDbIdx(0)
+      }
       toast.add({ title: "Disconnected!", type: "success" })
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error"

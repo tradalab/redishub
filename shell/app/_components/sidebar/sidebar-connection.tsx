@@ -17,6 +17,9 @@ import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList } from "@/hooks/api/group.api"
 import { useConnectionList, useDeleteConnection } from "@/hooks/api/connection.api"
 import { useGroup } from "@/app/_components/group/group.context"
+import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
+import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
+import { CONNECTION_COLORS, isConnectionColor, resolveColor } from "@/lib/connection-color"
 
 export function SidebarConnection() {
   const { t } = useTranslation()
@@ -82,6 +85,9 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
   const { connect, selectedDb } = useAppContext()
   const isActive = !item.isGroup && item.id === selectedDb
   const readOnly = !item.isGroup && Boolean(item.connection?.read_only)
+  const { data: groups = [] } = useGroupList()
+  const groupColor = item.group?.color
+  const color = item.isGroup ? (isConnectionColor(groupColor) ? groupColor : undefined) : resolveColor(item.connection, groups)
 
   return (
     <TreeNode
@@ -101,8 +107,13 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
     >
       <TreeNodeTrigger className={cn("group/item px-1 py-1.5", isActive && "bg-accent text-accent-foreground font-medium rounded-md")}>
         <TreeExpander hasChildren={item.isGroup} />
-        <TreeIcon hasChildren={item.isGroup} />
+        <TreeIcon
+          hasChildren={item.isGroup}
+          icon={item.isGroup ? undefined : <ConnectionModeIcon mode={item.connection?.mode} />}
+          className={color && CONNECTION_COLORS[color].tint}
+        />
         <TreeLabel>{item.name}</TreeLabel>
+        {!item.isGroup && <ConnectionStateDot connectionId={item.id} className="ml-1.5" />}
         {readOnly && (
           <span title={t("read_only")} className="ml-auto mr-0.5 inline-flex shrink-0">
             <LockIcon className="h-3 w-3 text-amber-600 dark:text-amber-400" />

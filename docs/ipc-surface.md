@@ -30,6 +30,17 @@ opted in as a domain tool with `@mcp`.
 | `client:keys-search` | `ClientKeysSearchReq` | `ClientKeysSearchEvent` | server-stream | - | - |
 | `client:search-keys` | `ClientSearchKeysReq` | `ClientSearchKeysRes` | unary | - | - |
 | `client:set-read-only` | `ClientSetReadOnlyReq` | `Empty` | unary | - | - |
+| `client:states` | `Empty` | `ClientStatesRes` | unary | - | - |
+| `client:probe` | `ClientProbeReq` | `Empty` | unary | - | - |
+
+### Events
+
+A topic has no reply, and the direction says who pushes: `out` is Go to the
+frontend, `in` is the frontend to Go.
+
+| Topic | Direction | Payload | Go | Frontend |
+|---|---|---|---|---|
+| `client:state` | out | `ClientStateEvent` | `events.EmitClientState` | `events.onClientState` |
 
 ## conn
 

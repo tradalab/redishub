@@ -78,6 +78,7 @@ security:
   allowlist:
     env: true
     shell: true # browser module OpenUrl only
+    clipboard: true # clipboard module, for copying a key name
 
 logger:
   level: info # debug, info, warn, error

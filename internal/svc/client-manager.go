@@ -12,6 +12,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/internal/model"
+	"github.com/tradalab/rdms/internal/types"
 	"github.com/tradalab/rdms/pkg/netx"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/proxy"
@@ -20,11 +21,21 @@ import (
 type ClientManager struct {
 	mu      sync.RWMutex
 	clients map[string]*Client
+
+	// Lock order is mu before stateMu; nothing under stateMu takes mu.
+	stateMu     sync.Mutex
+	states      map[string]types.ClientStateEvent
+	onState     func(*types.ClientStateEvent)
+	beat        time.Duration
+	probeBudget time.Duration
 }
 
 func NewManager() *ClientManager {
 	return &ClientManager{
-		clients: make(map[string]*Client),
+		clients:     make(map[string]*Client),
+		states:      make(map[string]types.ClientStateEvent),
+		beat:        15 * time.Second,
+		probeBudget: 10 * time.Second,
 	}
 }
 
@@ -58,19 +69,29 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
 	defer cancel()
 
-	rdb, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	m.connecting(cfg.ID)
+
+	rdb, tunnel, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
+		m.forgetUnused(cfg.ID)
 		return nil, err
 	}
 
+	cli := NewClient(rdb, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	cli.tunnel = tunnel
+	rdb.AddHook(stateHook{m: m, id: cfg.ID})
+
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		rdb.Close()
+		cli.close()
+		m.forgetUnused(cfg.ID)
 		return nil, fmt.Errorf("cannot connect to redis %s: %w", cfg.Addr(), err)
 	}
 
-	_ = rdb.Do(ctx, "CLIENT", "SETNAME", url.QueryEscape(cfg.Name)).Err()
+	start := time.Now()
+	if err := rdb.Do(ctx, "CLIENT", "SETNAME", url.QueryEscape(cfg.Name)).Err(); err == nil {
+		m.report(cfg.ID, nil, time.Since(start))
+	}
 
-	cli := NewClient(rdb, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	cli.ReadOnly.Store(cfg.ReadOnly != 0)
 	cli.writeCmds = buildWriteCmds(ctx, rdb)
 	rdb.AddHook(&readOnlyHook{cli: cli})
@@ -79,27 +100,30 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 	defer m.mu.Unlock()
 
 	if c, ok := m.clients[key]; ok {
-		rdb.Close()
+		cli.close()
 		return c, nil
 	}
 
 	m.clients[key] = cli
+	beat, stop := context.WithCancel(context.Background())
+	cli.stopBeat = stop
+	go m.heartbeat(beat, cli)
 
 	return cli, nil
 }
 
-func (m *ClientManager) init(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (redis.UniversalClient, error) {
-	options, err := m.buildOptions(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+func (m *ClientManager) init(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (redis.UniversalClient, *sshTunnel, error) {
+	options, tunnel, err := m.buildOptions(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	rdb := redis.NewUniversalClient(options)
 
-	return rdb, nil
+	return rdb, tunnel, nil
 }
 
-func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (*redis.UniversalOptions, error) {
+func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (*redis.UniversalOptions, *sshTunnel, error) {
 	options := &redis.UniversalOptions{
 		Addrs:           []string{cfg.Addr()},
 		Username:        cfg.Username,
@@ -120,13 +144,13 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 	}
 
 	if cfg.SshEnable > 0 && sshCfg == nil {
-		return nil, fmt.Errorf("ssh enabled but ssh config missing (caller must pre-load)")
+		return nil, nil, fmt.Errorf("ssh enabled but ssh config missing (caller must pre-load)")
 	}
 	if cfg.ProxyEnable > 0 && proxyCfg == nil {
-		return nil, fmt.Errorf("proxy enabled but proxy config missing (caller must pre-load)")
+		return nil, nil, fmt.Errorf("proxy enabled but proxy config missing (caller must pre-load)")
 	}
 	if cfg.TlsEnable > 0 && tlsCfg == nil {
-		return nil, fmt.Errorf("tls enabled but tls config missing (caller must pre-load)")
+		return nil, nil, fmt.Errorf("tls enabled but tls config missing (caller must pre-load)")
 	}
 
 	switch cfg.Mode {
@@ -157,7 +181,7 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 			}
 		case "tcp":
 		default:
-			return nil, fmt.Errorf("unknown network type: %s", cfg.Network)
+			return nil, nil, fmt.Errorf("unknown network type: %s", cfg.Network)
 		}
 	}
 
@@ -197,7 +221,7 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 			}
 			pd, err := proxy.SOCKS5("tcp", proxyCfg.Addr(), auth, proxy.Direct)
 			if err != nil {
-				return nil, fmt.Errorf("socks5 proxy setup failed: %w", err)
+				return nil, nil, fmt.Errorf("socks5 proxy setup failed: %w", err)
 			}
 			if cd, ok := pd.(proxy.ContextDialer); ok {
 				baseDialer = cd
@@ -224,29 +248,35 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 		}
 	}
 
-	var sshClient *ssh.Client
+	var tunnel *sshTunnel
 	if cfg.SshEnable > 0 {
 		sshConfig, err := sshCfg.BuildClientCfg()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		sshAddr := sshCfg.Addr()
 
-		sshConn, err := baseDialer.DialContext(ctx, "tcp", sshAddr)
-		if err != nil {
-			return nil, fmt.Errorf("ssh dial failed: %w", err)
-		}
+		tunnel, err = newSSHTunnel(ctx, func(ctx context.Context) (*ssh.Client, error) {
+			sshConn, err := baseDialer.DialContext(ctx, "tcp", sshAddr)
+			if err != nil {
+				return nil, fmt.Errorf("ssh dial failed: %w", err)
+			}
 
-		if d, ok := ctx.Deadline(); ok {
-			_ = sshConn.SetDeadline(d)
-		}
+			if d, ok := ctx.Deadline(); ok {
+				_ = sshConn.SetDeadline(d)
+			}
 
-		c, chans, reqs, err := ssh.NewClientConn(sshConn, sshAddr, sshConfig)
+			c, chans, reqs, err := ssh.NewClientConn(sshConn, sshAddr, sshConfig)
+			if err != nil {
+				sshConn.Close()
+				return nil, fmt.Errorf("ssh handshake failed: %w", err)
+			}
+			_ = sshConn.SetDeadline(time.Time{})
+			return ssh.NewClient(c, chans, reqs), nil
+		})
 		if err != nil {
-			sshConn.Close()
-			return nil, fmt.Errorf("ssh handshake failed: %w", err)
+			return nil, nil, err
 		}
-		sshClient = ssh.NewClient(c, chans, reqs)
 	}
 
 	options.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -255,26 +285,8 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 			dialAddr = mapped
 		}
 
-		if cfg.SshEnable > 0 && sshClient != nil {
-			type dialResult struct {
-				conn net.Conn
-				err  error
-			}
-			ch := make(chan dialResult, 1)
-			go func() {
-				conn, err := sshClient.Dial(network, dialAddr)
-				ch <- dialResult{conn, err}
-			}()
-
-			select {
-			case <-ctx.Done():
-				return nil, ctx.Err()
-			case res := <-ch:
-				if res.err != nil {
-					return nil, res.err
-				}
-				return &netx.IgnoreDeadlineConn{Conn: res.conn}, nil
-			}
+		if tunnel != nil {
+			return tunnel.Dial(ctx, network, dialAddr)
 		}
 
 		conn, err := baseDialer.DialContext(ctx, network, dialAddr)
@@ -287,22 +299,24 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 	if cfg.TlsEnable > 0 && tlsCfg != nil {
 		tlsConfig, err := tlsCfg.BuildTlsConfig()
 		if err != nil {
-			return nil, fmt.Errorf("tls build failed: %w", err)
+			_ = tunnel.Close()
+			return nil, nil, fmt.Errorf("tls build failed: %w", err)
 		}
 		options.TLSConfig = tlsConfig
 	}
 
-	return options, nil
+	return options, tunnel, nil
 }
 
 func (m *ClientManager) Test(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
 	defer cancel()
 
-	rdb, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	rdb, tunnel, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
 		return err
 	}
+	defer tunnel.Close()
 	defer rdb.Close()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
@@ -344,21 +358,37 @@ func (m *ClientManager) Remove(id string, dbIdx int) error {
 	key := fmt.Sprintf("%s:%d", id, dbIdx)
 
 	if c, ok := m.clients[key]; ok {
-		c.closeStreams()
-		_ = c.Rdb.Close()
+		c.close()
 		delete(m.clients, key)
+		if !m.openLocked(id) {
+			m.forget(id)
+		}
 		return nil
 	}
 	return fmt.Errorf("client %s not found", key)
+}
+
+func (m *ClientManager) RemoveConnection(id string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	prefix := id + ":"
+	for key, c := range m.clients {
+		if strings.HasPrefix(key, prefix) {
+			c.close()
+			delete(m.clients, key)
+		}
+	}
+	m.forget(id)
 }
 
 func (m *ClientManager) CloseAll() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for key, c := range m.clients {
-		c.closeStreams()
-		_ = c.Rdb.Close()
+		c.close()
 		delete(m.clients, key)
+		m.forget(c.Cfg.ID)
 	}
 }
 

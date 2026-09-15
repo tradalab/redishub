@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { v7 as uuidv7 } from "uuid"
 
 interface CommandHistoryItem {
   id: string
@@ -26,7 +27,7 @@ export const useCommandStore = create<CommandStoreState>()(
         set(state => {
           const newItem: CommandHistoryItem = {
             ...item,
-            id: crypto.randomUUID(),
+            id: uuidv7(),
             timestamp: Date.now(),
           }
           const newHistory = [newItem, ...state.history].slice(0, MAX_HISTORY)

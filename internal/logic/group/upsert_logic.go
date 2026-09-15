@@ -31,6 +31,7 @@ func (l *UpsertLogic) Upsert(params *types.GroupUpsertReq) (*types.UpsertRes, er
 		}
 		if err == nil && g != nil {
 			g.Name = params.Name
+			g.Color = params.Color
 			if err := l.svcCtx.GroupModel.Update(l.ctx, g); err != nil {
 				return nil, err
 			}
@@ -39,8 +40,9 @@ func (l *UpsertLogic) Upsert(params *types.GroupUpsertReq) (*types.UpsertRes, er
 	}
 
 	g := &model.Group{
-		ID:   params.Id,
-		Name: params.Name,
+		ID:    params.Id,
+		Name:  params.Name,
+		Color: params.Color,
 	}
 	if _, err := l.svcCtx.GroupModel.Insert(l.ctx, g); err != nil {
 		return nil, err

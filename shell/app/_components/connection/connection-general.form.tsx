@@ -10,6 +10,7 @@ import { Textarea } from "@tradalab/lyra/ui"
 import { Separator } from "@tradalab/lyra/ui"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
 import { GroupItem as GroupDO } from "@/types"
+import { ColorSwatches } from "@/app/_components/connection/color-swatches"
 
 export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
@@ -37,6 +38,18 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
               </FormItem>
             )
           }}
+        />
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("color")}</FormLabel>
+              <FormControl>
+                <ColorSwatches value={field.value} onChange={field.onChange} emptyLabel={form.watch("group_id") ? t("color_inherit") : t("none")} />
+              </FormControl>
+            </FormItem>
+          )}
         />
         <div className="grid grid-cols-2 gap-4 items-start">
           <FormField

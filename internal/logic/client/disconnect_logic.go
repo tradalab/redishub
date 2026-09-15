@@ -3,7 +3,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
@@ -22,9 +21,6 @@ func NewDisconnectLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Discon
 }
 
 func (l *DisconnectLogic) Disconnect(params *types.ClientDisconnectReq) (*types.Empty, error) {
-	if err := l.svcCtx.RedisManager.Remove(params.ConnectionId, int(params.DatabaseIndex)); err != nil {
-		return nil, fmt.Errorf("disconnect failed: %w", err)
-	}
-
+	l.svcCtx.RedisManager.RemoveConnection(params.ConnectionId)
 	return &types.Empty{}, nil
 }

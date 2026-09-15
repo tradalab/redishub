@@ -12,6 +12,7 @@ import { ConnectionDetailTabPubSub } from "@/app/_components/connection-detail/c
 import { ConnectionDetailTabKeyList } from "@/app/_components/connection-detail/connection-detail-tab-key-list"
 import { ConnectionDetailTabMonitor } from "@/app/_components/connection-detail/connection-detail-tab-monitor"
 import { ConnectionDetailTabAnalysis } from "@/app/_components/connection-detail/connection-detail-tab-analysis"
+import { ConnectionUnreachableBanner } from "@/app/_components/connection/connection-unreachable-banner"
 
 export default function Page() {
   const { t } = useTranslation()
@@ -28,17 +29,20 @@ export default function Page() {
           tabs.map(tab => {
             const isActive = tab.id === activeTabId
             return (
-              <div key={tab.id} className={`absolute inset-0 min-h-0 overflow-hidden ${isActive ? "" : "hidden"}`}>
-                {tab.type === "general" && <ConnectionDetailTabGeneral connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "console" && <ConnectionDetailTabConsole connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "key-detail" && (
-                  <ConnectionDetailTabKeyDetail connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} selectedKey={tab.key} />
-                )}
-                {tab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "monitor" && <ConnectionDetailTabMonitor connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "key-list" && <ConnectionDetailTabKeyList connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
-                {tab.type === "analysis" && <ConnectionDetailTabAnalysis connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+              <div key={tab.id} className={`absolute inset-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden ${isActive ? "grid" : "hidden"}`}>
+                <ConnectionUnreachableBanner connectionId={tab.connectionId} />
+                <div className="relative row-start-2 min-h-0 overflow-hidden">
+                  {tab.type === "general" && <ConnectionDetailTabGeneral connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "console" && <ConnectionDetailTabConsole connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "key-detail" && (
+                    <ConnectionDetailTabKeyDetail connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} selectedKey={tab.key} />
+                  )}
+                  {tab.type === "slow-query" && <ConnectionDetailTabSlowQuery connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "pubsub" && <ConnectionDetailTabPubSub connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "monitor" && <ConnectionDetailTabMonitor connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "key-list" && <ConnectionDetailTabKeyList connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                  {tab.type === "analysis" && <ConnectionDetailTabAnalysis connectionId={tab.connectionId} databaseIdx={tab.databaseIdx} />}
+                </div>
               </div>
             )
           })

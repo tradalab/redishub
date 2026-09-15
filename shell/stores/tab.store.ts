@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { v7 as uuidv7 } from "uuid"
 
 export type TabType = "general" | "console" | "key-detail" | "slow-query" | "pubsub" | "key-list" | "monitor" | "analysis"
 
@@ -23,6 +24,7 @@ interface TabState {
   togglePin: (id: string) => void
   closeOthers: (id: string) => void
   closeAll: () => void
+  removeConnectionTabs: (connectionId: string) => void
 }
 
 export const useTabStore = create<TabState>((set, get) => ({
@@ -41,7 +43,7 @@ export const useTabStore = create<TabState>((set, get) => ({
       return
     }
 
-    const newId = crypto.randomUUID()
+    const newId = uuidv7()
     const newTab: TabDO = { ...tabData, id: newId, pinned: false }
     const newTabs = [...tabs, newTab]
 
@@ -101,5 +103,12 @@ export const useTabStore = create<TabState>((set, get) => ({
       newActiveId = pinnedTabs.length > 0 ? pinnedTabs[0].id : undefined
     }
     set({ tabs: pinnedTabs, activeTabId: newActiveId })
+  },
+
+  removeConnectionTabs: connectionId => {
+    const { tabs, activeTabId } = get()
+    const newTabs = tabs.filter(t => t.connectionId !== connectionId)
+    const newActiveId = newTabs.some(t => t.id === activeTabId) ? activeTabId : newTabs[newTabs.length - 1]?.id
+    set({ tabs: newTabs, activeTabId: newActiveId })
   },
 }))

@@ -14,6 +14,8 @@ import { useCommandStore } from "@/stores/command.store"
 import { useReadOnly } from "@/hooks/api/connection.api"
 import { CommandContext } from "@/lib/command/types"
 import { cn } from "@/lib/utils"
+import { v7 as uuidv7 } from "uuid"
+import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
 
 let middlewareRegistered = false
 if (!middlewareRegistered) {
@@ -65,7 +67,6 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
 
   const terminalRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<any>(null)
-  const [status, setStatus] = useState<"connecting" | "connected" | "error">("connecting")
 
   const { addHistory, getHistoryForConnection } = useCommandStore()
 
@@ -227,7 +228,7 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         }
 
         const ctx: CommandContext = {
-          id: crypto.randomUUID(),
+          id: uuidv7(),
           raw: cmdString,
           parsed: {
             name: commandName,
@@ -291,11 +292,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
         if (disposed) return
         term?.writeln("\x1b[32mRedis Console Ready\x1b[0m")
         termPrompt()
-        setStatus("connected")
       } catch (e) {
         const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
         term.writeln(`\x1b[31m(error)\x1b[0m ${msg}`)
-        setStatus("error")
         return
       }
 
@@ -452,7 +451,9 @@ export function ConnectionDetailTabConsole({ connectionId, databaseIdx }: { conn
     <Card className="w-full h-full border bg-background py-2">
       <CardContent className="relative w-full h-full p-0">
         <div ref={terminalRef} className="w-full h-full px-2 pt-2" />
-        <div className="absolute top-2 right-6 text-xs font-mono text-muted-foreground">Redis CLI {status === "connected" ? "🟢" : "🔴"}</div>
+        <div className="absolute top-2 right-6 flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
+          Redis CLI <ConnectionStateDot connectionId={connectionId} />
+        </div>
 
         {acState.open && acState.list.length > 0 && (
           <div

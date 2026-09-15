@@ -91,7 +91,7 @@ func (l *StartLogic) Start(params *types.MonitorReq, out app.Sink[types.MonitorF
 			return nil
 		}
 		line = strings.TrimPrefix(strings.TrimRight(line, "\r\n"), "+")
-		if line == "" {
+		if line == "" || isHeartbeat(line) {
 			continue
 		}
 		if err := out.Send(&types.MonitorFrame{Kind: "message", ConnectionId: params.ConnectionId, Line: line}); err != nil {

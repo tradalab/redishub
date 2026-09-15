@@ -149,6 +149,18 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "client:states", func(ctx context.Context, r *types.Empty) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewStatesLogic(ctx, svcCtx).States(a.(*types.Empty))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "client:probe", func(ctx context.Context, r *types.ClientProbeReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return client.NewProbeLogic(ctx, svcCtx).Probe(a.(*types.ClientProbeReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "conn:test", func(ctx context.Context, r *types.ConnectionReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return conn.NewTestLogic(ctx, svcCtx).Test(a.(*types.ConnectionReq))

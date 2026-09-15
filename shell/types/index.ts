@@ -79,7 +79,6 @@ export interface ClientConnectReq {
 
 export interface ClientDisconnectReq {
   connection_id: string;
-  database_index: number;
 }
 
 export interface ClientGeneralReq {
@@ -245,6 +244,10 @@ export interface ClientLoadKeyValuePageRes {
   has_more: boolean;
 }
 
+export interface ClientProbeReq {
+  connection_id: string;
+}
+
 export interface ClientSearchKeysReq {
   connection_id: string;
   database_index: number;
@@ -261,6 +264,18 @@ export interface ClientSetReadOnlyReq {
   connection_id: string;
   database_index: number;
   read_only: boolean;
+}
+
+export interface ClientStateEvent {
+  connection_id: string;
+  state: string;
+  error: string;
+  latency_ms: number;
+  since: number;
+}
+
+export interface ClientStatesRes {
+  items?: ClientStateEvent[];
 }
 
 export interface ConnectionListRes {
@@ -297,6 +312,7 @@ export interface ConnectionReq {
   group_id: string;
   last_db: number;
   read_only: boolean;
+  color: string;
 }
 
 export interface ConsoleInputEvent {
@@ -376,6 +392,7 @@ export interface GroupItem {
   name: string;
   created_at: number;
   updated_at: number;
+  color: string;
 }
 
 export interface GroupListRes {
@@ -385,6 +402,7 @@ export interface GroupListRes {
 export interface GroupUpsertReq {
   id: string;
   name: string;
+  color: string;
 }
 
 export interface IdReq {

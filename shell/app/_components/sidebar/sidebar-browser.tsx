@@ -41,6 +41,10 @@ import { useTranslation } from "react-i18next"
 import { useConfirm } from "@tradalab/lyra/blocks"
 import { useTabStore } from "@/stores/tab.store"
 import { BrowserBulkDeleteDialog } from "@/app/_components/browser-bulk-delete-dialog"
+import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
+import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
+import { useGroupList } from "@/hooks/api/group.api"
+import { resolveColor } from "@/lib/connection-color"
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
@@ -59,6 +63,7 @@ export function SidebarBrowser() {
   const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
+  const { data: groups = [] } = useGroupList()
   const readOnly = Boolean(currentConnection?.read_only)
   const setReadOnly = useSetReadOnly()
 
@@ -253,11 +258,12 @@ export function SidebarBrowser() {
       <SidebarHeader className="gap-2 border-b" style={{ padding: "var(--sidebar-header-p)" }}>
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
-            <div className="text-foreground text-sm font-semibold truncate" title={currentConnection?.name || t("browser")}>
-              {currentConnection?.name || t("browser")}
+            <div className="text-foreground flex items-center gap-1.5 text-sm font-semibold" title={currentConnection?.name || t("browser")}>
+              <ConnectionModeIcon mode={currentConnection?.mode} color={resolveColor(currentConnection, groups)} className="size-3.5 shrink-0" />
+              <span className="truncate">{currentConnection?.name || t("browser")}</span>
             </div>
             <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-              <span className="flex size-1.5 rounded-full bg-green-500" />
+              <ConnectionStateDot connectionId={selectedDb} />
               DB{selectedDbIdx}
               {readOnly && (
                 <button type="button" onClick={toggleReadOnly} title={t("read_only_disable")} className="inline-flex">
@@ -416,7 +422,7 @@ export function SidebarBrowser() {
               <SelectGroup>
                 {dbs.map((db: DbInfo) => (
                   <SelectItem key={db.index} value={db.index?.toString()}>
-                    {db.name} {selectedDbIdx == db.index ? `(${keys.length}/${db.keys})` : `(${db.keys})`}
+                    DB{db.index} {selectedDbIdx == db.index ? `(${keys.length}/${db.keys})` : `(${db.keys})`}
                   </SelectItem>
                 ))}
               </SelectGroup>

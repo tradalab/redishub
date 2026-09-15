@@ -24,6 +24,8 @@ export const client = {
   keysSearch: (params: T.ClientKeysSearchReq) => scorix.serverStream<T.ClientKeysSearchEvent>("client:keys-search", params),
   searchKeys: (params: T.ClientSearchKeysReq) => scorix.invoke<T.ClientSearchKeysRes>("client:search-keys", params),
   setReadOnly: (params: T.ClientSetReadOnlyReq) => scorix.invoke<T.Empty>("client:set-read-only", params),
+  states: (params: T.Empty) => scorix.invoke<T.ClientStatesRes>("client:states", params),
+  probe: (params: T.ClientProbeReq) => scorix.invoke<T.Empty>("client:probe", params),
 };
 
 export const conn = {
@@ -114,5 +116,12 @@ export const analysis = {
 export const graph = {
   query: (params: T.GraphQueryReq) => scorix.invoke<T.GraphQueryRes>("graph:query", params),
   schema: (params: T.GraphSchemaReq) => scorix.invoke<T.GraphSchemaRes>("graph:schema", params),
+};
+
+// Typed events (@event in proto). onX subscribes (returns unsubscribe);
+// emitX sends a one-way frontend event to Go.
+export const events = {
+  onClientState: (cb: (data: T.ClientStateEvent, error?: string) => void): (() => void) =>
+    scorix.on("client:state", cb),
 };
 

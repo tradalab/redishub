@@ -22,7 +22,7 @@ export function useUpsertGroup() {
   return useMutation({
     mutationFn: async (values: Partial<GroupDO>) => {
       const id = values.id ?? uuidv7()
-      await group.upsert({ id, name: values.name ?? "" })
+      await group.upsert({ id, name: values.name ?? "", color: values.color ?? "" })
       return id
     },
     onSuccess: () => {

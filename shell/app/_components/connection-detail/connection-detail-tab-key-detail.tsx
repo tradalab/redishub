@@ -14,6 +14,7 @@ import { KeyDetailGraph } from "@/app/_components/key-detail/key-detail-graph"
 import { Input, toast } from "@tradalab/lyra/ui"
 import { CopyIcon, RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
 import { cn, formatDuration, formatFileSize } from "@/lib/utils"
+import { writeClipboard } from "@/lib/clipboard"
 import { KindBadge } from "@/app/_components/key-detail/key-detail-shared"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -78,7 +79,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   const copyKeyName = async () => {
     if (!selectedKey) return
     try {
-      await navigator.clipboard.writeText(selectedKey)
+      await writeClipboard(selectedKey)
       toast.add({ title: t("copied"), type: "success" })
     } catch {
       toast.add({ title: t("unknown_error"), type: "error" })
