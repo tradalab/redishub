@@ -2,6 +2,33 @@
 
 ---
 
+## [1.16.0]
+
+### 🚀 Features
+
+- **connection:** Live connection state - a dot in the sidebar, on every tab and in the console shows connecting, connected with its round-trip time, or unreachable, and a tab whose server stops answering gets a banner with a Reconnect button. Every window and browser tab sees the same state
+- **connection:** Colors for connections and groups - pick one of eight; a connection with no color of its own wears its group's, and its icon follows the type (standalone, sentinel, cluster)
+- **app:** An About panel, and automatic update checks can be turned off in web mode
+- **key-browser:** The database picker names the database, `DB3 (15)`, instead of showing counts alone
+
+### 🐛 Fixes
+
+- **ssh:** A tunnel died seconds after connecting, because the deadline set for the handshake was never cleared, and never recovered once the bastion restarted or a NAT mapping expired. Tunnels now stay up, redial a dropped session, and close on disconnect
+- **shell:** On macOS and Linux, and in web mode served over plain http anywhere but localhost, no tab could be opened and Copy key name did nothing - both used browser APIs that need a secure context
+- **connection:** Disconnect closes every database that connection opened and its tabs, leaves the connection you are browsing untouched, and no longer reports an error for a connection that was never opened
+- **graph:** A server without the graph module says so, in the graph view and in New Key, instead of showing `ERR unknown command 'GRAPH.QUERY'`. A read-only connection to a module without `GRAPH.RO_QUERY` gets its own message
+- **graph:** The graph survives a window resize, and Reload keeps the query you typed
+- **monitor:** The Monitor tab no longer shows RedisHub's own health-check pings
+- **sidebar:** The dot beside the database name stayed green while the server was unreachable
+- **docker:** The web image build skipped every native build script, because `pnpm-workspace.yaml` was not copied into the install stage
+
+### 🔧 Chores
+
+- **deps:** Scorix v0.28.0, golang.org/x/crypto v0.57.0 and x/net v0.59.0, closing seven reachable SSH vulnerabilities
+- **app:** Schema changes ship as goose migrations, so an existing database gains new columns on launch
+
+---
+
 ## [1.15.1]
 
 ### 🐛 Fixes
