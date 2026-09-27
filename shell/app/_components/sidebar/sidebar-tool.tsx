@@ -10,8 +10,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@tradalab/lyra/ui"
-import { SidebarDock } from "@tradalab/lyra/shell"
-import { BookOpenIcon, BugIcon, DatabaseIcon, LayersIcon, ServerIcon, SettingsIcon } from "lucide-react"
+import { AppGlyph, SidebarDock } from "@tradalab/lyra/shell"
+import { BookOpenIcon, BugIcon, DatabaseIcon, ServerIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/app/_components/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
@@ -40,9 +40,7 @@ export function SidebarTool() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
               <div>
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <LayersIcon className="size-4" />
-                </div>
+                <AppGlyph icon="/logo/ui.svg" name={configs.app.name} ownOrigin className="size-8" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{configs.app.name}</span>
                   <span className="truncate text-xs">{configs.app.desc}</span>
