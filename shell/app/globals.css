@@ -2,17 +2,11 @@
 @plugin "tailwind-scrollbar-hide";
 
 :root {
-  /* Density tokens (redishub-only; not in lyra). */
-  --tab-height: 2.75rem;
-  --tree-item-py: 0.375rem;
   --sidebar-header-p: 0.5rem;
 }
 
 [data-compact="true"] {
-  --tab-height: 2.25rem;
-  --tree-item-py: 0.125rem;
   --sidebar-header-p: 0.25rem;
-  font-size: 13.5px;
 }
 
 @layer base {

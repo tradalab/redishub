@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Checkbox } from "@tradalab/lyra/ui"
 import { Label } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
+import { PlatePicker } from "@tradalab/lyra/blocks"
 import { Spinner } from "@tradalab/lyra/ui"
 import { version } from "../../../package.json"
 
@@ -20,7 +21,7 @@ export function SettingPanelGeneral() {
   const { checkUpdate, fullUpdate, newVersion, notes, loading } = useUpdater()
   const { theme, setTheme } = useTheme()
   const [checked, setChecked] = useState(false)
-  const { language, setLanguage, compactMode, setCompactMode } = useAppContext()
+  const { language, setLanguage, compactMode, setCompactMode, plate, setPlate } = useAppContext()
   const [autoupdate, setAutoupdate] = useSetting("autoupdate")
   const web = isWebMode()
 
@@ -53,6 +54,11 @@ export function SettingPanelGeneral() {
               </SelectGroup>
             </SelectContent>
           </Select>
+        </Field>
+        <Field>
+          <FieldLabel>{t("accent")}</FieldLabel>
+          <PlatePicker value={plate} onChange={setPlate} label={t("accent")} resetLabel={t("accent_default")} />
+          <FieldDescription>{t("accent_desc")}</FieldDescription>
         </Field>
         <Field>
           <FieldLabel htmlFor="language-select">{t("language")}</FieldLabel>

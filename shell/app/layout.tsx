@@ -8,7 +8,7 @@ import { configs } from "@/configs"
 import { AppProvider } from "@/ctx/app.context"
 import { Loading } from "@/app/_components/loading"
 import { ThemeProvider } from "next-themes"
-import { ConfirmProvider } from "@tradalab/lyra/blocks"
+import { ConfirmProvider, PreferenceScript } from "@tradalab/lyra/blocks"
 import { ConnectionStatus } from "@/app/_components/connection-status"
 import { ConnectionStateSync } from "@/app/_components/connection/connection-state-sync"
 import { TooltipProvider } from "@tradalab/lyra/ui"
@@ -22,6 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased overscroll-none touch-none select-none`}>
+        <PreferenceScript />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ConfirmProvider>
             <AppProvider>

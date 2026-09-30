@@ -7,6 +7,7 @@ import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
 import { ConnectionReq as ConnectionDO } from "@/types"
 import { useSetting } from "@/hooks/api/setting.api"
+import { useCompact, usePlate, type Plate } from "@tradalab/lyra/blocks"
 import { useConnect, useDisconnect } from "@/hooks/api/client.api"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/app/_components/ssh/ssh.provider"
@@ -37,6 +38,9 @@ interface AppContextType {
 
   compactMode: boolean
   setCompactMode: (val: boolean) => void
+
+  plate: Plate | null
+  setPlate: (val: Plate | null) => void
 }
 
 const queryClient = new QueryClient({
@@ -68,8 +72,8 @@ function AppContextInner({ children }: { children: ReactNode }) {
   const [selectedDbIdx, setSelectedDbIdx] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
   const [language, setLanguage] = useSetting("language")
-  const [compact, setCompact] = useSetting("compact_mode")
-  const compactMode = compact === "true"
+  const [compactMode, setCompactMode] = useCompact()
+  const [plate, setPlate] = usePlate()
 
   const { tabs, activeTabId, addTab } = useTabStore()
   const [lastSyncTabId, setLastSyncTabId] = useState<string | undefined>()
@@ -80,14 +84,6 @@ function AppContextInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     i18n.changeLanguage(language)
   }, [language])
-
-  useEffect(() => {
-    if (compactMode) {
-      document.documentElement.setAttribute("data-compact", "true")
-    } else {
-      document.documentElement.removeAttribute("data-compact")
-    }
-  }, [compactMode])
 
   useEffect(() => {
     if (!activeTabId || activeTabId === lastSyncTabId) return
@@ -156,7 +152,9 @@ function AppContextInner({ children }: { children: ReactNode }) {
         language,
         setLanguage,
         compactMode,
-        setCompactMode: (val: boolean) => setCompact(val ? "true" : "false"),
+        setCompactMode,
+        plate,
+        setPlate,
       }}
     >
       <UpdaterProvider>
