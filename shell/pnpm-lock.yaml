@@ -21,8 +21,8 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@tradalab/lyra':
-        specifier: ^3.8.1
-        version: 3.8.1(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)
+        specifier: ^3.9.0
+        version: 3.9.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -1668,8 +1668,8 @@ packages:
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
-  '@shadcn/react@0.2.1':
-    resolution: {integrity: sha512-5krgi3dRMKb5jH6a+qPzVJUy/54s0kKE4Rw4LjDfLqOdVQTWKUgxWf1kW8r912I0jX/Lzxqc+pgjkjWxUIK5BQ==}
+  '@shadcn/react@0.3.1':
+    resolution: {integrity: sha512-2gOR0HDMtWeRsCZfNDaU0YDFdgH3zsDQ6lz67Fv/y/qjY9y+R8kJqAn6q56phqv7/zHi0wqURjntrNO9zL7vnQ==}
     peerDependencies:
       '@types/react': '>=19'
       react: '>=19'
@@ -1803,8 +1803,8 @@ packages:
     resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
     engines: {node: '>=12'}
 
-  '@tradalab/lyra@3.8.1':
-    resolution: {integrity: sha512-GbFNhFev5KRVqdBpyVB2IulT4ge+AJurlrYFpm+gS9Qt8xqgW/SaU8lq8NXJfps+k4GZZnqBPC3ukeNMoYPbVA==}
+  '@tradalab/lyra@3.9.0':
+    resolution: {integrity: sha512-XdgPnUu7bh0K7uDTgQMOoSZLSHb0jQvatFMTif1KDHidXOkd0aIiBDM6ymznx/hX72eR7LFTaoSlJcb7i8MB+w==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       next: ^16.0.0
@@ -6298,7 +6298,7 @@ snapshots:
 
   '@sec-ant/readable-stream@0.4.1': {}
 
-  '@shadcn/react@0.2.1(@types/react@19.1.8)(react@19.1.0)':
+  '@shadcn/react@0.3.1(@types/react@19.1.8)(react@19.1.0)':
     optionalDependencies:
       '@types/react': 19.1.8
       react: 19.1.0
@@ -6400,10 +6400,10 @@ snapshots:
 
   '@tanstack/table-core@8.21.3': {}
 
-  '@tradalab/lyra@3.8.1(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)':
+  '@tradalab/lyra@3.9.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.2.4(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)':
     dependencies:
       '@base-ui/react': 1.6.0(@date-fns/tz@1.5.0)(@types/react@19.1.8)(date-fns@4.4.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@shadcn/react': 0.2.1(@types/react@19.1.8)(react@19.1.0)
+      '@shadcn/react': 0.3.1(@types/react@19.1.8)(react@19.1.0)
       '@tanstack/react-table': 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       class-variance-authority: 0.7.1
       clsx: 2.1.1
