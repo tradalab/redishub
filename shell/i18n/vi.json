@@ -322,5 +322,10 @@
   "tags_placeholder": "vd. eu-west, team-a",
   "tags_hint": "Nhấn Enter hoặc dấu phẩy để thêm. Ô lọc ở sidebar cũng tìm theo thẻ và host.",
   "tag_remove": "Bỏ thẻ {{tag}}",
-  "conn_retry_in": "thử lại sau {{seconds}}s"
+  "conn_retry_in": "thử lại sau {{seconds}}s",
+  "ttl": "TTL",
+  "size": "Kích thước",
+  "keys": "Khoá",
+  "no_keys_match": "Không có khoá nào khớp bộ lọc",
+  "validation_error": "Lỗi nhập liệu"
 }

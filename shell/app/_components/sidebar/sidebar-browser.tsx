@@ -430,10 +430,10 @@ export function SidebarBrowser() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button size="icon-sm" variant="outline" title={"load_more"} disabled={isLoading || !hasMore} onClick={loadMore}>
+          <Button size="icon-sm" variant="outline" title={t("load_more")} disabled={isLoading || !hasMore} onClick={loadMore}>
             {isLoading ? <Spinner /> : <ArrowDownToLineIcon />}
           </Button>
-          <Button size="icon-sm" variant="outline" title={"load_all"} disabled={isLoading || !hasMore} onClick={loadAll}>
+          <Button size="icon-sm" variant="outline" title={t("load_all")} disabled={isLoading || !hasMore} onClick={loadAll}>
             {isLoading ? <Spinner /> : <ListEndIcon />}
           </Button>
         </div>

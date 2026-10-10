@@ -103,7 +103,7 @@ export function BrowserBulkDeleteDialog({ open, onOpenChange, prefix, onConfirm,
     const ok = await confirm({
       title: t("confirm_delete_all_title"),
       description: t("confirm_delete_all_desc", { prefix }),
-      confirmText: t("delete_all"),
+      confirmText: t("delete_everything"),
       danger: true,
     })
 

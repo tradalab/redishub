@@ -322,5 +322,10 @@
   "tags_placeholder": "例: eu-west, team-a",
   "tags_hint": "Enter またはカンマで追加します。サイドバーのフィルターはタグとホストにも一致します。",
   "tag_remove": "タグ {{tag}} を削除",
-  "conn_retry_in": "{{seconds}} 秒後に再試行"
+  "conn_retry_in": "{{seconds}} 秒後に再試行",
+  "ttl": "TTL",
+  "size": "サイズ",
+  "keys": "キー",
+  "no_keys_match": "フィルターに一致するキーはありません",
+  "validation_error": "入力エラー"
 }

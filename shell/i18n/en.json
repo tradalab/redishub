@@ -322,5 +322,10 @@
   "tags_placeholder": "e.g. eu-west, team-a",
   "tags_hint": "Press Enter or comma to add. The sidebar filter matches tags and hosts too.",
   "tag_remove": "Remove tag {{tag}}",
-  "conn_retry_in": "retrying in {{seconds}}s"
+  "conn_retry_in": "retrying in {{seconds}}s",
+  "ttl": "TTL",
+  "size": "Size",
+  "keys": "Keys",
+  "no_keys_match": "No keys match the filter",
+  "validation_error": "Validation error"
 }

@@ -2,6 +2,15 @@
 
 ---
 
+## [Unreleased]
+
+### 🐛 Fixes
+
+- **i18n:** The Key List headers, the bulk-delete confirm button, the empty filter result and the SSH, TLS and proxy form errors showed raw translation keys (`ttl`, `size`, `keys`, `delete_all`, `no_keys_match`, `validation_error`) instead of text
+- **key-browser:** The Load More and Load All buttons had the raw keys `load_more` and `load_all` as their tooltips
+
+---
+
 ## [1.17.0]
 
 ### 🚀 Features
@@ -129,7 +138,7 @@
 
 ### 🚀 Features
 
-- **shell:** Persist open tabs and their state across restarts (#87)
+- **shell:** Every open tab keeps its state while you switch between tabs (#87)
 - **core:** Migrate to the Scorix native runtime (no-CGO WebView2) for a lighter, faster desktop app
 - **ipc:** Move Go ↔ JS communication to the auto-injected `window.scorix` bridge
 
