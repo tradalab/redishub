@@ -25,6 +25,7 @@ type ClientManager struct {
 	// Lock order is mu before stateMu; nothing under stateMu takes mu.
 	stateMu     sync.Mutex
 	states      map[string]types.ClientStateEvent
+	retries     map[*Client]time.Time
 	onState     func(*types.ClientStateEvent)
 	beat        time.Duration
 	probeBudget time.Duration
@@ -34,6 +35,7 @@ func NewManager() *ClientManager {
 	return &ClientManager{
 		clients:     make(map[string]*Client),
 		states:      make(map[string]types.ClientStateEvent),
+		retries:     make(map[*Client]time.Time),
 		beat:        15 * time.Second,
 		probeBudget: 10 * time.Second,
 	}

@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import {
   SidebarContent,
   SidebarFooter,
@@ -11,12 +12,14 @@ import {
   SidebarMenuItem,
 } from "@tradalab/lyra/ui"
 import { AppGlyph, SidebarDock } from "@tradalab/lyra/shell"
-import { BookOpenIcon, BugIcon, DatabaseIcon, ServerIcon, SettingsIcon } from "lucide-react"
+import { BookOpenIcon, BugIcon, FolderTreeIcon, SettingsIcon } from "lucide-react"
 import { configs } from "@/configs"
 import { SettingDialog } from "@/app/_components/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
 import { useTranslation } from "react-i18next"
 import { openExternal } from "@/lib/open-external"
+import { openConnectionIds, useTabStore } from "@/stores/tab.store"
+import { SidebarOpenConnection } from "@/app/_components/sidebar/sidebar-open-connection"
 
 function GithubIcon() {
   return (
@@ -32,7 +35,9 @@ function GithubIcon() {
 
 export function SidebarTool() {
   const { t } = useTranslation()
-  const { selectedTab, setSelectedTab, selectedDb } = useAppContext()
+  const { selectedTab, setSelectedTab } = useAppContext()
+  const tabs = useTabStore(s => s.tabs)
+  const openIds = useMemo(() => openConnectionIds(tabs), [tabs])
   return (
     <SidebarDock>
       <SidebarHeader>
@@ -61,26 +66,24 @@ export function SidebarTool() {
                   isActive={selectedTab === "/connections"}
                   className="px-2.5 md:px-2"
                 >
-                  <DatabaseIcon />
+                  <FolderTreeIcon />
                   <span>{t("connections")}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {selectedDb && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={{ children: "Browser", hidden: false }}
-                    onClick={() => setSelectedTab("/browser")}
-                    isActive={selectedTab === "/browser"}
-                    className="px-2.5 md:px-2"
-                  >
-                    <ServerIcon />
-                    <span>{t("browser")}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {openIds.length > 0 && (
+          <SidebarGroup className="border-t pt-2">
+            <SidebarGroupContent className="px-1.5 md:px-0">
+              <SidebarMenu>
+                {openIds.map(id => (
+                  <SidebarOpenConnection key={id} connectionId={id} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

@@ -317,5 +317,10 @@
   "run_mode_app": "Ứng dụng desktop",
   "run_mode_web": "Chế độ web",
   "unknown": "không rõ",
-  "updates_web_mode": "Ở chế độ web, app chạy từ một container image nên cập nhật bằng cách kéo image mới. Cập nhật trong app bị tắt."
+  "updates_web_mode": "Ở chế độ web, app chạy từ một container image nên cập nhật bằng cách kéo image mới. Cập nhật trong app bị tắt.",
+  "tags": "Thẻ",
+  "tags_placeholder": "vd. eu-west, team-a",
+  "tags_hint": "Nhấn Enter hoặc dấu phẩy để thêm. Ô lọc ở sidebar cũng tìm theo thẻ và host.",
+  "tag_remove": "Bỏ thẻ {{tag}}",
+  "conn_retry_in": "thử lại sau {{seconds}}s"
 }

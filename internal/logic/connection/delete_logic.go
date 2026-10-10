@@ -24,5 +24,6 @@ func (l *DeleteLogic) Delete(params *types.IdReq) (*types.Empty, error) {
 	if err := l.svcCtx.ConnectionModel.Delete(l.ctx, params.Id); err != nil {
 		return nil, err
 	}
+	l.svcCtx.RedisManager.RemoveConnection(params.Id)
 	return &types.Empty{}, nil
 }

@@ -317,5 +317,10 @@
   "run_mode_app": "デスクトップアプリ",
   "run_mode_web": "Web モード",
   "unknown": "不明",
-  "updates_web_mode": "Web モードではコンテナイメージから動くため、更新は新しいイメージを取得して行います。アプリ内の更新は無効です。"
+  "updates_web_mode": "Web モードではコンテナイメージから動くため、更新は新しいイメージを取得して行います。アプリ内の更新は無効です。",
+  "tags": "タグ",
+  "tags_placeholder": "例: eu-west, team-a",
+  "tags_hint": "Enter またはカンマで追加します。サイドバーのフィルターはタグとホストにも一致します。",
+  "tag_remove": "タグ {{tag}} を削除",
+  "conn_retry_in": "{{seconds}} 秒後に再試行"
 }

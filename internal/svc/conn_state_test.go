@@ -163,3 +163,45 @@ func TestState_ProbeReportsNow(t *testing.T) {
 		t.Fatal("probing a connection with nothing open must fail")
 	}
 }
+
+func TestState_UnreachableCarriesNextRetry(t *testing.T) {
+	s, cfg := newMiniredis(t)
+	cfg.DialTimeout, cfg.ExecTimeout = 1, 1
+	m, _ := observedManager(t, 50*time.Millisecond)
+
+	if _, err := m.Add(cfg, nil, nil, nil, 0); err != nil {
+		t.Fatalf("Add: %v", err)
+	}
+	s.Close()
+	waitState(t, m, cfg.ID, StateUnreachable)
+
+	deadline := time.Now().Add(3 * time.Second)
+	var ev types.ClientStateEvent
+	for time.Now().Before(deadline) {
+		for _, e := range m.States() {
+			if e.ConnectionId == cfg.ID {
+				ev = e
+			}
+		}
+		if ev.RetryAt > 0 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if ev.RetryAt == 0 {
+		t.Fatal("an unreachable connection never said when the heartbeat tries again")
+	}
+	if ahead := time.Until(time.UnixMilli(ev.RetryAt)); ahead > 4*m.beat {
+		t.Fatalf("next retry %s away, beyond the 4x backoff cap", ahead)
+	}
+
+	if err := s.Restart(); err != nil {
+		t.Fatalf("restart: %v", err)
+	}
+	waitState(t, m, cfg.ID, StateConnected)
+	for _, e := range m.States() {
+		if e.ConnectionId == cfg.ID && e.RetryAt != 0 {
+			t.Fatalf("connected but still announcing a retry at %d", e.RetryAt)
+		}
+	}
+}

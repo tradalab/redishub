@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS "connection" (
     tls_id           TEXT NOT NULL DEFAULT '',
     read_only        INTEGER NOT NULL DEFAULT 0,
     color            TEXT NOT NULL DEFAULT '',
+    tags             TEXT NOT NULL DEFAULT '[]',
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at       DATETIME

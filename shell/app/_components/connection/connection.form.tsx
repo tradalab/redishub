@@ -47,6 +47,7 @@ const connectionSchema = z
     tls_id: z.string().nullish(),
     read_only: z.boolean().default(false),
     color: z.string().optional(),
+    tags: z.array(z.string()).optional(),
   })
   .refine(
     data => {

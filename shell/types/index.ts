@@ -272,6 +272,7 @@ export interface ClientStateEvent {
   error: string;
   latency_ms: number;
   since: number;
+  retry_at: number;
 }
 
 export interface ClientStatesRes {
@@ -313,6 +314,7 @@ export interface ConnectionReq {
   last_db: number;
   read_only: boolean;
   color: string;
+  tags?: string[];
 }
 
 export interface ConsoleInputEvent {

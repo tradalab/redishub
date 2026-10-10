@@ -17,6 +17,7 @@ export interface TabDO {
 interface TabState {
   tabs: TabDO[]
   activeTabId: string | undefined
+  mru: string[]
   addTab: (tab: Omit<TabDO, "id" | "pinned">) => void
   updateTab: (id: string, updates: Partial<TabDO>) => void
   removeTab: (id: string) => void
@@ -27,9 +28,33 @@ interface TabState {
   removeConnectionTabs: (connectionId: string) => void
 }
 
+const touch = (mru: string[], tabs: TabDO[], id: string | undefined) => {
+  const live = mru.filter(x => x !== id && tabs.some(t => t.id === x))
+  return id ? [id, ...live] : live
+}
+
+export function pickConnectionTab(state: Pick<TabState, "tabs" | "mru">, connectionId: string): TabDO | undefined {
+  const own = state.tabs.filter(t => t.connectionId === connectionId)
+  for (const id of state.mru) {
+    const tab = own.find(t => t.id === id)
+    if (tab) return tab
+  }
+  return own[own.length - 1]
+}
+
+export function openConnectionIds(tabs: TabDO[]): string[] {
+  return [...new Set(tabs.map(t => t.connectionId))]
+}
+
+export function closedConnections(before: Iterable<string>, tabs: TabDO[]): string[] {
+  const open = new Set(tabs.map(t => t.connectionId))
+  return [...before].filter(id => !open.has(id))
+}
+
 export const useTabStore = create<TabState>((set, get) => ({
   tabs: [],
   activeTabId: undefined,
+  mru: [],
 
   addTab: tabData => {
     const { tabs } = get()
@@ -39,7 +64,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     )
 
     if (existingTab) {
-      set({ activeTabId: existingTab.id })
+      set({ activeTabId: existingTab.id, mru: touch(get().mru, tabs, existingTab.id) })
       return
     }
 
@@ -53,6 +78,7 @@ export const useTabStore = create<TabState>((set, get) => ({
     set({
       tabs: sortedTabs,
       activeTabId: newId,
+      mru: touch(get().mru, sortedTabs, newId),
     })
   },
 
@@ -77,10 +103,10 @@ export const useTabStore = create<TabState>((set, get) => ({
       }
     }
 
-    set({ tabs: newTabs, activeTabId: newActiveId })
+    set({ tabs: newTabs, activeTabId: newActiveId, mru: touch(get().mru, newTabs, newActiveId) })
   },
 
-  setActiveTabId: id => set({ activeTabId: id }),
+  setActiveTabId: id => set({ activeTabId: id, mru: touch(get().mru, get().tabs, id) }),
 
   togglePin: id => {
     const { tabs } = get()
@@ -92,7 +118,7 @@ export const useTabStore = create<TabState>((set, get) => ({
   closeOthers: id => {
     const { tabs } = get()
     const newTabs = tabs.filter(t => t.id === id || t.pinned)
-    set({ tabs: newTabs, activeTabId: id })
+    set({ tabs: newTabs, activeTabId: id, mru: touch(get().mru, newTabs, id) })
   },
 
   closeAll: () => {
@@ -102,13 +128,13 @@ export const useTabStore = create<TabState>((set, get) => ({
     if (activeTabId && !pinnedTabs.find(t => t.id === activeTabId)) {
       newActiveId = pinnedTabs.length > 0 ? pinnedTabs[0].id : undefined
     }
-    set({ tabs: pinnedTabs, activeTabId: newActiveId })
+    set({ tabs: pinnedTabs, activeTabId: newActiveId, mru: touch(get().mru, pinnedTabs, newActiveId) })
   },
 
   removeConnectionTabs: connectionId => {
     const { tabs, activeTabId } = get()
     const newTabs = tabs.filter(t => t.connectionId !== connectionId)
     const newActiveId = newTabs.some(t => t.id === activeTabId) ? activeTabId : newTabs[newTabs.length - 1]?.id
-    set({ tabs: newTabs, activeTabId: newActiveId })
+    set({ tabs: newTabs, activeTabId: newActiveId, mru: touch(get().mru, newTabs, newActiveId) })
   },
 }))

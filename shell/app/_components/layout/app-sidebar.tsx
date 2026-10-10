@@ -8,13 +8,13 @@ import { useAppContext } from "@/ctx/app.context"
 import { SidebarTool } from "@/app/_components/sidebar/sidebar-tool"
 
 export function AppSidebar({ ...props }: ComponentProps<typeof StackedSidebar>) {
-  const { selectedTab } = useAppContext()
+  const { selectedTab, selectedDb, selectedDbIdx } = useAppContext()
 
   return (
     <StackedSidebar {...props}>
       <SidebarTool />
       {selectedTab == "/connections" && <SidebarConnection />}
-      {selectedTab == "/browser" && <SidebarBrowser />}
+      {selectedTab == "/browser" && <SidebarBrowser key={`${selectedDb}:${selectedDbIdx}`} />}
     </StackedSidebar>
   )
 }

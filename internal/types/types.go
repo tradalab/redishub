@@ -272,6 +272,7 @@ type ClientStateEvent struct {
 	Error        string `json:"error"`
 	LatencyMs    int64  `json:"latency_ms"`
 	Since        int64  `json:"since"`
+	RetryAt      int64  `json:"retry_at"`
 }
 
 type ClientStatesRes struct {
@@ -313,6 +314,7 @@ type ConnectionReq struct {
 	LastDb           int32    `json:"last_db"`
 	ReadOnly         bool     `json:"read_only"`
 	Color            string   `json:"color"`
+	Tags             []string `json:"tags"`
 }
 
 type ConsoleInputEvent struct {

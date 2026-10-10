@@ -65,6 +65,7 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 	c.TlsID = params.TlsId
 	c.ReadOnly = bToI(params.ReadOnly)
 	c.Color = params.Color
+	c.Tags = encodeTags(params.Tags)
 
 	if isNew || params.Password != "" {
 		c.Password = params.Password

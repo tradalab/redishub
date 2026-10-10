@@ -65,12 +65,40 @@ func (m *ClientManager) report(id string, err error, latency time.Duration) {
 	}
 	next := cur
 	if err == nil {
-		next.State, next.Error = StateConnected, ""
+		next.State, next.Error, next.RetryAt = StateConnected, "", 0
 		if latency >= 0 {
 			next.LatencyMs = latency.Milliseconds()
 		}
 	} else {
 		next.State, next.Error = StateUnreachable, err.Error()
+	}
+	m.publish(cur, next)
+}
+
+func (m *ClientManager) retrying(cli *Client, at time.Time) {
+	m.stateMu.Lock()
+	defer m.stateMu.Unlock()
+	if at.IsZero() {
+		delete(m.retries, cli)
+	} else {
+		m.retries[cli] = at
+	}
+	id := cli.Cfg.ID
+	cur, ok := m.states[id]
+	if !ok || cur.State != StateUnreachable {
+		return
+	}
+	now := time.Now()
+	var soonest time.Time
+	for c, t := range m.retries {
+		if c.Cfg.ID == id && t.After(now) && (soonest.IsZero() || t.Before(soonest)) {
+			soonest = t
+		}
+	}
+	next := cur
+	next.RetryAt = 0
+	if !soonest.IsZero() {
+		next.RetryAt = soonest.UnixMilli()
 	}
 	m.publish(cur, next)
 }
@@ -126,6 +154,7 @@ func (m *ClientManager) Probe(ctx context.Context, id string) error {
 }
 
 func (m *ClientManager) heartbeat(ctx context.Context, cli *Client) {
+	defer m.retrying(cli, time.Time{})
 	wait := m.beat
 	for {
 		select {
@@ -134,9 +163,14 @@ func (m *ClientManager) heartbeat(ctx context.Context, cli *Client) {
 		case <-time.After(wait):
 		}
 		if err := m.probe(ctx, cli); err != nil {
+			if ctx.Err() != nil {
+				return
+			}
 			wait = min(wait*2, 4*m.beat)
+			m.retrying(cli, time.Now().Add(wait))
 		} else {
 			wait = m.beat
+			m.retrying(cli, time.Time{})
 		}
 	}
 }

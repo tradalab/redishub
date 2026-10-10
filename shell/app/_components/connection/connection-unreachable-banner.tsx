@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { RefreshCcwIcon } from "lucide-react"
 import { Button, Spinner, toast } from "@tradalab/lyra/ui"
@@ -11,6 +11,7 @@ export function ConnectionUnreachableBanner({ connectionId }: { connectionId: st
   const { t } = useTranslation()
   const state = useConnectionState(connectionId)
   const [probing, setProbing] = useState(false)
+  const retryIn = useSecondsUntil(state?.state === "unreachable" ? state.retry_at : 0)
   if (state?.state !== "unreachable") return null
 
   const retry = async () => {
@@ -31,10 +32,24 @@ export function ConnectionUnreachableBanner({ connectionId }: { connectionId: st
       <span className="text-muted-foreground truncate font-mono" title={state.error}>
         {state.error}
       </span>
+      {retryIn > 0 && <span className="text-muted-foreground shrink-0 tabular-nums">{t("conn_retry_in", { seconds: retryIn })}</span>}
       <Button size="sm" variant="ghost" className="ml-auto h-6 shrink-0 px-2 text-xs" disabled={probing} onClick={retry}>
         {probing ? <Spinner /> : <RefreshCcwIcon />}
         {t("reconnect")}
       </Button>
     </div>
   )
+}
+
+function useSecondsUntil(at: number | undefined): number {
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!at || at <= Date.now()) return
+    const id = setInterval(() => {
+      setTick(n => n + 1)
+      if (Date.now() >= at) clearInterval(id)
+    }, 1000)
+    return () => clearInterval(id)
+  }, [at])
+  return at ? Math.max(0, Math.ceil((at - Date.now()) / 1000)) : 0
 }

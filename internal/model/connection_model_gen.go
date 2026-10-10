@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	connectionFindOneSQL  = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
-	connectionFindAllSQL  = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `deleted_at` IS NULL"
-	connectionFindManySQL = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `id` IN (?) AND `deleted_at` IS NULL"
-	connectionInsertSQL   = "INSERT INTO `connection` (`id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-	connectionUpdateSQL   = "UPDATE `connection` SET `mode` = ?, `name` = ?, `network` = ?, `host` = ?, `port` = ?, `addrs` = ?, `sentinel_master` = ?, `sentinel_username` = ?, `sentinel_password` = ?, `sock` = ?, `username` = ?, `password` = ?, `addr_mapping` = ?, `last_db` = ?, `exec_timeout` = ?, `dial_timeout` = ?, `key_size` = ?, `group_id` = ?, `ssh_enable` = ?, `ssh_id` = ?, `proxy_enable` = ?, `proxy_id` = ?, `tls_enable` = ?, `tls_id` = ?, `read_only` = ?, `color` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
+	connectionFindOneSQL  = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`tags`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
+	connectionFindAllSQL  = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`tags`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `deleted_at` IS NULL"
+	connectionFindManySQL = "SELECT `id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`tags`,`created_at`,`updated_at`,`deleted_at` FROM `connection` WHERE `id` IN (?) AND `deleted_at` IS NULL"
+	connectionInsertSQL   = "INSERT INTO `connection` (`id`,`mode`,`name`,`network`,`host`,`port`,`addrs`,`sentinel_master`,`sentinel_username`,`sentinel_password`,`sock`,`username`,`password`,`addr_mapping`,`last_db`,`exec_timeout`,`dial_timeout`,`key_size`,`group_id`,`ssh_enable`,`ssh_id`,`proxy_enable`,`proxy_id`,`tls_enable`,`tls_id`,`read_only`,`color`,`tags`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	connectionUpdateSQL   = "UPDATE `connection` SET `mode` = ?, `name` = ?, `network` = ?, `host` = ?, `port` = ?, `addrs` = ?, `sentinel_master` = ?, `sentinel_username` = ?, `sentinel_password` = ?, `sock` = ?, `username` = ?, `password` = ?, `addr_mapping` = ?, `last_db` = ?, `exec_timeout` = ?, `dial_timeout` = ?, `key_size` = ?, `group_id` = ?, `ssh_enable` = ?, `ssh_id` = ?, `proxy_enable` = ?, `proxy_id` = ?, `tls_enable` = ?, `tls_id` = ?, `read_only` = ?, `color` = ?, `tags` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
 	connectionDeleteSQL   = "UPDATE `connection` SET `deleted_at` = ? WHERE `id` = ?"
 )
 
@@ -67,6 +67,7 @@ type (
 		TlsID            string       `db:"tls_id" json:"tls_id"`
 		ReadOnly         int64        `db:"read_only" json:"read_only"`
 		Color            string       `db:"color" json:"color"`
+		Tags             string       `db:"tags" json:"tags"`
 		CreatedAt        time.Time    `db:"created_at" json:"created_at"`
 		UpdatedAt        time.Time    `db:"updated_at" json:"updated_at"`
 		DeletedAt        sql.NullTime `db:"deleted_at" json:"deleted_at"`
@@ -113,6 +114,7 @@ func (m *defaultConnectionModel) Insert(ctx context.Context, data *Connection) (
 		data.TlsID,
 		data.ReadOnly,
 		data.Color,
+		data.Tags,
 		data.CreatedAt,
 		data.UpdatedAt,
 		data.DeletedAt,
@@ -175,6 +177,7 @@ func (m *defaultConnectionModel) Update(ctx context.Context, data *Connection) e
 		data.TlsID,
 		data.ReadOnly,
 		data.Color,
+		data.Tags,
 		data.UpdatedAt,
 		data.DeletedAt,
 		data.ID,

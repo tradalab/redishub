@@ -40,6 +40,7 @@ import { Spinner } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
 import { useConfirm } from "@tradalab/lyra/blocks"
 import { useTabStore } from "@/stores/tab.store"
+import { browserViewKey, useBrowserViewStore } from "@/stores/browser-view.store"
 import { BrowserBulkDeleteDialog } from "@/app/_components/browser-bulk-delete-dialog"
 import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
@@ -48,18 +49,23 @@ import { resolveColor } from "@/lib/connection-color"
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
+  const { connect, selectedDb, selectedDbIdx } = useAppContext()
+  const [saved] = useState(() => (selectedDb ? useBrowserViewStore.getState().views[browserViewKey(selectedDb, selectedDbIdx)] : undefined))
   const [dataset, setDataset] = useState<TreeItem[]>([])
-  const [filters, setFilters] = useState<KeyFilter[]>(emptyFilters)
-  const [matchAll, setMatchAll] = useState(false)
-  const [keyType, setKeyType] = useState("")
+  const [filters, setFilters] = useState<KeyFilter[]>(() => saved?.filters ?? emptyFilters())
+  const [matchAll, setMatchAll] = useState(saved?.matchAll ?? false)
+  const [keyType, setKeyType] = useState(saved?.keyType ?? "")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set(saved?.expandedIds))
+  const saveView = useBrowserViewStore(s => s.save)
+  useEffect(() => {
+    if (selectedDb) saveView(browserViewKey(selectedDb, selectedDbIdx), { filters, matchAll, keyType, expandedIds: [...expandedIds] })
+  }, [selectedDb, selectedDbIdx, saveView, filters, matchAll, keyType, expandedIds])
   const [dbs, setDbs] = useState<DbInfo[]>([])
   const confirm = useConfirm()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletePrefix, setDeletePrefix] = useState("")
 
-  const { connect, selectedDb, setSelectedDbIdx, selectedDbIdx } = useAppContext()
   const { addTab } = useTabStore()
   const { data: connectionList = [] } = useConnectionList()
   const currentConnection = connectionList.find(c => c.id === selectedDb)
@@ -241,17 +247,13 @@ export function SidebarBrowser() {
         return
       }
       await connect(conn, idx)
-      setSelectedDbIdx(idx)
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : typeof e === "string" ? e : t("unknown_error")
       toast.add({ title: msg, type: "error" })
     }
   }
 
-  if (!selectedDb) {
-    setDataset([])
-    return null
-  }
+  if (!selectedDb) return null
 
   return (
     <SidebarPanel variant="sidebar" className="flex flex-1 w-[calc(var(--sidebar-width)-var(--sidebar-width-icon)-2px)]!">

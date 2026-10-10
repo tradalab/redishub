@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, memo } from "react"
+import { useCallback, useMemo, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
 import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu, toast } from "@tradalab/lyra/ui"
@@ -17,7 +17,9 @@ import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList } from "@/hooks/api/group.api"
 import { useConnectionList, useDeleteConnection } from "@/hooks/api/connection.api"
 import { useGroup } from "@/app/_components/group/group.context"
-import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
+import { useTabStore } from "@/stores/tab.store"
+import { ConnectionStateDot, GroupStateSummary } from "@/app/_components/connection/connection-state-dot"
+import { loadExpanded, saveExpanded } from "@/lib/connection-tree"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
 import { CONNECTION_COLORS, isConnectionColor, resolveColor } from "@/lib/connection-color"
 
@@ -34,6 +36,27 @@ export function SidebarConnection() {
   const dataset = useMemo(() => sortTree(buildDbTree(groups, databases)), [groups, databases])
 
   const filteredDataset = useMemo(() => filterTree(dataset, keyword), [dataset, keyword])
+  const groupMembers = useMemo(() => new Map(dataset.filter(i => i.isGroup).map(g => [g.id, g.children?.map(c => c.id) ?? []])), [dataset])
+
+  const [expanded, setExpanded] = useState(loadExpanded)
+  const [filterExpanded, setFilterExpanded] = useState<{ keyword: string; ids: Set<string> } | null>(null)
+  const filtering = keyword.trim() !== ""
+  const shownExpanded = useMemo(() => {
+    if (!filtering) return expanded
+    if (filterExpanded?.keyword === keyword) return filterExpanded.ids
+    return new Set(filteredDataset.filter(i => i.isGroup).map(i => i.id))
+  }, [filtering, keyword, filterExpanded, filteredDataset, expanded])
+  const onExpandedChange = useCallback(
+    (ids: Set<string>) => {
+      if (filtering) {
+        setFilterExpanded({ keyword, ids })
+        return
+      }
+      setExpanded(ids)
+      saveExpanded(ids)
+    },
+    [filtering, keyword]
+  )
 
   const refetch = () => {
     groupsRefetch()
@@ -59,10 +82,16 @@ export function SidebarConnection() {
           <SidebarGroup className="p-0">
             <SidebarGroupContent>
               <SidebarMenu>
-                <TreeProvider defaultExpandedIds={[]} selectedIds={selectedIds} onSelectionChange={setSelectedIds} multiSelect>
+                <TreeProvider
+                  expandedIds={shownExpanded}
+                  onExpandedChange={onExpandedChange}
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
+                  multiSelect
+                >
                   <TreeView className="px-1 py-2">
                     {filteredDataset.map((item: TreeItem) => (
-                      <RenderTreeItem key={item.id} item={item} reload={refetch} />
+                      <RenderTreeItem key={item.id} item={item} memberIds={groupMembers.get(item.id)} reload={refetch} />
                     ))}
                   </TreeView>
                 </TreeProvider>
@@ -77,10 +106,11 @@ export function SidebarConnection() {
 
 type RenderTreeItemProps = {
   item: TreeItem
+  memberIds?: string[]
   reload: () => void
 }
 
-function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
+function RenderTreeItem({ item, memberIds, reload }: RenderTreeItemProps) {
   const { t } = useTranslation()
   const { connect, selectedDb } = useAppContext()
   const isActive = !item.isGroup && item.id === selectedDb
@@ -114,6 +144,7 @@ function RenderTreeItem({ item, reload }: RenderTreeItemProps) {
         />
         <TreeLabel>{item.name}</TreeLabel>
         {!item.isGroup && <ConnectionStateDot connectionId={item.id} className="ml-1.5" />}
+        {item.isGroup && <GroupStateSummary connectionIds={memberIds ?? []} className="ml-1.5" />}
         {readOnly && (
           <span title={t("read_only")} className="ml-auto mr-0.5 inline-flex shrink-0">
             <LockIcon className="h-3 w-3 text-amber-600 dark:text-amber-400" />
@@ -162,6 +193,7 @@ const ActionButton = memo(function ActionButton({ item, reload }: ActionButtonPr
         await deleteGroup.mutateAsync(item.id)
       } else {
         await deleteConnection.mutateAsync(item.id)
+        useTabStore.getState().removeConnectionTabs(item.id)
       }
       toast.add({ title: "Deleted!", type: "success" })
       reload()

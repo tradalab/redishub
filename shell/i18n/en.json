@@ -317,5 +317,10 @@
   "run_mode_app": "Desktop app",
   "run_mode_web": "Web mode",
   "unknown": "unknown",
-  "updates_web_mode": "In web mode the app runs from a container image, so it updates by pulling a new image. In-app updates are off."
+  "updates_web_mode": "In web mode the app runs from a container image, so it updates by pulling a new image. In-app updates are off.",
+  "tags": "Tags",
+  "tags_placeholder": "e.g. eu-west, team-a",
+  "tags_hint": "Press Enter or comma to add. The sidebar filter matches tags and hosts too.",
+  "tag_remove": "Remove tag {{tag}}",
+  "conn_retry_in": "retrying in {{seconds}}s"
 }

@@ -1,4 +1,5 @@
 import { GroupItem as GroupDO, ConnectionReq as ConnectionDO } from "@/types"
+import { connectionMatches } from "@/lib/connection-tree"
 
 export type TreeItem = {
   id: string
@@ -25,10 +26,9 @@ export type FlattenedTreeItem = TreeItem & {
 export function filterTree(items: TreeItem[], keyword: string): TreeItem[] {
   if (!keyword) return items
 
-  const lower = keyword.toLowerCase()
   return items
     .map<TreeItem | null>((item: TreeItem) => {
-      const nameMatch = item.name.toLowerCase().includes(lower)
+      const nameMatch = connectionMatches(item.connection, item.name, keyword)
       const filteredChildren: TreeItem[] | undefined = item.children ? filterTree(item.children, keyword) : undefined
       if (nameMatch || (filteredChildren && filteredChildren.length > 0)) {
         return {

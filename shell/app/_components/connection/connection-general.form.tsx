@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { UseFormReturn } from "react-hook-form"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@tradalab/lyra/blocks"
 import { Input } from "@tradalab/lyra/ui"
@@ -11,10 +12,22 @@ import { Separator } from "@tradalab/lyra/ui"
 import { RedisModeEnum } from "@/types/redis-mode.enum"
 import { GroupItem as GroupDO } from "@/types"
 import { ColorSwatches } from "@/app/_components/connection/color-swatches"
+import { TagInput } from "@/app/_components/connection/tag-input"
+import { useConnectionList } from "@/hooks/api/connection.api"
+import { addTag } from "@/lib/connection-tree"
 
 export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
   const { data: groups = [] } = useGroupList()
+  const { data: connections = [] } = useConnectionList()
+  const knownTags = useMemo(
+    () =>
+      connections
+        .flatMap(c => c.tags ?? [])
+        .reduce(addTag, [])
+        .sort(),
+    [connections]
+  )
 
   const mode: RedisModeEnum = form.watch("mode") || RedisModeEnum.STANDALONE
   const network: string = form.watch("network")
@@ -48,6 +61,19 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
               <FormControl>
                 <ColorSwatches value={field.value} onChange={field.onChange} emptyLabel={form.watch("group_id") ? t("color_inherit") : t("none")} />
               </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("tags")}</FormLabel>
+              <FormControl>
+                <TagInput value={field.value} onChange={field.onChange} suggestions={knownTags} placeholder={t("tags_placeholder")} />
+              </FormControl>
+              <FormDescription>{t("tags_hint")}</FormDescription>
             </FormItem>
           )}
         />
