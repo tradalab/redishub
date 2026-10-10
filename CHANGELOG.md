@@ -2,7 +2,7 @@
 
 ---
 
-## [Unreleased]
+## [1.17.0]
 
 ### 🚀 Features
 
@@ -10,7 +10,7 @@
 - **sidebar:** The filter matches a connection's host, cluster and sentinel addresses, socket and tags as well as its name, and opens every group that holds a match
 - **sidebar:** Groups you left open stay open across restarts, and a group row counts its connected, connecting and unreachable connections, so an outage is visible with the group collapsed
 - **connection:** The unreachable banner says when RedisHub tries again (30s after a failed check, backing off to 60s while the server stays down)
-- **sidebar:** Every open connection gets its own icon in the left rail, tinted with its color and carrying its state dot, in place of the single Browser icon. A click returns to the tab you last used on that connection; right-click to disconnect
+- **sidebar:** Every open connection gets its own icon in the left rail, tinted with its color and carrying its state dot, in place of the single Browser icon. A click returns to the tab you last used on that connection; right-click to disconnect. The Connections icon is now a folder tree, so it no longer looks like a connection
 - **key-browser:** Filters, key type and expanded folders are kept per connection and database, so switching back finds the view as you left it
 - **connection:** In the desktop app, closing the last tab of a connection disconnects it, so nothing stays open that no tab shows. Web mode keeps the connection, since other people on the server may be using it
 
