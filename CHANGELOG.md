@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 🚀 Features
+
+- **sidebar:** Drag to reorder groups and connections. Drop a connection on a group to move it there, or on the empty space below the tree to take it out of its group. The order is saved; new items go to the end. Dragging is off while the filter is in use
+
 ### 🐛 Fixes
 
 - **i18n:** The Key List headers, the bulk-delete confirm button, the empty filter result and the SSH, TLS and proxy form errors showed raw translation keys (`ttl`, `size`, `keys`, `delete_all`, `no_keys_match`, `validation_error`) instead of text

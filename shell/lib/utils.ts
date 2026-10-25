@@ -69,8 +69,12 @@ export function parseRedisInfo(infoText: string): InfoObject {
   return result
 }
 
-export const buildDbTree = (groups: GroupDO[], connections: ConnectionDO[]): TreeItem[] => {
-  const grouped = groups.map((g: GroupDO) => ({
+const bySortOrder = (a: { sort_order: number; name: string }, b: { sort_order: number; name: string }) =>
+  a.sort_order - b.sort_order || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+
+export const buildDbTree = (groups: GroupDO[], unsortedConnections: ConnectionDO[]): TreeItem[] => {
+  const connections = [...unsortedConnections].sort(bySortOrder)
+  const grouped = [...groups].sort(bySortOrder).map((g: GroupDO) => ({
     id: g.id,
     name: g.name,
     isGroup: true,

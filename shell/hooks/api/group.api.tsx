@@ -31,6 +31,23 @@ export function useUpsertGroup() {
   })
 }
 
+export function useReorderGroups() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await group.reorder({ ids })
+    },
+    onMutate: async ids => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY })
+      const index = new Map(ids.map((id, i) => [id, i]))
+      queryClient.setQueryData<GroupDO[]>(QUERY_KEY, old => old?.map(g => (index.has(g.id) ? { ...g, sort_order: index.get(g.id)! } : g)))
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+    },
+  })
+}
+
 export function useDeleteGroup() {
   const queryClient = useQueryClient()
   return useMutation({

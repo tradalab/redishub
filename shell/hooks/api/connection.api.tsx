@@ -50,6 +50,25 @@ export function useUpsertConnection() {
   })
 }
 
+export function useReorderConnections() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: { groupId: string; ids: string[] }) => {
+      await connection.reorder({ group_id: vars.groupId, ids: vars.ids })
+    },
+    onMutate: async ({ groupId, ids }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY })
+      const index = new Map(ids.map((id, i) => [id, i]))
+      queryClient.setQueryData<ConnectionDO[]>(QUERY_KEY, old =>
+        old?.map(c => (index.has(c.id) ? { ...c, group_id: groupId, sort_order: index.get(c.id)! } : c))
+      )
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+    },
+  })
+}
+
 export function useDeleteConnection() {
   const queryClient = useQueryClient()
   return useMutation({
