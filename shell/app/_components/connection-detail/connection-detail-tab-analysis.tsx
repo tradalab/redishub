@@ -26,7 +26,9 @@ import {
   TooltipTrigger,
 } from "@tradalab/lyra/ui"
 import { useAnalysisProfile, type AnalysisMode } from "@/hooks/api/analysis.api"
-import type { AnalysisBucket, AnalysisTypeStat } from "@/types"
+import type { AnalysisBucket, AnalysisPrefix, AnalysisTypeStat } from "@/types"
+import { prefixChildren, squarify } from "@/lib/treemap"
+import { cn } from "@/lib/utils"
 
 const KIND_COLOR: Record<string, string> = {
   string: "bg-sky-500",
@@ -119,6 +121,75 @@ function TypeBar({ types, total }: { types: AnalysisTypeStat[]; total: number })
   )
 }
 
+const TILE_COLORS = ["bg-sky-600", "bg-violet-600", "bg-emerald-600", "bg-amber-600", "bg-rose-600", "bg-teal-600", "bg-indigo-600", "bg-fuchsia-600"]
+// By prefix, not position, so a block keeps its colour as frames reorder tiles.
+const tileColor = (prefix: string) => TILE_COLORS[[...prefix].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % TILE_COLORS.length]
+const DELIMITERS = [":", "/", ".", "|", "_"]
+const MAP_W = 1000
+const MAP_H = 360
+
+function PrefixTreemap({ prefixes, delimiter, keys, total }: { prefixes: AnalysisPrefix[]; delimiter: string; keys: number; total: number }) {
+  const { t } = useTranslation()
+  const [path, setPath] = useState<string[]>([])
+  const open = path.filter(p => prefixes.some(x => x.prefix === p))
+  const current = open.length > 0 ? open[open.length - 1] : null
+  const stat = current === null ? undefined : prefixes.find(p => p.prefix === current)
+  const parentBytes = stat?.bytes ?? total
+  const tiles = squarify(prefixChildren(prefixes, current, delimiter, stat?.keys ?? keys, parentBytes), n => n.bytes, { x: 0, y: 0, w: MAP_W, h: MAP_H })
+  const pct = (v: number, of: number) => `${((v / of) * 100).toFixed(4)}%`
+  const segment = (p: string) => p.slice(p.lastIndexOf(delimiter) + delimiter.length) || '""'
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-1 text-xs">
+        <button type="button" className={cn("hover:underline", open.length === 0 && "font-medium")} onClick={() => setPath([])}>
+          {t("analysis_prefix_all")}
+        </button>
+        {open.map((p, i) => (
+          <span key={p} className="flex items-center gap-1">
+            <span className="text-muted-foreground">/</span>
+            <button
+              type="button"
+              className={cn("font-mono hover:underline", i === open.length - 1 && "font-medium")}
+              onClick={() => setPath(open.slice(0, i + 1))}
+            >
+              {segment(p)}
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="relative w-full overflow-hidden rounded-md bg-muted/40" style={{ aspectRatio: `${MAP_W} / ${MAP_H}` }}>
+        {tiles.map(tile => {
+          const n = tile.item
+          const label = n.prefix === null ? t("analysis_prefix_other") : segment(n.prefix)
+          const share = parentBytes > 0 ? ((n.bytes / parentBytes) * 100).toFixed(1) : "0"
+          const drillable = n.prefix !== null && n.hasChildren
+          return (
+            <button
+              type="button"
+              key={n.prefix ?? "\0rest"}
+              aria-disabled={!drillable}
+              onClick={() => drillable && setPath([...open, n.prefix])}
+              title={`${n.prefix === null ? label : n.prefix + delimiter + "*"}\n${bytes(n.bytes)} · ${share}% · ${t("analysis_keys")} ${num(n.keys)}`}
+              className={cn(
+                "absolute overflow-hidden border border-background p-1 text-left text-[11px] leading-tight text-white",
+                n.prefix === null ? "bg-zinc-400 dark:bg-zinc-600" : tileColor(n.prefix),
+                drillable ? "cursor-pointer hover:brightness-110" : "cursor-default"
+              )}
+              style={{ left: pct(tile.x, MAP_W), top: pct(tile.y, MAP_H), width: pct(tile.w, MAP_W), height: pct(tile.h, MAP_H) }}
+            >
+              <div className={cn("truncate font-medium", n.prefix !== null && "font-mono")}>{label}</div>
+              <div className="truncate tabular-nums opacity-80">
+                {bytes(n.bytes)} · {share}%
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function Panel({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <Card className="shadow-none">
@@ -137,6 +208,8 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
   const { t } = useTranslation()
   const [mode, setMode] = useState<AnalysisMode>("fast")
   const [sampleSize, setSampleSize] = useState("10000")
+  const [delimiter, setDelimiter] = useState(":")
+  const [runDelimiter, setRunDelimiter] = useState(":")
   const { event, running, error, run, cancel } = useAnalysisProfile(connectionId, databaseIdx)
 
   useEffect(() => {
@@ -147,6 +220,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
   const sizeCharts = useMemo(() => (event?.distrib ?? []).filter(d => (d.buckets ?? []).length > 0), [event])
   const scanned = event?.scanned ?? 0
   const progress = event && event.total > 0 ? Math.min(100, (scanned / event.total) * 100) : 0
+  const scannedBytes = (event?.types ?? []).reduce((s, x) => s + x.bytes, 0)
 
   return (
     <div className="flex h-full flex-col">
@@ -177,13 +251,35 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
           </Select>
         )}
 
+        {mode !== "fast" && (
+          <Select value={delimiter} onValueChange={setDelimiter} disabled={running}>
+            <SelectTrigger size="sm" className="w-[130px]" title={t("analysis_delimiter")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DELIMITERS.map(d => (
+                <SelectItem key={d} value={d}>
+                  {t("analysis_delimiter")} <span className="font-mono">{d}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         {running ? (
           <Button size="sm" variant="outline" onClick={cancel}>
             <XIcon />
             {t("cancel")}
           </Button>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => run(mode, mode === "sampled" ? Number(sampleSize) : 0)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setRunDelimiter(delimiter)
+              run(mode, mode === "sampled" ? Number(sampleSize) : 0, delimiter)
+            }}
+          >
             <PlayIcon />
             {t("run")}
           </Button>
@@ -301,6 +397,14 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
               <BarList items={(event?.nodes ?? []).map(n => ({ label: n.addr, count: n.keys }))} colorClass="bg-violet-500" />
             </Panel>
           )}
+
+          <Panel title={t("analysis_prefix_memory")} subtitle={scanned > 0 ? t("analysis_prefix_memory_hint") : undefined}>
+            {scanned > 0 && scannedBytes > 0 ? (
+              <PrefixTreemap key={runDelimiter} prefixes={event?.prefixes ?? []} delimiter={runDelimiter} keys={scanned} total={scannedBytes} />
+            ) : (
+              <div className="text-xs text-muted-foreground">{t("analysis_prefix_needs_scan")}</div>
+            )}
+          </Panel>
 
           <Panel
             title={event?.truncated ? t("analysis_largest_sampled") : t("analysis_largest")}

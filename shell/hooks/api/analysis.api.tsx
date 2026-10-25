@@ -20,7 +20,7 @@ export function useAnalysisProfile(connectionId: string, databaseIdx: number) {
   }, [])
 
   const run = useCallback(
-    async (mode: AnalysisMode, sampleSize = 0) => {
+    async (mode: AnalysisMode, sampleSize = 0, delimiter = ":") => {
       if (streamRef.current) return
       setError(null)
       setRunning(true)
@@ -29,6 +29,7 @@ export function useAnalysisProfile(connectionId: string, databaseIdx: number) {
         database_index: databaseIdx,
         mode,
         sample_size: sampleSize,
+        delimiter,
       })
       streamRef.current = stream
       try {

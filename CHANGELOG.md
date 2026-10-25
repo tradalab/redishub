@@ -7,6 +7,7 @@
 ### 🚀 Features
 
 - **sidebar:** Drag to reorder groups and connections. Drop a connection on a group to move it there, or on the empty space below the tree to take it out of its group. The order is saved; new items go to the end. Dragging is off while the filter is in use
+- **analysis:** Memory by prefix - a sampled or full scan draws a tree-map of memory per key prefix, three levels deep, with the delimiter of your choice (`:` `/` `.` `|` `_`). Click a block to open it
 
 ### 🐛 Fixes
 
