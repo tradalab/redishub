@@ -41,6 +41,7 @@ func reg[Req any](a *app.App, name string, call func(context.Context, *Req) (any
 }
 
 func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
+	registerModules(a)
 	reg(a, "client:connect", func(ctx context.Context, r *types.ClientConnectReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return client.NewConnectLogic(ctx, svcCtx).Connect(a.(*types.ClientConnectReq))

@@ -98,6 +98,8 @@ modules:
     tooltip: RedisHub
   browser:
     enabled: true
+  clipboard:
+    enabled: true
   updater:
     enabled: true
     provider: github
