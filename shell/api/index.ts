@@ -92,6 +92,7 @@ export const connection = {
   list: (params: T.Empty) => scorix.invoke<T.ConnectionListRes>("connection:list", params),
   upsert: (params: T.ConnectionReq) => scorix.invoke<T.UpsertRes>("connection:upsert", params),
   delete: (params: T.IdReq) => scorix.invoke<T.Empty>("connection:delete", params),
+  reorder: (params: T.ConnectionReorderReq) => scorix.invoke<T.Empty>("connection:reorder", params),
 };
 
 export const system = {
@@ -102,6 +103,7 @@ export const group = {
   list: (params: T.Empty) => scorix.invoke<T.GroupListRes>("group:list", params),
   upsert: (params: T.GroupUpsertReq) => scorix.invoke<T.UpsertRes>("group:upsert", params),
   delete: (params: T.IdReq) => scorix.invoke<T.Empty>("group:delete", params),
+  reorder: (params: T.GroupReorderReq) => scorix.invoke<T.Empty>("group:reorder", params),
 };
 
 export const setting = {

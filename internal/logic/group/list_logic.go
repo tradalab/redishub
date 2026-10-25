@@ -34,6 +34,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.GroupListRes, error) {
 			CreatedAt: g.CreatedAt.Unix(),
 			UpdatedAt: g.UpdatedAt.Unix(),
 			Color:     g.Color,
+			SortOrder: int32(g.SortOrder),
 		})
 	}
 

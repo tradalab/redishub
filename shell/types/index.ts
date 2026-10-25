@@ -284,6 +284,11 @@ export interface ConnectionListRes {
   items?: ConnectionReq[];
 }
 
+export interface ConnectionReorderReq {
+  group_id: string;
+  ids?: string[];
+}
+
 export interface ConnectionReq {
   id: string;
   mode: string;
@@ -316,6 +321,7 @@ export interface ConnectionReq {
   read_only: boolean;
   color: string;
   tags?: string[];
+  sort_order: number;
 }
 
 export interface ConsoleInputEvent {
@@ -396,10 +402,15 @@ export interface GroupItem {
   created_at: number;
   updated_at: number;
   color: string;
+  sort_order: number;
 }
 
 export interface GroupListRes {
   items?: GroupItem[];
+}
+
+export interface GroupReorderReq {
+  ids?: string[];
 }
 
 export interface GroupUpsertReq {

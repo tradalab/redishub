@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	groupFindOneSQL  = "SELECT `id`,`name`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
-	groupFindAllSQL  = "SELECT `id`,`name`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `deleted_at` IS NULL"
-	groupFindManySQL = "SELECT `id`,`name`,`color`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `id` IN (?) AND `deleted_at` IS NULL"
-	groupInsertSQL   = "INSERT INTO `group` (`id`,`name`,`color`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?)"
-	groupUpdateSQL   = "UPDATE `group` SET `name` = ?, `color` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
+	groupFindOneSQL  = "SELECT `id`,`name`,`color`,`sort_order`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
+	groupFindAllSQL  = "SELECT `id`,`name`,`color`,`sort_order`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `deleted_at` IS NULL"
+	groupFindManySQL = "SELECT `id`,`name`,`color`,`sort_order`,`created_at`,`updated_at`,`deleted_at` FROM `group` WHERE `id` IN (?) AND `deleted_at` IS NULL"
+	groupInsertSQL   = "INSERT INTO `group` (`id`,`name`,`color`,`sort_order`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?)"
+	groupUpdateSQL   = "UPDATE `group` SET `name` = ?, `color` = ?, `sort_order` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
 	groupDeleteSQL   = "UPDATE `group` SET `deleted_at` = ? WHERE `id` = ?"
 )
 
@@ -43,6 +43,7 @@ type (
 		ID        string       `db:"id" json:"id"`
 		Name      string       `db:"name" json:"name"`
 		Color     string       `db:"color" json:"color"`
+		SortOrder int64        `db:"sort_order" json:"sort_order"`
 		CreatedAt time.Time    `db:"created_at" json:"created_at"`
 		UpdatedAt time.Time    `db:"updated_at" json:"updated_at"`
 		DeletedAt sql.NullTime `db:"deleted_at" json:"deleted_at"`
@@ -65,6 +66,7 @@ func (m *defaultGroupModel) Insert(ctx context.Context, data *Group) (sql.Result
 		data.ID,
 		data.Name,
 		data.Color,
+		data.SortOrder,
 		data.CreatedAt,
 		data.UpdatedAt,
 		data.DeletedAt,
@@ -103,6 +105,7 @@ func (m *defaultGroupModel) Update(ctx context.Context, data *Group) error {
 	_, err := scorixsqlx.From(ctx, m.conn).ExecContext(ctx, groupUpdateSQL,
 		data.Name,
 		data.Color,
+		data.SortOrder,
 		data.UpdatedAt,
 		data.DeletedAt,
 		data.ID,

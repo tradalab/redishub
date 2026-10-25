@@ -39,10 +39,15 @@ func (l *UpsertLogic) Upsert(params *types.GroupUpsertReq) (*types.UpsertRes, er
 		}
 	}
 
+	next, err := l.svcCtx.GroupModel.NextSortOrder(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 	g := &model.Group{
-		ID:    params.Id,
-		Name:  params.Name,
-		Color: params.Color,
+		ID:        params.Id,
+		Name:      params.Name,
+		Color:     params.Color,
+		SortOrder: next,
 	}
 	if _, err := l.svcCtx.GroupModel.Insert(l.ctx, g); err != nil {
 		return nil, err

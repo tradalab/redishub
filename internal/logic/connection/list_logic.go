@@ -57,6 +57,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.ConnectionListRes, error) 
 			ReadOnly:         c.ReadOnly > 0,
 			Color:            c.Color,
 			Tags:             decodeTags(c.Tags),
+			SortOrder:        int32(c.SortOrder),
 		})
 	}
 

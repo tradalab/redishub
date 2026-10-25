@@ -362,6 +362,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "connection:reorder", func(ctx context.Context, r *types.ConnectionReorderReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return connection.NewReorderLogic(ctx, svcCtx).Reorder(a.(*types.ConnectionReorderReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "system:info", func(ctx context.Context, r *types.Empty) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return system.NewInfoLogic(ctx, svcCtx).Info(a.(*types.Empty))
@@ -383,6 +389,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 	reg(a, "group:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return group.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "group:reorder", func(ctx context.Context, r *types.GroupReorderReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return group.NewReorderLogic(ctx, svcCtx).Reorder(a.(*types.GroupReorderReq))
 		}
 		return h(ctx, r)
 	})

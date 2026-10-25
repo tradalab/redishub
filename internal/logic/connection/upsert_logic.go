@@ -41,6 +41,14 @@ func (l *UpsertLogic) Upsert(params *types.ConnectionReq) (*types.UpsertRes, err
 		}
 	}
 
+	if isNew || c.GroupID != params.GroupId {
+		next, err := l.svcCtx.ConnectionModel.NextSortOrder(l.ctx, params.GroupId)
+		if err != nil {
+			return nil, err
+		}
+		c.SortOrder = next
+	}
+
 	c.Mode = params.Mode
 	c.Name = params.Name
 	c.Network = params.Network

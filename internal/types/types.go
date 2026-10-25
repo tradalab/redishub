@@ -283,6 +283,11 @@ type ConnectionListRes struct {
 	Items []ConnectionReq `json:"items"`
 }
 
+type ConnectionReorderReq struct {
+	GroupId string   `json:"group_id"`
+	Ids     []string `json:"ids"`
+}
+
 type ConnectionReq struct {
 	Id               string   `json:"id"`
 	Mode             string   `json:"mode"`
@@ -315,6 +320,7 @@ type ConnectionReq struct {
 	ReadOnly         bool     `json:"read_only"`
 	Color            string   `json:"color"`
 	Tags             []string `json:"tags"`
+	SortOrder        int32    `json:"sort_order"`
 }
 
 type ConsoleInputEvent struct {
@@ -395,10 +401,15 @@ type GroupItem struct {
 	CreatedAt int64  `json:"created_at"`
 	UpdatedAt int64  `json:"updated_at"`
 	Color     string `json:"color"`
+	SortOrder int32  `json:"sort_order"`
 }
 
 type GroupListRes struct {
 	Items []GroupItem `json:"items"`
+}
+
+type GroupReorderReq struct {
+	Ids []string `json:"ids"`
 }
 
 type GroupUpsertReq struct {

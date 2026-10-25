@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS "connection" (
     read_only        INTEGER NOT NULL DEFAULT 0,
     color            TEXT NOT NULL DEFAULT '',
     tags             TEXT NOT NULL DEFAULT '[]',
+    sort_order       INTEGER NOT NULL DEFAULT 0,
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at       DATETIME
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS "group" (
     id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
     name        TEXT NOT NULL DEFAULT '',
     color       TEXT NOT NULL DEFAULT '',
+    sort_order  INTEGER NOT NULL DEFAULT 0,
     created_at  DATETIME,
     updated_at  DATETIME,
     deleted_at  DATETIME

@@ -146,6 +146,7 @@ frontend, `in` is the frontend to Go.
 | `connection:list` | `Empty` | `ConnectionListRes` | unary | - | - |
 | `connection:upsert` | `ConnectionReq` | `UpsertRes` | unary | - | - |
 | `connection:delete` | `IdReq` | `Empty` | unary | - | - |
+| `connection:reorder` | `ConnectionReorderReq` | `Empty` | unary | - | - |
 
 ## system
 
@@ -164,6 +165,7 @@ frontend, `in` is the frontend to Go.
 | `group:list` | `Empty` | `GroupListRes` | unary | - | - |
 | `group:upsert` | `GroupUpsertReq` | `UpsertRes` | unary | - | - |
 | `group:delete` | `IdReq` | `Empty` | unary | - | - |
+| `group:reorder` | `GroupReorderReq` | `Empty` | unary | - | - |
 
 ## setting
 
