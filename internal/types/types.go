@@ -21,6 +21,13 @@ type AnalysisNode struct {
 	Keys int64  `json:"keys"`
 }
 
+type AnalysisPrefix struct {
+	Prefix string `json:"prefix"`
+	Depth  int32  `json:"depth"`
+	Keys   int64  `json:"keys"`
+	Bytes  int64  `json:"bytes"`
+}
+
 type AnalysisProfileEvent struct {
 	Phase         string                `json:"phase"`
 	Scanned       int64                 `json:"scanned"`
@@ -36,6 +43,7 @@ type AnalysisProfileEvent struct {
 	TopKeys       []AnalysisTopKey      `json:"top_keys"`
 	Nodes         []AnalysisNode        `json:"nodes"`
 	RecencyMetric string                `json:"recency_metric"`
+	Prefixes      []AnalysisPrefix      `json:"prefixes"`
 }
 
 type AnalysisProfileReq struct {
@@ -43,6 +51,7 @@ type AnalysisProfileReq struct {
 	DatabaseIndex int32  `json:"database_index"`
 	Mode          string `json:"mode"`
 	SampleSize    int64  `json:"sample_size"`
+	Delimiter     string `json:"delimiter"`
 }
 
 type AnalysisSizeDistrib struct {

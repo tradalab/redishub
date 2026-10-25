@@ -22,6 +22,13 @@ export interface AnalysisNode {
   keys: number;
 }
 
+export interface AnalysisPrefix {
+  prefix: string;
+  depth: number;
+  keys: number;
+  bytes: number;
+}
+
 export interface AnalysisProfileEvent {
   phase: string;
   scanned: number;
@@ -37,6 +44,7 @@ export interface AnalysisProfileEvent {
   top_keys?: AnalysisTopKey[];
   nodes?: AnalysisNode[];
   recency_metric: string;
+  prefixes?: AnalysisPrefix[];
 }
 
 export interface AnalysisProfileReq {
@@ -44,6 +52,7 @@ export interface AnalysisProfileReq {
   database_index: number;
   mode: string;
   sample_size: number;
+  delimiter: string;
 }
 
 export interface AnalysisSizeDistrib {

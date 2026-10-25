@@ -129,6 +129,7 @@ func (l *ProfileLogic) collectInfo(rdb redis.UniversalClient, ev *types.Analysis
 	ev.Types = []types.AnalysisTypeStat{}
 	ev.Distrib = []types.AnalysisSizeDistrib{}
 	ev.TopKeys = []types.AnalysisTopKey{}
+	ev.Prefixes = []types.AnalysisPrefix{}
 	ev.Nodes = l.nodeList(nodes)
 
 	var keysizes strings.Builder
@@ -207,9 +208,10 @@ func (l *ProfileLogic) walk(rdb redis.UniversalClient, req *types.AnalysisProfil
 	}
 
 	st := &walkState{
-		recency: ev.RecencyMetric,
-		byKind:  map[string]*types.AnalysisTypeStat{},
-		ttlBuck: map[string]int64{},
+		recency:  ev.RecencyMetric,
+		byKind:   map[string]*types.AnalysisTypeStat{},
+		ttlBuck:  map[string]int64{},
+		prefixes: newPrefixTree(req.Delimiter),
 	}
 	ev.Phase = "scan"
 	last := time.Now()
@@ -270,6 +272,11 @@ func (l *ProfileLogic) walk(rdb redis.UniversalClient, req *types.AnalysisProfil
 			"Sampled %d of %d keys - \"largest keys\" is the largest within that sample, not the largest in the keyspace.",
 			st.scanned, ev.Total))
 	}
+	if st.prefixes.capped {
+		ev.Warnings = append(ev.Warnings, fmt.Sprintf(
+			"More than %d distinct prefixes at one level - later ones are counted in their parent prefix, or in \"Other keys\" at the top level.",
+			prefixMaxTracked))
+	}
 	return out.Send(&ev)
 }
 
@@ -280,6 +287,7 @@ type walkState struct {
 	byKind    map[string]*types.AnalysisTypeStat
 	top       []types.AnalysisTopKey
 	ttlBuck   map[string]int64
+	prefixes  *prefixTree
 }
 
 func (l *ProfileLogic) enrich(node redis.UniversalClient, keys []string, st *walkState) error {
@@ -320,6 +328,7 @@ func (l *ProfileLogic) enrich(node redis.UniversalClient, keys []string, st *wal
 		}
 		stat.Keys++
 		stat.Bytes += size
+		st.prefixes.add(k, size)
 
 		ttl, _ := ttlCmds[i].Result()
 		st.ttlBuck[ttlBucket(ttl)]++
@@ -379,6 +388,7 @@ func (st *walkState) fill(ev *types.AnalysisProfileEvent) {
 	}
 
 	ev.Ttl.Buckets = bucketsOf(st.ttlBuck, ttlBucketOrder)
+	ev.Prefixes = st.prefixes.emit()
 }
 
 func (l *ProfileLogic) nodeList(nodes []redisscan.Node) []types.AnalysisNode {

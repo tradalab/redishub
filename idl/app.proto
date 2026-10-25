@@ -698,6 +698,7 @@ message AnalysisProfileReq {
   int32  database_index = 2;
   string mode           = 3;
   int64  sample_size    = 4;
+  string delimiter      = 5; // splits keys into prefixes; ":" when empty
 }
 
 message AnalysisBucket {
@@ -742,6 +743,13 @@ message AnalysisTtlStat {
   repeated AnalysisBucket buckets = 4; // sampled, label is a human range
 }
 
+message AnalysisPrefix {
+  string prefix = 1;
+  int32  depth  = 2;
+  int64  keys   = 3;
+  int64  bytes  = 4;
+}
+
 message AnalysisNode {
   string addr = 1;
   int64  keys = 2;
@@ -762,6 +770,7 @@ message AnalysisProfileEvent {
   repeated AnalysisTopKey      top_keys = 13;
   repeated AnalysisNode        nodes    = 14;
   string recency_metric = 15; // freq | idle | none
+  repeated AnalysisPrefix prefixes = 16;
 }
 
 service analysis {
