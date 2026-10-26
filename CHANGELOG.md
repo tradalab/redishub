@@ -8,6 +8,9 @@
 
 - **sidebar:** Drag to reorder groups and connections. Drop a connection on a group to move it there, or on the empty space below the tree to take it out of its group. The order is saved; new items go to the end. Dragging is off while the filter is in use
 - **analysis:** Memory by prefix - a sampled or full scan draws a tree-map of memory per key prefix, three levels deep, with the delimiter of your choice (`:` `/` `.` `|` `_`). Click a block to open it
+- **key-browser:** Export keys to a file as NDJSON (one key per line with its type, TTL and full value, binary as base64) or MessagePack (smaller, binary kept as is) - a single key or a prefix from its menu, or everything matching the filter from the button beside Load All. Streams keep their consumer groups and where each one stands, though not their consumers or pending entries. In the web app the browser downloads the file
+- **analysis, slow-log:** Export results - the full analysis report as JSON, the largest keys and memory by prefix as CSV, and the slow log as CSV or JSON. CSV files open in Excel with Vietnamese and Japanese intact
+- **key-browser:** Import keys from a RedisHub export - pick the file from the browser menu, see how many keys it holds per type, how many already exist and which lines cannot be read, then choose whether to overwrite and whether to keep TTLs. Each key is written in one MULTI, so it never appears half written. Either format is read, told apart by its content. Blocked on read-only connections. In the web app the file is uploaded from the browser, up to 1 GB
 
 ### 🐛 Fixes
 

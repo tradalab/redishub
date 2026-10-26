@@ -21,6 +21,7 @@ import (
 	"github.com/tradalab/rdms/internal/logic/ssh"
 	"github.com/tradalab/rdms/internal/logic/system"
 	"github.com/tradalab/rdms/internal/logic/tls"
+	"github.com/tradalab/rdms/internal/logic/transfer"
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
 	"github.com/tradalab/scorix/app"
@@ -429,6 +430,30 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 	reg(a, "graph:schema", func(ctx context.Context, r *types.GraphSchemaReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return graph.NewSchemaLogic(ctx, svcCtx).Schema(a.(*types.GraphSchemaReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "transfer:export", func(ctx context.Context, req *types.TransferExportReq, out app.Sink[types.TransferProgressEvent]) error {
+		return transfer.NewExportLogic(ctx, svcCtx).Export(req, out)
+	})
+	reg(a, "transfer:save-file", func(ctx context.Context, r *types.TransferSaveFileReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return transfer.NewSaveFileLogic(ctx, svcCtx).SaveFile(a.(*types.TransferSaveFileReq))
+		}
+		return h(ctx, r)
+	})
+	reg(a, "transfer:inspect", func(ctx context.Context, r *types.TransferInspectReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return transfer.NewInspectLogic(ctx, svcCtx).Inspect(a.(*types.TransferInspectReq))
+		}
+		return h(ctx, r)
+	})
+	app.RegisterServerStream(a, "transfer:import", func(ctx context.Context, req *types.TransferImportReq, out app.Sink[types.TransferProgressEvent]) error {
+		return transfer.NewImportLogic(ctx, svcCtx).Import(req, out)
+	})
+	reg(a, "transfer:upload", func(ctx context.Context, r *types.TransferUploadReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return transfer.NewUploadLogic(ctx, svcCtx).Upload(a.(*types.TransferUploadReq))
 		}
 		return h(ctx, r)
 	})

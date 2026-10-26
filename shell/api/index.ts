@@ -121,6 +121,14 @@ export const graph = {
   schema: (params: T.GraphSchemaReq) => scorix.invoke<T.GraphSchemaRes>("graph:schema", params),
 };
 
+export const transfer = {
+  export: (params: T.TransferExportReq) => scorix.serverStream<T.TransferProgressEvent>("transfer:export", params),
+  saveFile: (params: T.TransferSaveFileReq) => scorix.invoke<T.TransferSaveFileRes>("transfer:save-file", params),
+  inspect: (params: T.TransferInspectReq) => scorix.invoke<T.TransferInspectRes>("transfer:inspect", params),
+  import: (params: T.TransferImportReq) => scorix.serverStream<T.TransferProgressEvent>("transfer:import", params),
+  upload: (params: T.TransferUploadReq) => scorix.invoke<T.TransferUploadRes>("transfer:upload", params),
+};
+
 // Typed events (@event in proto). onX subscribes (returns unsubscribe);
 // emitX sends a one-way frontend event to Go.
 export const events = {

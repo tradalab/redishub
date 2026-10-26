@@ -20,6 +20,8 @@ type ServiceContext struct {
 	Cfg          *config.Config
 	RedisManager *ClientManager
 	sqlx         *scorixsqlx.Module
+	// Web mode serves remote browsers, so nothing may open a dialog or write a path on this host.
+	Web bool
 	// scorix:model:fields:start
 	ConnectionModel   model.ConnectionModel
 	SshModel          model.SshModel

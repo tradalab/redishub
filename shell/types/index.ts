@@ -705,6 +705,76 @@ export interface TlsReq {
   key: string;
 }
 
+export interface TransferExportReq {
+  connection_id: string;
+  database_index: number;
+  keys?: string[];
+  prefix: string;
+  filters?: KeyFilter[];
+  match_all: boolean;
+  key_type: string;
+  file_name: string;
+  format: string;
+}
+
+export interface TransferImportReq {
+  connection_id: string;
+  database_index: number;
+  token: string;
+  overwrite: boolean;
+  keep_ttl: boolean;
+}
+
+export interface TransferInspectReq {
+  connection_id: string;
+  database_index: number;
+  upload: string;
+}
+
+export interface TransferInspectRes {
+  token: string;
+  file_name: string;
+  keys: number;
+  types?: TransferTypeCount[];
+  conflicts: number;
+  invalid: number;
+  errors?: string[];
+}
+
+export interface TransferProgressEvent {
+  path: string;
+  keys: number;
+  skipped: number;
+  bytes: number;
+  errors?: string[];
+  done: boolean;
+  chunk: string;
+}
+
+export interface TransferSaveFileReq {
+  file_name: string;
+  ext: string;
+  content: string;
+}
+
+export interface TransferSaveFileRes {
+  path: string;
+}
+
+export interface TransferTypeCount {
+  kind: string;
+  keys: number;
+}
+
+export interface TransferUploadReq {
+  upload: string;
+  data: string;
+}
+
+export interface TransferUploadRes {
+  upload: string;
+}
+
 export interface UpsertRes {
   id: string;
 }

@@ -53,6 +53,7 @@ func main() {
 	a.Module(traymod.New(trayIcon))
 
 	sc := svc.NewServiceContext(a)
+	sc.Web = *mode == "web"
 	sc.RedisManager.OnState(func(ev *types.ClientStateEvent) { events.EmitClientState(sc, ev) })
 	defer sc.RedisManager.CloseAll()
 	handler.RegisterHandlers(a, sc)

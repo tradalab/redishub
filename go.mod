@@ -12,6 +12,7 @@ require (
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/samber/lo v1.53.0
 	github.com/tradalab/scorix v0.34.0
+	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/crypto v0.57.0
 	golang.org/x/net v0.59.0
 	modernc.org/sqlite v1.52.0
@@ -41,6 +42,7 @@ require (
 	github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
 	go.uber.org/atomic v1.11.0 // indirect

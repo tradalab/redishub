@@ -704,6 +704,76 @@ type TlsReq struct {
 	Key        string `json:"key"`
 }
 
+type TransferExportReq struct {
+	ConnectionId  string      `json:"connection_id"`
+	DatabaseIndex int32       `json:"database_index"`
+	Keys          []string    `json:"keys"`
+	Prefix        string      `json:"prefix"`
+	Filters       []KeyFilter `json:"filters"`
+	MatchAll      bool        `json:"match_all"`
+	KeyType       string      `json:"key_type"`
+	FileName      string      `json:"file_name"`
+	Format        string      `json:"format"`
+}
+
+type TransferImportReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Token         string `json:"token"`
+	Overwrite     bool   `json:"overwrite"`
+	KeepTtl       bool   `json:"keep_ttl"`
+}
+
+type TransferInspectReq struct {
+	ConnectionId  string `json:"connection_id"`
+	DatabaseIndex int32  `json:"database_index"`
+	Upload        string `json:"upload"`
+}
+
+type TransferInspectRes struct {
+	Token     string              `json:"token"`
+	FileName  string              `json:"file_name"`
+	Keys      int64               `json:"keys"`
+	Types     []TransferTypeCount `json:"types"`
+	Conflicts int64               `json:"conflicts"`
+	Invalid   int64               `json:"invalid"`
+	Errors    []string            `json:"errors"`
+}
+
+type TransferProgressEvent struct {
+	Path    string   `json:"path"`
+	Keys    int64    `json:"keys"`
+	Skipped int64    `json:"skipped"`
+	Bytes   int64    `json:"bytes"`
+	Errors  []string `json:"errors"`
+	Done    bool     `json:"done"`
+	Chunk   string   `json:"chunk"`
+}
+
+type TransferSaveFileReq struct {
+	FileName string `json:"file_name"`
+	Ext      string `json:"ext"`
+	Content  string `json:"content"`
+}
+
+type TransferSaveFileRes struct {
+	Path string `json:"path"`
+}
+
+type TransferTypeCount struct {
+	Kind string `json:"kind"`
+	Keys int64  `json:"keys"`
+}
+
+type TransferUploadReq struct {
+	Upload string `json:"upload"`
+	Data   string `json:"data"`
+}
+
+type TransferUploadRes struct {
+	Upload string `json:"upload"`
+}
+
 type UpsertRes struct {
 	Id string `json:"id"`
 }

@@ -828,3 +828,81 @@ service graph {
   rpc Query(GraphQueryReq) returns (GraphQueryRes);
   rpc Schema(GraphSchemaReq) returns (GraphSchemaRes);
 }
+
+message TransferExportReq {
+  string   connection_id  = 1;
+  int32    database_index = 2;
+  repeated string keys    = 3; // wins over prefix and filters
+  string   prefix         = 4;
+  repeated KeyFilter filters = 5;
+  bool     match_all      = 6;
+  string   key_type       = 7;
+  string   file_name      = 8; // without extension, the format adds it
+  string   format         = 9; // ndjson | msgpack
+}
+
+message TransferProgressEvent {
+  string   path     = 1; // empty when the save dialog was cancelled
+  int64    keys     = 2;
+  int64    skipped  = 3;
+  int64    bytes    = 4;
+  repeated string errors = 5;
+  bool     done     = 6;
+  string   chunk    = 7; // base64 file bytes; web mode has no save dialog, so the browser saves them
+}
+
+message TransferSaveFileReq {
+  string file_name = 1; // suggested in the save dialog
+  string ext       = 2;
+  string content   = 3;
+}
+
+message TransferSaveFileRes {
+  string path = 1; // empty when the save dialog was cancelled
+}
+
+message TransferInspectReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string upload         = 3; // token from Upload; web mode has no open dialog
+}
+
+message TransferUploadReq {
+  string upload = 1; // empty starts a new file
+  string data   = 2; // base64
+}
+
+message TransferUploadRes {
+  string upload = 1;
+}
+
+message TransferTypeCount {
+  string kind = 1;
+  int64  keys = 2;
+}
+
+message TransferInspectRes {
+  string   token     = 1; // names the picked file for Import; empty when the dialog was cancelled
+  string   file_name = 2;
+  int64    keys      = 3;
+  repeated TransferTypeCount types = 4;
+  int64    conflicts = 5; // keys that already exist in the target database
+  int64    invalid   = 6;
+  repeated string errors = 7;
+}
+
+message TransferImportReq {
+  string connection_id  = 1;
+  int32  database_index = 2;
+  string token          = 3;
+  bool   overwrite      = 4; // existing keys are skipped otherwise
+  bool   keep_ttl       = 5;
+}
+
+service transfer {
+  rpc Export(TransferExportReq) returns (stream TransferProgressEvent);
+  rpc SaveFile(TransferSaveFileReq) returns (TransferSaveFileRes);
+  rpc Inspect(TransferInspectReq) returns (TransferInspectRes);
+  rpc Import(TransferImportReq) returns (stream TransferProgressEvent);
+  rpc Upload(TransferUploadReq) returns (TransferUploadRes);
+}

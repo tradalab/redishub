@@ -194,3 +194,15 @@ frontend, `in` is the frontend to Go.
 | `graph:query` | `GraphQueryReq` | `GraphQueryRes` | unary | - | - |
 | `graph:schema` | `GraphSchemaReq` | `GraphSchemaRes` | unary | - | - |
 
+## transfer
+
+### Commands
+
+| Command | Request | Reply | Arity | Middleware | MCP |
+|---|---|---|---|---|---|
+| `transfer:export` | `TransferExportReq` | `TransferProgressEvent` | server-stream | - | - |
+| `transfer:save-file` | `TransferSaveFileReq` | `TransferSaveFileRes` | unary | - | - |
+| `transfer:inspect` | `TransferInspectReq` | `TransferInspectRes` | unary | - | - |
+| `transfer:import` | `TransferImportReq` | `TransferProgressEvent` | server-stream | - | - |
+| `transfer:upload` | `TransferUploadReq` | `TransferUploadRes` | unary | - | - |
+
