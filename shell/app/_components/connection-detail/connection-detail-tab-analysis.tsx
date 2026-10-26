@@ -29,6 +29,8 @@ import { useAnalysisProfile, type AnalysisMode } from "@/hooks/api/analysis.api"
 import type { AnalysisBucket, AnalysisPrefix, AnalysisTypeStat } from "@/types"
 import { prefixChildren, squarify } from "@/lib/treemap"
 import { cn } from "@/lib/utils"
+import { toCsv, toJson } from "@/lib/export-file"
+import { ExportMenu, type ExportItem } from "@/app/_components/export-menu"
 
 const KIND_COLOR: Record<string, string> = {
   string: "bg-sky-500",
@@ -222,6 +224,35 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
   const progress = event && event.total > 0 ? Math.min(100, (scanned / event.total) * 100) : 0
   const scannedBytes = (event?.types ?? []).reduce((s, x) => s + x.bytes, 0)
 
+  const fileBase = `analysis-db${databaseIdx}`
+  const exportItems: ExportItem[] = [{ label: t("export_report_json"), file: () => ({ name: fileBase, ext: "json", content: toJson(event) }) }]
+  if ((event?.top_keys ?? []).length > 0) {
+    exportItems.push({
+      label: t("export_largest_csv"),
+      file: () => ({
+        name: `${fileBase}-largest`,
+        ext: "csv",
+        content: toCsv(
+          ["key", "type", "bytes", "ttl_ms", event?.recency_metric || "recency"],
+          (event?.top_keys ?? []).map(k => [k.key, k.kind, k.bytes, k.ttl_ms, k.recency])
+        ),
+      }),
+    })
+  }
+  if ((event?.prefixes ?? []).length > 0) {
+    exportItems.push({
+      label: t("export_prefixes_csv"),
+      file: () => ({
+        name: `${fileBase}-prefixes`,
+        ext: "csv",
+        content: toCsv(
+          ["prefix", "depth", "keys", "bytes"],
+          (event?.prefixes ?? []).map(p => [p.prefix, p.depth, p.keys, p.bytes])
+        ),
+      }),
+    })
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2">
@@ -313,6 +344,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
               </Tooltip>
             </TooltipProvider>
           )}
+          <ExportMenu items={exportItems} disabled={running || !event} />
         </div>
       </div>
 

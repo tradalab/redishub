@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useSlowQuery } from "@/hooks/api/client.api"
 import { Spinner, toast } from "@tradalab/lyra/ui"
+import { toCsv, toJson } from "@/lib/export-file"
+import { ExportMenu } from "@/app/_components/export-menu"
 
 function formatDuration(us: number | string | undefined): string {
   if (!us) return "-"
@@ -44,7 +46,25 @@ export function ConnectionDetailTabSlowQuery({ connectionId, databaseIdx }: { co
         <div>{t("time")}</div>
         <div>{t("client_addr")}</div>
         <div>{t("duration")}</div>
-        <div>{t("command")}</div>
+        <div className="flex items-center justify-between gap-2">
+          {t("command")}
+          <ExportMenu
+            items={[
+              {
+                label: t("export_csv"),
+                file: () => ({
+                  name: `slowlog-db${databaseIdx}`,
+                  ext: "csv",
+                  content: toCsv(
+                    ["id", "timestamp", "duration_ns", "client_addr", "client_name", "command"],
+                    logs.map(l => [l.id, l.timestamp, l.duration, l.client_addr, l.client_name, (l.command ?? []).join(" ")])
+                  ),
+                }),
+              },
+              { label: t("export_json"), file: () => ({ name: `slowlog-db${databaseIdx}`, ext: "json", content: toJson(logs) }) },
+            ]}
+          />
+        </div>
       </div>
       <div className="flex-1 overflow-auto">
         <div className="flex flex-col">

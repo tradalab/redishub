@@ -18,16 +18,28 @@ import {
   MonitorIcon,
   LockIcon,
   PanelsTopLeftIcon,
+  DownloadIcon,
+  UploadIcon,
 } from "lucide-react"
 import { flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/app/_components/tree"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useAppContext } from "@/ctx/app.context"
 import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { Virtuoso } from "react-virtuoso"
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@tradalab/lyra/ui"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@tradalab/lyra/ui"
 import { BrowserAddKeyDialog } from "@/app/_components/browser-add-key-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@tradalab/lyra/ui"
-import { DbInfo } from "@/types"
+import { DbInfo, type TransferInspectRes } from "@/types"
 import { client, connection } from "@/api"
 import { useKeyDelete, useKeysDeleteByPrefix } from "@/hooks/api/client.api"
 import { useKeysSearch } from "@/hooks/api/keys-search"
@@ -46,6 +58,14 @@ import { ConnectionStateDot } from "@/app/_components/connection/connection-stat
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
 import { useGroupList } from "@/hooks/api/group.api"
 import { resolveColor } from "@/lib/connection-color"
+import { useExportKeys, useImportKeys, type ExportFormat } from "@/hooks/api/transfer.api"
+import { BrowserImportDialog } from "@/app/_components/browser-import-dialog"
+import { isWebMode } from "@/lib/mode"
+
+const EXPORT_FORMATS: { format: ExportFormat; label: string }[] = [
+  { format: "ndjson", label: "NDJSON" },
+  { format: "msgpack", label: "MessagePack" },
+]
 
 export function SidebarBrowser() {
   const { t } = useTranslation()
@@ -98,6 +118,9 @@ export function SidebarBrowser() {
 
   const deleteMutation = useKeyDelete(selectedDb || "", selectedDbIdx)
   const deleteByPrefixMutation = useKeysDeleteByPrefix(selectedDb || "", selectedDbIdx)
+  const exportKeys = useExportKeys(selectedDb || "", selectedDbIdx, currentConnection?.name)
+  const exportItem = (item: TreeItem, format: ExportFormat) =>
+    exportKeys(item.isGroup ? { prefix: item.id.replace("group__", "") + ":" } : { keys: [item.id] }, format)
 
   const deleteKey = async (key: string) => {
     try {
@@ -134,6 +157,33 @@ export function SidebarBrowser() {
     } catch (e: any) {
       toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
       return { keys: [], nextCursor: "0" }
+    }
+  }
+
+  const importKeys = useImportKeys(selectedDb || "", selectedDbIdx)
+  const [importPreview, setImportPreview] = useState<TransferInspectRes | null>(null)
+  const importInput = useRef<HTMLInputElement>(null)
+  const inspectImport = async (upload?: string, fileName?: string) => {
+    try {
+      const res = await importKeys.inspect(upload)
+      if (res.token) setImportPreview(fileName ? { ...res, file_name: fileName } : res)
+    } catch (e: any) {
+      toast.add({ title: e instanceof Error ? e.message : t("unknown_error"), type: "error" })
+    }
+  }
+  const startImport = () => (isWebMode() ? importInput.current?.click() : inspectImport())
+  const uploadImport = async (file?: File) => {
+    if (importInput.current) importInput.current.value = ""
+    if (!file) return
+    const upload = await importKeys.upload(file)
+    if (upload) await inspectImport(upload, file.name)
+  }
+  const runImport = async ({ overwrite, keepTtl }: { overwrite: boolean; keepTtl: boolean }) => {
+    const token = importPreview?.token ?? ""
+    setImportPreview(null)
+    if (await importKeys.run({ token, overwrite, keep_ttl: keepTtl })) {
+      loadInfo()
+      reload()
     }
   }
 
@@ -387,6 +437,10 @@ export function SidebarBrowser() {
                   <ActivityIcon className="h-4 w-4" />
                   {t("slow_query")}
                 </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 cursor-pointer" disabled={readOnly} onClick={startImport}>
+                  <UploadIcon className="h-4 w-4" />
+                  {t("import_keys")}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuCheckboxItem checked={readOnly} onCheckedChange={() => toggleReadOnly()} className="gap-2 cursor-pointer">
                   <LockIcon className="h-4 w-4" />
@@ -436,6 +490,24 @@ export function SidebarBrowser() {
           <Button size="icon-sm" variant="outline" title={t("load_all")} disabled={isLoading || !hasMore} onClick={loadAll}>
             {isLoading ? <Spinner /> : <ListEndIcon />}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon-sm" variant="outline" title={t("export_filtered")}>
+                <DownloadIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {EXPORT_FORMATS.map(f => (
+                <DropdownMenuItem
+                  key={f.format}
+                  className="cursor-pointer"
+                  onClick={() => exportKeys({ filters, match_all: matchAll, key_type: keyType }, f.format)}
+                >
+                  {f.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <KeyFilterBar
           filters={filters}
@@ -484,7 +556,14 @@ export function SidebarBrowser() {
                         loadMore()
                       }}
                       itemContent={(index, item) => (
-                        <RenderTreeItem key={item.id} item={item} deleteKey={handleDelete} connectionName={currentConnection?.name} readOnly={readOnly} />
+                        <RenderTreeItem
+                          key={item.id}
+                          item={item}
+                          deleteKey={handleDelete}
+                          exportItem={exportItem}
+                          connectionName={currentConnection?.name}
+                          readOnly={readOnly}
+                        />
                       )}
                     />
                   </div>
@@ -494,6 +573,14 @@ export function SidebarBrowser() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <input ref={importInput} type="file" className="hidden" onChange={e => uploadImport(e.target.files?.[0])} />
+      <BrowserImportDialog
+        key={importPreview?.token}
+        preview={importPreview}
+        databaseIdx={selectedDbIdx}
+        onClose={() => setImportPreview(null)}
+        onImport={runImport}
+      />
       <BrowserBulkDeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
@@ -508,11 +595,13 @@ export function SidebarBrowser() {
 function RenderTreeItem({
   item,
   deleteKey,
+  exportItem,
   connectionName,
   readOnly,
 }: {
   item: FlattenedTreeItem
   deleteKey: (item: TreeItem) => Promise<void>
+  exportItem: (item: TreeItem, format: ExportFormat) => Promise<void>
   connectionName?: string
   readOnly?: boolean
 }) {
@@ -538,13 +627,21 @@ function RenderTreeItem({
         <TreeLabel title={item.name}>
           {item.name || "[Empty]"} {item.isGroup && item.keyCount !== undefined && item.keyCount > 0 && `(${item.keyCount})`}
         </TreeLabel>
-        {!readOnly && <ActionButton item={item} deleteKey={deleteKey} />}
+        <ActionButton item={item} deleteKey={readOnly ? undefined : deleteKey} exportItem={exportItem} />
       </TreeNodeTrigger>
     </TreeNode>
   )
 }
 
-const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (item: TreeItem) => Promise<void> }) => {
+const ActionButton = ({
+  item,
+  deleteKey,
+  exportItem,
+}: {
+  item: TreeItem
+  deleteKey?: (item: TreeItem) => Promise<void>
+  exportItem: (item: TreeItem, format: ExportFormat) => Promise<void>
+}) => {
   const { t } = useTranslation()
   return (
     <DropdownMenu>
@@ -554,16 +651,38 @@ const ActionButton = ({ item, deleteKey }: { item: TreeItem; deleteKey: (item: T
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="min-w-56 rounded-lg">
-        <DropdownMenuItem
-          className="gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
-          onClick={async e => {
-            e.stopPropagation()
-            await deleteKey(item)
-          }}
-        >
-          <Trash2Icon className="h-4 w-4 text-red-600" />
-          {t("delete")}
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="gap-2 cursor-pointer">
+            <DownloadIcon className="h-4 w-4" />
+            {item.isGroup ? t("export_prefix") : t("export_key")}
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {EXPORT_FORMATS.map(f => (
+              <DropdownMenuItem
+                key={f.format}
+                className="cursor-pointer"
+                onClick={e => {
+                  e.stopPropagation()
+                  exportItem(item, f.format)
+                }}
+              >
+                {f.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        {deleteKey && (
+          <DropdownMenuItem
+            className="gap-2 text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+            onClick={async e => {
+              e.stopPropagation()
+              await deleteKey(item)
+            }}
+          >
+            <Trash2Icon className="h-4 w-4 text-red-600" />
+            {t("delete")}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
