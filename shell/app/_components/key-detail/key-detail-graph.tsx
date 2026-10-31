@@ -120,11 +120,11 @@ export function KeyDetailGraph(props: KeyDetailGraphProps) {
           {/* A count the server never gave is not 0, which would read as an empty graph. */}
           <span>
             {t("graph_nodes")}{" "}
-            <span className="text-foreground font-medium tabular-nums">{schema.error ? "—" : (schema.data?.nodes ?? 0).toLocaleString()}</span>
+            <span className="text-foreground font-medium tabular-nums">{schema.error ? "-" : (schema.data?.nodes ?? 0).toLocaleString()}</span>
           </span>
           <span>
             {t("graph_edges")}{" "}
-            <span className="text-foreground font-medium tabular-nums">{schema.error ? "—" : (schema.data?.edges ?? 0).toLocaleString()}</span>
+            <span className="text-foreground font-medium tabular-nums">{schema.error ? "-" : (schema.data?.edges ?? 0).toLocaleString()}</span>
           </span>
           <ToggleGroup type="single" size="sm" value={view} onValueChange={v => v && setView(v as "graph" | "table")}>
             <ToggleGroupItem value="graph" className="h-7 px-2 text-xs" aria-label={t("graph_view_graph")}>

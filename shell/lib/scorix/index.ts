@@ -123,7 +123,7 @@ async function getScorix(): Promise<ScorixAPI> {
           clearInterval(interval)
           reject(
             new Error(
-              "Scorix bridge initialization timed out. window.scorix is injected by the Go app — run the shell through the app (scorix dev), not standalone."
+              "Scorix bridge initialization timed out. window.scorix is injected by the Go app - run the shell through the app (scorix dev), not standalone."
             )
           )
         }

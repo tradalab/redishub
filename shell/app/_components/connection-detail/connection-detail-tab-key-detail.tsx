@@ -67,7 +67,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
   }, [detail, kind, displayValue])
 
   const ttlText = useMemo(() => {
-    if (ttl === undefined) return "—"
+    if (ttl === undefined) return "-"
     if (ttl === -1) return t("no_expiry")
     if (ttl === -2) return t("expired")
     return formatDuration(ttl)
