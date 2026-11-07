@@ -94,8 +94,8 @@ github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/tradalab/scorix v0.36.0 h1:FR0w57FNKUfx8PFz0Q6RXcOJf62gxaCvGCpUrJtZQwM=
-github.com/tradalab/scorix v0.36.0/go.mod h1:M9Q9KOk1RrtmdJ+tkuZ5BdTgtCqtX1qsFtd0rU0WD7M=
+github.com/tradalab/scorix v0.37.1 h1:raS0ymOM4WZUlERQC+NfF3hAXsFByZXWJzyuFvkbq0o=
+github.com/tradalab/scorix v0.37.1/go.mod h1:M9Q9KOk1RrtmdJ+tkuZ5BdTgtCqtX1qsFtd0rU0WD7M=
 github.com/vmihailenco/msgpack/v5 v5.4.1 h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8=
 github.com/vmihailenco/msgpack/v5 v5.4.1/go.mod h1:GaZTsDaehaPpQVyxrf5mtQlH+pc21PIudVV/E3rRQok=
 github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=
