@@ -2,6 +2,14 @@
 
 ---
 
+## [1.18.1]
+
+### 🔧 Chores
+
+- **ci:** Scorix v0.37.1 - the macOS build moves to the `macos-15` runner, because GitHub retired `macos-14` and the 1.18.0 release stopped before anything was published. 1.18.1 ships everything listed under 1.18.0
+
+---
+
 ## [1.18.0]
 
 ### 🚀 Features

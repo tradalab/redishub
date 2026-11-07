@@ -44,7 +44,7 @@ package:
 
 app:
   name: RedisHub
-  version: 1.18.0
+  version: 1.18.1
   identifier: com.tradalab.redishub
   single_instance: true
   description: "RedisHub"
