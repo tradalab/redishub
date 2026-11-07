@@ -4,17 +4,26 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 
 ## 📺 Showcase
 
-
-
 ### Key Screenshots
 
-| Dashboard                                        | Connection Settings | Tab Management |
-|--------------------------------------------------|--------------------|----------------|
-| ![Dashboard](https://redishub.tradalab.com/assets/en/dashboard.png) | ![New Connection](https://redishub.tradalab.com/assets/en/new-connection.png) | ![Tab Context Menu](https://redishub.tradalab.com/assets/en/tab-context-menu.png) |
+| Key Browser | Connections | Keyspace Analysis |
+|-------------|-------------|-------------------|
+| ![Key Browser](https://redishub.tradalab.com/assets/en/dashboard.png) | ![Connections](https://redishub.tradalab.com/assets/en/connections.png) | ![Keyspace Analysis](https://redishub.tradalab.com/assets/en/analysis.png) |
+
+| Connection Settings | Tab Management |
+|---------------------|----------------|
+| ![New Connection](https://redishub.tradalab.com/assets/en/new-connection.png) | ![Tab Context Menu](https://redishub.tradalab.com/assets/en/tab-context-menu.png) |
 
 ## Key Features
 
 - **Hybrid Platform Support**: Use it as a native desktop application or deploy it as a central web server for team collaboration.
+- **Organized Connections**: Groups and connections in the order you drag them to, colors, tags, and a filter that matches names, hosts and tags.
+- **Live Connection State**: A state dot with round-trip time in the sidebar and on every tab, a per-group summary, and a banner with Reconnect when a server stops answering.
+- **Keyspace Analysis**: Memory overview, keys by type, size and TTL distribution, the largest keys, and memory per key prefix as a tree-map.
+- **Export & Import**: Keys to NDJSON or MessagePack and back again, analysis and slow-log results to JSON or CSV.
+- **Module Support**: Browse and edit RedisJSON documents, and query graphs with Cypher on FalkorDB.
+- **Read-only Connections**: Mark a connection read-only and RedisHub's backend refuses every write command before it reaches Redis.
+- **Advanced Filtering**: Substring, glob and regex patterns, several at once, with saved presets.
 - **Multi-Tab Interface**: Navigate multiple connections and tasks simultaneously.
 - **Rich Key Inspector**: Redesigned key-detail view with a type badge, one-click copy, humanized TTL, live memory (`MEMORY USAGE`) and encoding (`OBJECT ENCODING`) insights, and infinite-scroll value tables for large collections.
 - **Enhanced Tab Management**: Pin important connections and use bulk closing actions (Close All, Close Others).
@@ -28,6 +37,7 @@ RedisHub is a powerful, professional command center for the Redis ecosystem. Bui
 - **Bulk Operations**: Efficient **Bulk Delete** by prefix to manage large-scale data.
 - **High Performance**: Optimized for browsing and searching databases with 500k+ keys.
 - **Universal Support**: Native binaries for Windows, macOS (Universal), and Linux.
+- **Three Languages**: English, Japanese and Vietnamese.
 
 ---
 
@@ -43,20 +53,20 @@ make redis-up  # local Redis: standalone + sentinel + cluster + FalkorDB (graph)
 make dev       # Next.js dev server (HMR) + Go backend, opens the app window
 ```
 
-The full guide lives on the docs site, which is the single source for it — this README only
+The full guide lives on the docs site, which is the single source for it - this README only
 points at it, so the two can't drift apart:
 
-- **[Getting Started](https://redishub.tradalab.com/docs/development/setup)** — prerequisites,
+- **[Getting Started](https://redishub.tradalab.com/docs/development/setup)** - prerequisites,
   runtime dependencies, workspace init, the local Redis topologies and their ports, project structure.
-- **[Adding IPC Commands](https://redishub.tradalab.com/docs/development/extending)** — the
+- **[Adding IPC Commands](https://redishub.tradalab.com/docs/development/extending)** - the
   proto-driven `service:method` flow, from `idl/app.proto` through `make generate` to the frontend call.
-- **[Commands Reference](https://redishub.tradalab.com/docs/development/commands)** — every `make` target.
-- **Building** — [Windows](https://redishub.tradalab.com/docs/development/build-windows) ·
+- **[Commands Reference](https://redishub.tradalab.com/docs/development/commands)** - every `make` target.
+- **Building** - [Windows](https://redishub.tradalab.com/docs/development/build-windows) ·
   [macOS](https://redishub.tradalab.com/docs/development/build-macos) ·
   [Linux](https://redishub.tradalab.com/docs/development/build-linux).
-- **[Troubleshooting](https://redishub.tradalab.com/docs/development/troubleshooting)** — embed
+- **[Troubleshooting](https://redishub.tradalab.com/docs/development/troubleshooting)** - embed
   failures, window not opening, cluster, port conflicts.
-- **[Contribution Guide](https://redishub.tradalab.com/docs/development/contribution)** — how a
+- **[Contribution Guide](https://redishub.tradalab.com/docs/development/contribution)** - how a
   change gets in.
 
 ---

@@ -2,7 +2,7 @@
 
 ---
 
-## [Unreleased]
+## [1.18.0]
 
 ### 🚀 Features
 
@@ -15,9 +15,14 @@
 ### 🐛 Fixes
 
 - **sidebar:** Deleting a group no longer hides its connections - they move to the top level, after the ones already there, and any a past delete hid show up again
-- **key-browser:** Keys sort naturally - `key2` before `key10`, upper and lower case mixed, and accented Vietnamese names beside their plain letter instead of at the end
+- **key-browser, sidebar:** Keys, connections and groups sort naturally - `key2` before `key10`, upper and lower case mixed, and accented Vietnamese names beside their plain letter instead of at the end
 - **i18n:** The Key List headers, the bulk-delete confirm button, the empty filter result and the SSH, TLS and proxy form errors showed raw translation keys (`ttl`, `size`, `keys`, `delete_all`, `no_keys_match`, `validation_error`) instead of text
 - **key-browser:** The Load More and Load All buttons had the raw keys `load_more` and `load_all` as their tooltips
+
+### 🔧 Chores
+
+- **deps:** Scorix v0.36.0 - on Linux the AppImage adds itself to the app menu, named after the app identifier
+- **app:** Connections and groups gain a saved order, added to an existing database on launch
 
 ---
 
