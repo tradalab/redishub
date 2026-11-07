@@ -21,6 +21,9 @@ func NewDeleteLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteLogi
 }
 
 func (l *DeleteLogic) Delete(params *types.IdReq) (*types.Empty, error) {
+	if err := l.svcCtx.ConnectionModel.Ungroup(l.ctx, params.Id); err != nil {
+		return nil, err
+	}
 	if err := l.svcCtx.GroupModel.Delete(l.ctx, params.Id); err != nil {
 		return nil, err
 	}

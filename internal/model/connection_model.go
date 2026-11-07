@@ -13,13 +13,17 @@ import (
 
 var _ ConnectionModel = (*customConnectionModel)(nil)
 
-const connectionNextSortOrderSQL = "SELECT COALESCE(MAX(`sort_order`), -1) + 1 FROM `connection` WHERE `group_id` = ? AND `deleted_at` IS NULL"
+const (
+	connectionNextSortOrderSQL = "SELECT COALESCE(MAX(`sort_order`), -1) + 1 FROM `connection` WHERE `group_id` = ? AND `deleted_at` IS NULL"
+	connectionUngroupSQL       = "UPDATE `connection` SET `group_id` = '', `sort_order` = `sort_order` + ?, `updated_at` = ? WHERE `group_id` = ? AND `deleted_at` IS NULL"
+)
 
 type (
 	ConnectionModel interface {
 		connectionModel
 		NextSortOrder(ctx context.Context, groupID string) (int64, error)
 		Reorder(ctx context.Context, groupID string, ids []string) error
+		Ungroup(ctx context.Context, groupID string) error
 	}
 
 	customConnectionModel struct {
@@ -50,6 +54,16 @@ func (m *customConnectionModel) Reorder(ctx context.Context, groupID string, ids
 	args = append(args, idArgs(ids)...)
 	conn := scorixsqlx.From(ctx, m.conn)
 	_, err := conn.ExecContext(ctx, conn.Rebind(query), args...)
+	return err
+}
+
+func (m *customConnectionModel) Ungroup(ctx context.Context, groupID string) error {
+	offset, err := m.NextSortOrder(ctx, "")
+	if err != nil {
+		return err
+	}
+	conn := scorixsqlx.From(ctx, m.conn)
+	_, err = conn.ExecContext(ctx, conn.Rebind(connectionUngroupSQL), offset, time.Now(), groupID)
 	return err
 }
 

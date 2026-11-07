@@ -14,19 +14,14 @@ import {
   SelectValue,
   Separator,
   Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@tradalab/lyra/ui"
+import { DataTable, type ColumnDef } from "@tradalab/lyra/data-table"
 import { useAnalysisProfile, type AnalysisMode } from "@/hooks/api/analysis.api"
-import type { AnalysisBucket, AnalysisPrefix, AnalysisTypeStat } from "@/types"
+import type { AnalysisBucket, AnalysisPrefix, AnalysisTopKey, AnalysisTypeStat } from "@/types"
 import { prefixChildren, squarify } from "@/lib/treemap"
 import { cn } from "@/lib/utils"
 import { toCsv, toJson } from "@/lib/export-file"
@@ -55,7 +50,7 @@ function bytes(n: number): string {
 const num = (n: number) => n.toLocaleString()
 
 function ttlLabel(ms: number): string {
-  if (ms < 0) return "—"
+  if (ms < 0) return "-"
   const s = Math.floor(ms / 1000)
   if (s < 60) return `${s}s`
   if (s < 3600) return `${Math.floor(s / 60)}m`
@@ -224,6 +219,52 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
   const progress = event && event.total > 0 ? Math.min(100, (scanned / event.total) * 100) : 0
   const scannedBytes = (event?.types ?? []).reduce((s, x) => s + x.bytes, 0)
 
+  const topKeyColumns: ColumnDef<AnalysisTopKey>[] = [
+    {
+      id: "key",
+      header: t("analysis_key"),
+      meta: { className: "max-w-0 truncate" },
+      cell: ({ row }) => (
+        <span className="font-mono text-xs" title={row.original.key}>
+          {row.original.key}
+        </span>
+      ),
+    },
+    {
+      id: "type",
+      header: t("analysis_type"),
+      meta: { className: "w-28" },
+      cell: ({ row }) => (
+        <span className="flex items-center gap-1.5 text-xs">
+          <span className={`h-2 w-2 rounded-sm ${kindColor(row.original.kind)}`} />
+          {row.original.kind}
+        </span>
+      ),
+    },
+    {
+      id: "size",
+      header: t("analysis_size"),
+      meta: { align: "right", className: "w-28" },
+      cell: ({ row }) => <span className="text-xs">{bytes(row.original.bytes)}</span>,
+    },
+    {
+      id: "ttl",
+      header: "TTL",
+      meta: { align: "right", className: "w-20" },
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{ttlLabel(row.original.ttl_ms)}</span>,
+    },
+    {
+      id: "recency",
+      header: event?.recency_metric === "freq" ? t("analysis_freq") : t("analysis_idle"),
+      meta: { align: "right", className: "w-24" },
+      cell: ({ row }) => (
+        <span className="text-xs text-muted-foreground">
+          {row.original.recency < 0 ? "-" : event?.recency_metric === "freq" ? num(row.original.recency) : ageLabel(row.original.recency)}
+        </span>
+      ),
+    },
+  ]
+
   const fileBase = `analysis-db${databaseIdx}`
   const exportItems: ExportItem[] = [{ label: t("export_report_json"), file: () => ({ name: fileBase, ext: "json", content: toJson(event) }) }]
   if ((event?.top_keys ?? []).length > 0) {
@@ -376,10 +417,10 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
                 value={bytes(event?.memory.dataset ?? 0)}
                 hint={`${t("analysis_mem_overhead")} ${bytes(event?.memory.overhead ?? 0)}`}
               />
-              <Stat label={t("analysis_fragmentation")} value={event?.memory.fragmentation ? event.memory.fragmentation.toFixed(2) : "—"} />
+              <Stat label={t("analysis_fragmentation")} value={event?.memory.fragmentation ? event.memory.fragmentation.toFixed(2) : "-"} />
               <Stat
                 label={t("analysis_policy")}
-                value={event?.memory.policy || "—"}
+                value={event?.memory.policy || "-"}
                 hint={event?.recency_metric === "freq" ? "OBJECT FREQ" : "OBJECT IDLETIME"}
               />
             </CardContent>
@@ -443,37 +484,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
             subtitle={scanned > 0 ? t("analysis_largest_hint") : undefined}
           >
             {(event?.top_keys ?? []).length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("analysis_key")}</TableHead>
-                    <TableHead className="w-28">{t("analysis_type")}</TableHead>
-                    <TableHead className="w-28 text-right">{t("analysis_size")}</TableHead>
-                    <TableHead className="w-20 text-right">TTL</TableHead>
-                    <TableHead className="w-24 text-right">{event?.recency_metric === "freq" ? t("analysis_freq") : t("analysis_idle")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(event?.top_keys ?? []).map(k => (
-                    <TableRow key={k.key}>
-                      <TableCell className="max-w-0 truncate font-mono text-xs" title={k.key}>
-                        {k.key}
-                      </TableCell>
-                      <TableCell>
-                        <span className="flex items-center gap-1.5 text-xs">
-                          <span className={`h-2 w-2 rounded-sm ${kindColor(k.kind)}`} />
-                          {k.kind}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums text-xs">{bytes(k.bytes)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-xs text-muted-foreground">{ttlLabel(k.ttl_ms)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-xs text-muted-foreground">
-                        {k.recency < 0 ? "—" : event?.recency_metric === "freq" ? num(k.recency) : ageLabel(k.recency)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable className="border-0" columns={topKeyColumns} data={event?.top_keys ?? []} getRowId={k => k.key} unpaged />
             ) : (
               <div className="text-xs text-muted-foreground">{t("analysis_largest_needs_scan")}</div>
             )}

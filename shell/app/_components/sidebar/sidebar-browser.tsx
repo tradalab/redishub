@@ -21,10 +21,10 @@ import {
   DownloadIcon,
   UploadIcon,
 } from "lucide-react"
-import { flattenTree, sortTree, TreeItem, FlattenedTreeItem } from "@/app/_components/tree"
+import { TreeItem, FlattenedTreeItem } from "@/app/_components/tree"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useAppContext } from "@/ctx/app.context"
-import { TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
+import { flattenTree, sortTree, TreeExpander, TreeIcon, TreeLabel, TreeNode, TreeNodeTrigger, TreeProvider, TreeView } from "@tradalab/lyra/blocks"
 import { Virtuoso } from "react-virtuoso"
 import {
   DropdownMenu,
