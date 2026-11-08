@@ -9,7 +9,7 @@ import { Virtuoso } from "react-virtuoso"
 import { useKeyDelete, useKeysMetadata } from "@/hooks/api/client.api"
 import { useKeysSearch } from "@/hooks/api/keys-search"
 import { KeyFilterBar, emptyFilters } from "@/app/_components/key-filter-bar"
-import { formatFileSize } from "@/lib/utils"
+import { formatBytes } from "@tradalab/lyra/utils"
 import { useTabStore } from "@/stores/tab.store"
 import type { KeyFilter } from "@/types"
 
@@ -216,7 +216,7 @@ export function ConnectionDetailTabKeyList({ connectionId, databaseIdx }: { conn
                       )}
                     </div>
                     <div className="col-span-2 px-4 font-mono text-xs text-muted-foreground whitespace-nowrap">{meta ? formatTtl(meta.ttl) : "-"}</div>
-                    <div className="col-span-2 px-4 text-right font-mono text-xs text-muted-foreground">{meta ? formatFileSize(meta.size) : "-"}</div>
+                    <div className="col-span-2 px-4 text-right font-mono text-xs text-muted-foreground">{meta ? formatBytes(meta.size) : "-"}</div>
                     <div className="col-span-1 px-4 text-right flex justify-end">
                       <div
                         className="h-6 w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/10 rounded transition-opacity"

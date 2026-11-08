@@ -24,6 +24,7 @@ import { useAnalysisProfile, type AnalysisMode } from "@/hooks/api/analysis.api"
 import type { AnalysisBucket, AnalysisPrefix, AnalysisTopKey, AnalysisTypeStat } from "@/types"
 import { prefixChildren, squarify } from "@/lib/treemap"
 import { cn } from "@/lib/utils"
+import { formatBytes, formatCount } from "@tradalab/lyra/utils"
 import { toCsv, toJson } from "@/lib/export-file"
 import { ExportMenu, type ExportItem } from "@/app/_components/export-menu"
 
@@ -39,15 +40,6 @@ const KIND_COLOR: Record<string, string> = {
   other: "bg-zinc-400",
 }
 const kindColor = (k: string) => KIND_COLOR[k] ?? "bg-zinc-400"
-
-function bytes(n: number): string {
-  if (!n) return "0 B"
-  const u = ["B", "KB", "MB", "GB", "TB"]
-  const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), u.length - 1)
-  return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${u[i]}`
-}
-
-const num = (n: number) => n.toLocaleString()
 
 function ttlLabel(ms: number): string {
   if (ms < 0) return "-"
@@ -87,7 +79,7 @@ function BarList({ items, colorClass }: { items: { label: string; count: number 
           <div className="h-3 flex-1 rounded-sm bg-muted/60 overflow-hidden">
             <div className={`h-full rounded-sm ${colorClass ?? "bg-sky-500"}`} style={{ width: `${(i.count / max) * 100}%` }} />
           </div>
-          <div className="w-20 shrink-0 tabular-nums text-muted-foreground">{num(i.count)}</div>
+          <div className="w-20 shrink-0 tabular-nums text-muted-foreground">{formatCount(i.count)}</div>
         </div>
       ))}
     </div>
@@ -109,7 +101,7 @@ function TypeBar({ types, total }: { types: AnalysisTypeStat[]; total: number })
             <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${kindColor(t.kind)}`} />
             <span className="truncate">{t.kind}</span>
             <span className="ml-auto tabular-nums text-muted-foreground">
-              {num(t.keys)} · {((t.keys / sum) * 100).toFixed(1)}%
+              {formatCount(t.keys)} · {((t.keys / sum) * 100).toFixed(1)}%
             </span>
           </div>
         ))}
@@ -167,7 +159,7 @@ function PrefixTreemap({ prefixes, delimiter, keys, total }: { prefixes: Analysi
               key={n.prefix ?? "\0rest"}
               aria-disabled={!drillable}
               onClick={() => drillable && setPath([...open, n.prefix])}
-              title={`${n.prefix === null ? label : n.prefix + delimiter + "*"}\n${bytes(n.bytes)} · ${share}% · ${t("analysis_keys")} ${num(n.keys)}`}
+              title={`${n.prefix === null ? label : n.prefix + delimiter + "*"}\n${formatBytes(n.bytes)} · ${share}% · ${t("analysis_keys")} ${formatCount(n.keys)}`}
               className={cn(
                 "absolute overflow-hidden border border-background p-1 text-left text-[11px] leading-tight text-white",
                 n.prefix === null ? "bg-zinc-400 dark:bg-zinc-600" : tileColor(n.prefix),
@@ -177,7 +169,7 @@ function PrefixTreemap({ prefixes, delimiter, keys, total }: { prefixes: Analysi
             >
               <div className={cn("truncate font-medium", n.prefix !== null && "font-mono")}>{label}</div>
               <div className="truncate tabular-nums opacity-80">
-                {bytes(n.bytes)} · {share}%
+                {formatBytes(n.bytes)} · {share}%
               </div>
             </button>
           )
@@ -245,7 +237,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
       id: "size",
       header: t("analysis_size"),
       meta: { align: "right", className: "w-28" },
-      cell: ({ row }) => <span className="text-xs">{bytes(row.original.bytes)}</span>,
+      cell: ({ row }) => <span className="text-xs">{formatBytes(row.original.bytes)}</span>,
     },
     {
       id: "ttl",
@@ -259,7 +251,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
       meta: { align: "right", className: "w-24" },
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
-          {row.original.recency < 0 ? "-" : event?.recency_metric === "freq" ? num(row.original.recency) : ageLabel(row.original.recency)}
+          {row.original.recency < 0 ? "-" : event?.recency_metric === "freq" ? formatCount(row.original.recency) : ageLabel(row.original.recency)}
         </span>
       ),
     },
@@ -316,7 +308,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
             <SelectContent>
               {["1000", "10000", "50000", "200000"].map(n => (
                 <SelectItem key={n} value={n}>
-                  {num(Number(n))} {t("analysis_sample_keys")}
+                  {formatCount(Number(n))} {t("analysis_sample_keys")}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -360,7 +352,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
         {running && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Spinner />
-            {event?.phase === "scan" ? `${t("analysis_scanning")} ${num(scanned)} / ${num(event?.total ?? 0)}` : t("analysis_reading_info")}
+            {event?.phase === "scan" ? `${t("analysis_scanning")} ${formatCount(scanned)} / ${formatCount(event?.total ?? 0)}` : t("analysis_reading_info")}
             {progress > 0 && (
               <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                 <div className="h-full bg-sky-500 transition-all" style={{ width: `${progress}%` }} />
@@ -405,17 +397,21 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
 
           <Card className="shadow-none">
             <CardContent className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 lg:grid-cols-6">
-              <Stat label={t("analysis_keys")} value={num(event?.total ?? 0)} hint={scanned > 0 ? `${num(scanned)} ${t("analysis_scanned")}` : undefined} />
+              <Stat
+                label={t("analysis_keys")}
+                value={formatCount(event?.total ?? 0)}
+                hint={scanned > 0 ? `${formatCount(scanned)} ${t("analysis_scanned")}` : undefined}
+              />
               <Stat
                 label={t("analysis_mem_used")}
-                value={bytes(event?.memory.used ?? 0)}
-                hint={event?.memory.maxmemory ? `${t("analysis_mem_max")} ${bytes(event.memory.maxmemory)}` : undefined}
+                value={formatBytes(event?.memory.used ?? 0)}
+                hint={event?.memory.maxmemory ? `${t("analysis_mem_max")} ${formatBytes(event.memory.maxmemory)}` : undefined}
               />
-              <Stat label={t("analysis_mem_peak")} value={bytes(event?.memory.peak ?? 0)} />
+              <Stat label={t("analysis_mem_peak")} value={formatBytes(event?.memory.peak ?? 0)} />
               <Stat
                 label={t("analysis_mem_dataset")}
-                value={bytes(event?.memory.dataset ?? 0)}
-                hint={`${t("analysis_mem_overhead")} ${bytes(event?.memory.overhead ?? 0)}`}
+                value={formatBytes(event?.memory.dataset ?? 0)}
+                hint={`${t("analysis_mem_overhead")} ${formatBytes(event?.memory.overhead ?? 0)}`}
               />
               <Stat label={t("analysis_fragmentation")} value={event?.memory.fragmentation ? event.memory.fragmentation.toFixed(2) : "-"} />
               <Stat
@@ -437,7 +433,7 @@ export function ConnectionDetailTabAnalysis({ connectionId, databaseIdx }: { con
           <Panel
             title={t("analysis_ttl")}
             subtitle={
-              `${num(event?.ttl.with_ttl ?? 0)} / ${num(event?.ttl.total ?? 0)} ${t("analysis_ttl_hint")}` +
+              `${formatCount(event?.ttl.with_ttl ?? 0)} / ${formatCount(event?.ttl.total ?? 0)} ${t("analysis_ttl_hint")}` +
               (event?.ttl.avg_ttl_ms ? ` · ${t("analysis_ttl_avg")} ${ttlLabel(event.ttl.avg_ttl_ms)}` : "")
             }
           >

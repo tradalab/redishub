@@ -1,54 +1,121 @@
 package model
 
 import (
+	"bytes"
+	"context"
 	"testing"
 
+	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
 	scorixsecrets "github.com/tradalab/scorix/secrets"
 )
 
-func TestSealSecretIdempotentAndHeal(t *testing.T) {
+func useTestCodec(t *testing.T) *scorixsecrets.Store {
+	t.Helper()
 	store, err := scorixsecrets.NewWithKey(make([]byte, 32))
 	if err != nil {
 		t.Fatal(err)
 	}
 	SetSecretCodec(store)
 	t.Cleanup(func() { SetSecretCodec(nil) })
+	return store
+}
 
-	enc, err := sealSecret("hunter2")
+func TestSealingASealedConnectionLeavesItAsIs(t *testing.T) {
+	useTestCodec(t)
+
+	once, err := sealConnection(&Connection{Password: "hunter2"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !scorixsecrets.IsEncrypted(enc) {
-		t.Fatalf("sealSecret did not seal: %q", enc)
+	if !scorixsecrets.IsEncrypted(once.Password) {
+		t.Fatalf("password not sealed: %q", once.Password)
 	}
-
-	again, err := sealSecret(enc)
+	twice, err := sealConnection(once)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if again != enc {
-		t.Fatalf("sealSecret re-sealed a token: %q != %q", again, enc)
+	if twice.Password != once.Password {
+		t.Fatalf("sealed again: %q != %q", twice.Password, once.Password)
 	}
+}
 
-	double, err := store.EncryptString(enc)
+func TestOpeningPeelsADoubleSeal(t *testing.T) {
+	store := useTestCodec(t)
+
+	once, err := store.EncryptString("hunter2")
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := openSecret(double)
+	double, err := store.EncryptString(once)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != "hunter2" {
-		t.Fatalf("openSecret did not heal double seal: got %q", got)
+	c := &Connection{Password: double}
+	if err := openConnection(c); err != nil {
+		t.Fatal(err)
 	}
+	if c.Password != "hunter2" {
+		t.Fatalf("password = %q, want hunter2", c.Password)
+	}
+}
 
-	// An undecryptable token must not error (a bad row mustn't hide the list).
-	bad := "scorix:v1:not-a-real-token"
-	got, err = openSecret(bad)
+func TestAFieldThatDoesNotOpenIsBlankedWithoutFailingTheRow(t *testing.T) {
+	store := useTestCodec(t)
+
+	good, err := store.EncryptString("hunter2")
 	if err != nil {
-		t.Fatalf("openSecret errored on a bad token: %v", err)
+		t.Fatal(err)
 	}
-	if got != bad {
-		t.Fatalf("openSecret should keep the bad token as-is, got %q", got)
+	c := &Connection{Password: "scorix:v1:not-a-real-token", SentinelPassword: good}
+	if err := openConnection(c); err != nil {
+		t.Fatalf("a bad field failed the row: %v", err)
+	}
+	if c.Password != "" {
+		t.Fatalf("ciphertext reached the caller as a password: %q", c.Password)
+	}
+	if c.SentinelPassword != "hunter2" {
+		t.Fatalf("sentinel password = %q, want hunter2", c.SentinelPassword)
+	}
+}
+
+func TestUpdatingARowKeepsASecretThatDoesNotOpenHere(t *testing.T) {
+	other, err := scorixsecrets.NewWithKey(bytes.Repeat([]byte{7}, 32))
+	if err != nil {
+		t.Fatal(err)
+	}
+	foreign, err := other.EncryptString("hunter2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	useTestCodec(t)
+	db := reorderDB(t)
+	db.MustExec("INSERT INTO `connection` (id, name, password, sentinel_password) VALUES ('c1', 'old', ?, 'plain')", foreign)
+	m := NewConnectionModel(func() scorixsqlx.Conn { return db })
+	ctx := context.Background()
+
+	c, err := m.FindOne(ctx, "c1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Password != "" {
+		t.Fatalf("unreadable password reached the caller: %q", c.Password)
+	}
+	c.Name = "new"
+	c.SentinelPassword = ""
+	if err := m.Update(ctx, c); err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Password         string `db:"password"`
+		SentinelPassword string `db:"sentinel_password"`
+	}
+	if err := db.Get(&got, "SELECT password, sentinel_password FROM `connection` WHERE id = 'c1'"); err != nil {
+		t.Fatal(err)
+	}
+	if got.Password != foreign {
+		t.Fatalf("stored password = %q, want the original sealed value", got.Password)
+	}
+	if got.SentinelPassword != "" {
+		t.Fatalf("a readable secret cleared on purpose came back: %q", got.SentinelPassword)
 	}
 }

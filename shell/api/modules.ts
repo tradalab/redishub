@@ -14,9 +14,9 @@ export interface BrowserPathRequest {
 }
 
 export const browser = {
-  openUrl: (params?: BrowserOpenUrlRequest) => scorix.invoke<unknown>("mod:browser:OpenUrl", params),
-  revealPath: (params?: BrowserPathRequest) => scorix.invoke<unknown>("mod:browser:RevealPath", params),
-  openPath: (params?: BrowserPathRequest) => scorix.invoke<unknown>("mod:browser:OpenPath", params),
+  openUrl: (params?: BrowserOpenUrlRequest) => scorix.invoke<void>("mod:browser:OpenUrl", params),
+  revealPath: (params?: BrowserPathRequest) => scorix.invoke<void>("mod:browser:RevealPath", params),
+  openPath: (params?: BrowserPathRequest) => scorix.invoke<void>("mod:browser:OpenPath", params),
 };
 
 
@@ -100,9 +100,9 @@ export interface SystemtraySetTitleRequest {
 }
 
 export const systemtray = {
-  setIcon: (params?: SystemtraySetIconRequest) => scorix.invoke<unknown>("mod:systemtray:SetIcon", params),
-  setTooltip: (params?: SystemtraySetTooltipRequest) => scorix.invoke<unknown>("mod:systemtray:SetTooltip", params),
-  setTitle: (params?: SystemtraySetTitleRequest) => scorix.invoke<unknown>("mod:systemtray:SetTitle", params),
+  setIcon: (params?: SystemtraySetIconRequest) => scorix.invoke<void>("mod:systemtray:SetIcon", params),
+  setTooltip: (params?: SystemtraySetTooltipRequest) => scorix.invoke<void>("mod:systemtray:SetTooltip", params),
+  setTitle: (params?: SystemtraySetTitleRequest) => scorix.invoke<void>("mod:systemtray:SetTitle", params),
 };
 
 

@@ -13,7 +13,8 @@ import { KeyDetailJson } from "@/app/_components/key-detail/key-detail-json"
 import { KeyDetailGraph } from "@/app/_components/key-detail/key-detail-graph"
 import { Input, toast } from "@tradalab/lyra/ui"
 import { CopyIcon, RefreshCcwIcon, SaveIcon, TimerIcon, Trash2Icon } from "lucide-react"
-import { cn, formatDuration, formatFileSize } from "@/lib/utils"
+import { cn, formatDuration } from "@/lib/utils"
+import { formatBytes } from "@tradalab/lyra/utils"
 import { writeClipboard } from "@/lib/clipboard"
 import { KindBadge } from "@/app/_components/key-detail/key-detail-shared"
 import { useForm } from "react-hook-form"
@@ -205,7 +206,7 @@ export function ConnectionDetailTabKeyDetail({ connectionId, databaseIdx, select
         </div>
         <div className="text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs">
           {lengthValue !== null && <Stat label={t("length")} value={lengthValue.toLocaleString()} />}
-          {!!detail?.size && <Stat label={t("memory")} value={formatFileSize(detail.size)} />}
+          {!!detail?.size && <Stat label={t("memory")} value={formatBytes(detail.size)} />}
           {!!detail?.encoding && <Stat label={t("encoding")} value={detail.encoding} mono />}
         </div>
       </div>

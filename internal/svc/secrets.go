@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
 
 	scorixsecrets "github.com/tradalab/scorix/secrets"
 
@@ -19,17 +18,7 @@ const (
 )
 
 func initSecretCodec() {
-	var store *scorixsecrets.Store
-	var err error
-	if enc := os.Getenv(secretsKeyEnv); enc != "" {
-		var key []byte
-		key, err = decodeBase64Key(enc)
-		if err == nil {
-			store, err = scorixsecrets.NewWithKey(key)
-		}
-	} else {
-		store, err = scorixsecrets.Open(secretsService)
-	}
+	store, err := scorixsecrets.OpenFromEnv(secretsService, secretsKeyEnv)
 	if err != nil {
 		panic(fmt.Sprintf(
 			"redishub: cannot initialize credential encryption: %v\n"+
@@ -39,14 +28,6 @@ func initSecretCodec() {
 	model.SetSecretCodec(store)
 }
 
-func decodeBase64Key(s string) ([]byte, error) {
-	key, err := scorixsecrets.DecodeKey(s)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", secretsKeyEnv, err)
-	}
-	return key, nil
-}
-
 func (s *ServiceContext) MigrateSecrets(ctx context.Context) error {
 	if _, err := s.SettingModel.FindOneByKey(ctx, settingSecretsMigKy); err == nil {
 		return nil
@@ -54,43 +35,19 @@ func (s *ServiceContext) MigrateSecrets(ctx context.Context) error {
 		return fmt.Errorf("check migration flag: %w", err)
 	}
 
-	conns, err := s.ConnectionModel.FindAll(ctx)
-	if err != nil {
-		return err
+	if err := scorixsecrets.Reseal(ctx, s.ConnectionModel.FindAll, s.ConnectionModel.Update); err != nil {
+		return fmt.Errorf("re-seal connections: %w", err)
 	}
-	for _, c := range conns {
-		if err := s.ConnectionModel.Update(ctx, c); err != nil {
-			return fmt.Errorf("re-seal connection %s: %w", c.ID, err)
-		}
+	if err := scorixsecrets.Reseal(ctx, s.SshModel.FindAll, s.SshModel.Update); err != nil {
+		return fmt.Errorf("re-seal ssh: %w", err)
 	}
-	sshes, err := s.SshModel.FindAll(ctx)
-	if err != nil {
-		return err
+	if err := scorixsecrets.Reseal(ctx, s.TlsModel.FindAll, s.TlsModel.Update); err != nil {
+		return fmt.Errorf("re-seal tls: %w", err)
 	}
-	for _, c := range sshes {
-		if err := s.SshModel.Update(ctx, c); err != nil {
-			return fmt.Errorf("re-seal ssh %s: %w", c.ID, err)
-		}
-	}
-	tlses, err := s.TlsModel.FindAll(ctx)
-	if err != nil {
-		return err
-	}
-	for _, c := range tlses {
-		if err := s.TlsModel.Update(ctx, c); err != nil {
-			return fmt.Errorf("re-seal tls %s: %w", c.ID, err)
-		}
-	}
-	proxies, err := s.ProxyModel.FindAll(ctx)
-	if err != nil {
-		return err
-	}
-	for _, c := range proxies {
-		if err := s.ProxyModel.Update(ctx, c); err != nil {
-			return fmt.Errorf("re-seal proxy %s: %w", c.ID, err)
-		}
+	if err := scorixsecrets.Reseal(ctx, s.ProxyModel.FindAll, s.ProxyModel.Update); err != nil {
+		return fmt.Errorf("re-seal proxy: %w", err)
 	}
 
-	_, err = s.SettingModel.Insert(ctx, &model.Setting{Key: settingSecretsMigKy, Value: "done"})
+	_, err := s.SettingModel.Insert(ctx, &model.Setting{Key: settingSecretsMigKy, Value: "done"})
 	return err
 }

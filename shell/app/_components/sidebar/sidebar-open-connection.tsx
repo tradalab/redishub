@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAppContext } from "@/ctx/app.context"
 import { useConnectionList } from "@/hooks/api/connection.api"
 import { useGroupList } from "@/hooks/api/group.api"
-import { resolveColor } from "@/lib/connection-color"
+import { resolveColor } from "@tradalab/lyra/utils"
 import { pickConnectionTab, useTabStore } from "@/stores/tab.store"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
 import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"

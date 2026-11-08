@@ -6,7 +6,7 @@ import type { TFunction } from "i18next"
 import { toast } from "@tradalab/lyra/ui"
 import { transfer } from "@/api"
 import type { ServerStream } from "@/lib/scorix"
-import { formatFileSize } from "@/lib/utils"
+import { formatBytes } from "@tradalab/lyra/utils"
 import { downloadBlob, fromBase64, toBase64 } from "@/lib/export-file"
 import { isWebMode } from "@/lib/mode"
 import type { TransferExportReq, TransferImportReq, TransferProgressEvent } from "@/types"
@@ -31,7 +31,7 @@ async function track(
     id = toast.add({
       id,
       title: t(`${phase}_running`, { n: ev?.keys ?? 0 }),
-      description: formatFileSize(ev?.bytes ?? 0),
+      description: formatBytes(ev?.bytes ?? 0),
       type: "loading",
       actionProps: { children: t("cancel"), onClick: () => stream.cancel() },
     })
@@ -58,7 +58,7 @@ async function track(
   const notes = [phase === "export" ? last.path : "", last.skipped ? t("export_skipped", { n: last.skipped }) : "", ...(last.errors ?? [])].filter(Boolean)
   toast.add({
     id,
-    title: t(`${phase}_done`, { n: last.keys, size: formatFileSize(last.bytes) }),
+    title: t(`${phase}_done`, { n: last.keys, size: formatBytes(last.bytes) }),
     description: notes.join("\n"),
     type: "success",
     actionProps: undefined,

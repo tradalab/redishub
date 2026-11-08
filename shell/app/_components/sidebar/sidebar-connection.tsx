@@ -25,7 +25,7 @@ import { TreeItem } from "@/app/_components/tree"
 import { buildDbTree, cn } from "@/lib/utils"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@tradalab/lyra/ui"
-import { useConfirm } from "@tradalab/lyra/blocks"
+import { loadExpanded, saveExpanded, useConfirm } from "@tradalab/lyra/blocks"
 import { useConnection } from "@/app/_components/connection/connection.context"
 import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList, useReorderGroups } from "@/hooks/api/group.api"
@@ -33,9 +33,11 @@ import { useConnectionList, useDeleteConnection, useReorderConnections } from "@
 import { useGroup } from "@/app/_components/group/group.context"
 import { useTabStore } from "@/stores/tab.store"
 import { ConnectionStateDot, GroupStateSummary } from "@/app/_components/connection/connection-state-dot"
-import { connectionMatches, loadExpanded, saveExpanded } from "@/lib/connection-tree"
+import { connectionMatches } from "@/lib/connection-tree"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
-import { CONNECTION_COLORS, isConnectionColor, resolveColor } from "@/lib/connection-color"
+import { CONNECTION_COLORS, isConnectionColor, resolveColor } from "@tradalab/lyra/utils"
+
+const EXPANDED_KEY = "redishub:sidebar:expanded"
 
 export function SidebarConnection() {
   const { t } = useTranslation()
@@ -52,7 +54,7 @@ export function SidebarConnection() {
   const filteredDataset = useMemo(() => (keyword ? filterTree(dataset, i => connectionMatches(i.connection, i.name, keyword)) : dataset), [dataset, keyword])
   const groupMembers = useMemo(() => new Map(dataset.filter(i => i.isGroup).map(g => [g.id, g.children?.map(c => c.id) ?? []])), [dataset])
 
-  const [expanded, setExpanded] = useState(loadExpanded)
+  const [expanded, setExpanded] = useState(() => loadExpanded(EXPANDED_KEY))
   const [filterExpanded, setFilterExpanded] = useState<{ keyword: string; ids: Set<string> } | null>(null)
   const filtering = keyword.trim() !== ""
   const shownExpanded = useMemo(() => {
@@ -67,7 +69,7 @@ export function SidebarConnection() {
         return
       }
       setExpanded(ids)
-      saveExpanded(ids)
+      saveExpanded(EXPANDED_KEY, ids)
     },
     [filtering, keyword]
   )

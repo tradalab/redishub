@@ -2,7 +2,7 @@
 
 import { BoxesIcon, DatabaseIcon, RadarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { CONNECTION_COLORS, type ConnectionColor } from "@/lib/connection-color"
+import { CONNECTION_COLORS, type ConnectionColor } from "@tradalab/lyra/utils"
 
 const MODE_ICON = {
   standalone: DatabaseIcon,

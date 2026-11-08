@@ -1,34 +1,19 @@
 package connection
 
-import (
-	"encoding/json"
-	"strings"
-)
-
-func normalizeTags(in []string) []string {
-	out := make([]string, 0, len(in))
-	seen := make(map[string]bool, len(in))
-	for _, t := range in {
-		t = strings.TrimSpace(t)
-		k := strings.ToLower(t)
-		if t == "" || seen[k] {
-			continue
-		}
-		seen[k] = true
-		out = append(out, t)
-	}
-	return out
-}
+import "github.com/tradalab/scorix/module/sqlx/order"
 
 func encodeTags(in []string) string {
-	b, _ := json.Marshal(normalizeTags(in))
-	return string(b)
+	v, err := order.Tags(in).Value()
+	if err != nil {
+		return "[]"
+	}
+	return v.(string)
 }
 
 func decodeTags(s string) []string {
-	var out []string
-	if json.Unmarshal([]byte(s), &out) != nil {
+	var t order.Tags
+	if t.Scan(s) != nil {
 		return []string{}
 	}
-	return normalizeTags(out)
+	return t
 }

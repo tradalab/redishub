@@ -3,7 +3,9 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
+	"slices"
 
 	scorixsecrets "github.com/tradalab/scorix/secrets"
 )
@@ -12,110 +14,77 @@ var secretCodec *scorixsecrets.Store
 
 func SetSecretCodec(s *scorixsecrets.Store) { secretCodec = s }
 
-func sealSecret(v string) (string, error) {
-	if secretCodec == nil {
-		return v, nil
+func opened(err error) error {
+	if errors.Is(err, scorixsecrets.ErrUnreadable) {
+		log.Printf("secrets: blanking fields that do not open on this machine: %v", err)
+		return nil
 	}
-	if scorixsecrets.IsEncrypted(v) {
-		return v, nil
-	}
-	return secretCodec.EncryptString(v)
+	return err
 }
 
-func openSecret(v string) (string, error) {
-	if secretCodec == nil {
-		return v, nil
-	}
-	for scorixsecrets.IsEncrypted(v) {
-		dec, err := secretCodec.DecryptString(v)
-		if err != nil {
-			log.Printf("secrets: leaving value sealed (decrypt failed): %v", err)
-			return v, nil
-		}
-		if dec == v {
-			break
-		}
-		v = dec
-	}
-	return v, nil
-}
+func connectionSecrets(c *Connection) []*string { return []*string{&c.Password, &c.SentinelPassword} }
+func sshSecrets(c *Ssh) []*string               { return []*string{&c.Password, &c.PrivateKey, &c.Passphrase} }
+func tlsSecrets(c *Tls) []*string               { return []*string{&c.Key} }
+func proxySecrets(c *Proxy) []*string           { return []*string{&c.Password} }
 
 func sealConnection(d *Connection) (*Connection, error) {
 	c := *d
-	var err error
-	if c.Password, err = sealSecret(c.Password); err != nil {
-		return nil, err
-	}
-	if c.SentinelPassword, err = sealSecret(c.SentinelPassword); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return &c, secretCodec.SealFields(connectionSecrets(&c)...)
 }
 
 func openConnection(d *Connection) error {
-	var err error
-	if d.Password, err = openSecret(d.Password); err != nil {
-		return err
-	}
-	d.SentinelPassword, err = openSecret(d.SentinelPassword)
-	return err
+	return opened(secretCodec.OpenFields(connectionSecrets(d)...))
 }
 
 func sealSsh(d *Ssh) (*Ssh, error) {
 	c := *d
-	var err error
-	if c.Password, err = sealSecret(c.Password); err != nil {
-		return nil, err
-	}
-	if c.PrivateKey, err = sealSecret(c.PrivateKey); err != nil {
-		return nil, err
-	}
-	if c.Passphrase, err = sealSecret(c.Passphrase); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return &c, secretCodec.SealFields(sshSecrets(&c)...)
 }
 
 func openSsh(d *Ssh) error {
-	var err error
-	if d.Password, err = openSecret(d.Password); err != nil {
-		return err
-	}
-	if d.PrivateKey, err = openSecret(d.PrivateKey); err != nil {
-		return err
-	}
-	d.Passphrase, err = openSecret(d.Passphrase)
-	return err
+	return opened(secretCodec.OpenFields(sshSecrets(d)...))
 }
 
 func sealTls(d *Tls) (*Tls, error) {
 	c := *d
-	var err error
-	if c.Key, err = sealSecret(c.Key); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return &c, secretCodec.SealFields(tlsSecrets(&c)...)
 }
 
 func openTls(d *Tls) error {
-	var err error
-	d.Key, err = openSecret(d.Key)
-	return err
+	return opened(secretCodec.OpenFields(tlsSecrets(d)...))
 }
 
 func sealProxy(d *Proxy) (*Proxy, error) {
 	c := *d
-	var err error
-	if c.Password, err = sealSecret(c.Password); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return &c, secretCodec.SealFields(proxySecrets(&c)...)
 }
 
 func openProxy(d *Proxy) error {
-	var err error
-	d.Password, err = openSecret(d.Password)
-	return err
+	return opened(secretCodec.OpenFields(proxySecrets(d)...))
+}
+
+func unreadable(v string) bool {
+	return secretCodec.OpenFields(&v) != nil
+}
+
+func keepUnreadable[T any](ctx context.Context, find func(context.Context, string) (*T, error), id string, secrets func(*T) []*string, next *T) error {
+	fields := secrets(next)
+	if secretCodec == nil || !slices.ContainsFunc(fields, func(f *string) bool { return *f == "" }) {
+		return nil
+	}
+	stored, err := find(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	for i, f := range secrets(stored) {
+		if *fields[i] == "" && unreadable(*f) {
+			*fields[i] = *f
+		}
+	}
+	return nil
 }
 
 func (m *customConnectionModel) Insert(ctx context.Context, data *Connection) (sql.Result, error) {
@@ -133,6 +102,9 @@ func (m *customConnectionModel) Insert(ctx context.Context, data *Connection) (s
 func (m *customConnectionModel) Update(ctx context.Context, data *Connection) error {
 	enc, err := sealConnection(data)
 	if err != nil {
+		return err
+	}
+	if err := keepUnreadable(ctx, m.defaultConnectionModel.FindOne, enc.ID, connectionSecrets, enc); err != nil {
 		return err
 	}
 	if err := m.defaultConnectionModel.Update(ctx, enc); err != nil {
@@ -193,6 +165,9 @@ func (m *customSshModel) Update(ctx context.Context, data *Ssh) error {
 	if err != nil {
 		return err
 	}
+	if err := keepUnreadable(ctx, m.defaultSshModel.FindOne, enc.ID, sshSecrets, enc); err != nil {
+		return err
+	}
 	if err := m.defaultSshModel.Update(ctx, enc); err != nil {
 		return err
 	}
@@ -251,6 +226,9 @@ func (m *customTlsModel) Update(ctx context.Context, data *Tls) error {
 	if err != nil {
 		return err
 	}
+	if err := keepUnreadable(ctx, m.defaultTlsModel.FindOne, enc.ID, tlsSecrets, enc); err != nil {
+		return err
+	}
 	if err := m.defaultTlsModel.Update(ctx, enc); err != nil {
 		return err
 	}
@@ -307,6 +285,9 @@ func (m *customProxyModel) Insert(ctx context.Context, data *Proxy) (sql.Result,
 func (m *customProxyModel) Update(ctx context.Context, data *Proxy) error {
 	enc, err := sealProxy(data)
 	if err != nil {
+		return err
+	}
+	if err := keepUnreadable(ctx, m.defaultProxyModel.FindOne, enc.ID, proxySecrets, enc); err != nil {
 		return err
 	}
 	if err := m.defaultProxyModel.Update(ctx, enc); err != nil {

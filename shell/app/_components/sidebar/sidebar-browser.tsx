@@ -57,7 +57,7 @@ import { BrowserBulkDeleteDialog } from "@/app/_components/browser-bulk-delete-d
 import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
 import { useGroupList } from "@/hooks/api/group.api"
-import { resolveColor } from "@/lib/connection-color"
+import { resolveColor } from "@tradalab/lyra/utils"
 import { useExportKeys, useImportKeys, type ExportFormat } from "@/hooks/api/transfer.api"
 import { BrowserImportDialog } from "@/app/_components/browser-import-dialog"
 import { isWebMode } from "@/lib/mode"

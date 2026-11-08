@@ -14,7 +14,7 @@ import { GroupItem as GroupDO } from "@/types"
 import { ColorSwatches } from "@/app/_components/connection/color-swatches"
 import { TagInput } from "@/app/_components/connection/tag-input"
 import { useConnectionList } from "@/hooks/api/connection.api"
-import { addTag } from "@/lib/connection-tree"
+import { addTag } from "@tradalab/lyra/utils"
 
 export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
   const { t } = useTranslation()
@@ -24,7 +24,8 @@ export function ConnectionGeneralForm({ form }: { form: UseFormReturn<any> }) {
     () =>
       connections
         .flatMap(c => c.tags ?? [])
-        .reduce(addTag, [])
+        .reduce<readonly string[]>(addTag, [])
+        .slice()
         .sort(),
     [connections]
   )

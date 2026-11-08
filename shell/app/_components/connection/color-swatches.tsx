@@ -1,8 +1,9 @@
 "use client"
 
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { cn } from "@/lib/utils"
-import { CONNECTION_COLORS, type ConnectionColor, isConnectionColor } from "@/lib/connection-color"
+import { ColorSwatches as LyraColorSwatches } from "@tradalab/lyra/blocks"
+import { CONNECTION_COLOR_NAMES } from "@tradalab/lyra/utils"
 
 type Props = {
   value?: string
@@ -12,37 +13,7 @@ type Props = {
 
 export function ColorSwatches({ value, onChange, emptyLabel }: Props) {
   const { t } = useTranslation()
-  const current = isConnectionColor(value) ? value : ""
+  const labels = useMemo(() => Object.fromEntries(CONNECTION_COLOR_NAMES.map(c => [c, t(`color_${c}`)])), [t])
 
-  return (
-    <div role="group" className="flex flex-wrap items-center gap-2">
-      <Swatch label={emptyLabel} selected={current === ""} onSelect={() => onChange("")} className="border-muted-foreground/50 border border-dashed" />
-      {(Object.keys(CONNECTION_COLORS) as ConnectionColor[]).map(color => (
-        <Swatch
-          key={color}
-          label={t(`color_${color}`)}
-          selected={current === color}
-          onSelect={() => onChange(color)}
-          className={CONNECTION_COLORS[color].swatch}
-        />
-      ))}
-    </div>
-  )
-}
-
-function Swatch({ label, selected, onSelect, className }: { label: string; selected: boolean; onSelect: () => void; className: string }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      aria-label={label}
-      title={label}
-      onClick={onSelect}
-      className={cn(
-        "ring-offset-background focus-visible:ring-ring size-5 shrink-0 cursor-pointer rounded-full transition-shadow focus-visible:ring-2 focus-visible:outline-none",
-        selected && "ring-foreground ring-2 ring-offset-2",
-        className
-      )}
-    />
-  )
+  return <LyraColorSwatches value={value} onChange={onChange} emptyLabel={emptyLabel} labels={labels} />
 }

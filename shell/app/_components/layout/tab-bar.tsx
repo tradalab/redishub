@@ -8,7 +8,7 @@ import { useTabStore, TabType } from "@/stores/tab.store"
 import { ConnectionStateDot } from "@/app/_components/connection/connection-state-dot"
 import { useConnectionList } from "@/hooks/api/connection.api"
 import { useGroupList } from "@/hooks/api/group.api"
-import { CONNECTION_COLORS, resolveColor } from "@/lib/connection-color"
+import { CONNECTION_COLORS, resolveColor } from "@tradalab/lyra/utils"
 
 const IconMap: Record<TabType, ElementType> = {
   general: Database,
