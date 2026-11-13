@@ -1,4 +1,5 @@
-// Scaffolded by scorix; yours to edit, generate never rewrites it.
+// Code scaffolded by scorix. Safe to edit.
+
 package transfer
 
 import (
