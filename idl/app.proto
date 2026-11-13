@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package rdms;
 
+import "scorix/v1/annotations.proto";
+
 message Empty {}
 
 message ConnectionReq {
@@ -606,8 +608,9 @@ service client {
   rpc SetReadOnly(ClientSetReadOnlyReq) returns (Empty);
   rpc States(Empty) returns (ClientStatesRes);
   rpc Probe(ClientProbeReq) returns (Empty);
-  // @broadcast
-  rpc State(ClientStateEvent) returns (Empty);
+  rpc State(ClientStateEvent) returns (Empty) {
+    option (scorix.v1.event) = {};
+  }
 }
 
 service conn {
