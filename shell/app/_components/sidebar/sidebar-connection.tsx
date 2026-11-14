@@ -1,31 +1,14 @@
 "use client"
 
-import { useCallback, useMemo, useState, memo, type ReactNode } from "react"
+import { useCallback, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 
-import { SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarInput, SidebarMenu, toast } from "@tradalab/lyra/ui"
+import { SidebarHeader, SidebarInput, toast } from "@tradalab/lyra/ui"
 import { SidebarPanel } from "@tradalab/lyra/shell"
 import { EditIcon, FolderPlusIcon, LockIcon, MoreHorizontal, PlugIcon, PlusIcon, RefreshCcwIcon, Trash2Icon, UnplugIcon } from "lucide-react"
-import {
-  filterTree,
-  TreeDndProvider,
-  TreeExpander,
-  TreeIcon,
-  TreeLabel,
-  TreeNode,
-  TreeNodeContent,
-  TreeNodeTrigger,
-  TreeProvider,
-  TreeView,
-  useTreeDndNode,
-  useTreeDndRoot,
-  type DropPlan,
-} from "@tradalab/lyra/blocks"
-import { TreeItem } from "@/app/_components/tree"
-import { buildDbTree, cn } from "@/lib/utils"
+import { ConnectionTree, useConfirm, type ConnectionTreeItem, type DropPlan } from "@tradalab/lyra/blocks"
 import { useAppContext } from "@/ctx/app.context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@tradalab/lyra/ui"
-import { loadExpanded, saveExpanded, useConfirm } from "@tradalab/lyra/blocks"
 import { useConnection } from "@/app/_components/connection/connection.context"
 import { ConnectionReq as ConnectionDO, GroupItem as GroupDO } from "@/types"
 import { useDeleteGroup, useGroupList, useReorderGroups } from "@/hooks/api/group.api"
@@ -37,42 +20,19 @@ import { connectionMatches } from "@/lib/connection-tree"
 import { ConnectionModeIcon } from "@/app/_components/connection/connection-icon"
 import { CONNECTION_COLORS, isConnectionColor, resolveColor } from "@tradalab/lyra/utils"
 
+type Item = ConnectionTreeItem<GroupDO, ConnectionDO>
+
 const EXPANDED_KEY = "redishub:sidebar:expanded"
 
 export function SidebarConnection() {
   const { t } = useTranslation()
   const [keyword, setKeyword] = useState("")
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { create: connectionCreate } = useConnection()
   const { create: groupCreate } = useGroup()
+  const { connect, selectedDb } = useAppContext()
 
   const { data: groups = [], refetch: groupsRefetch } = useGroupList()
   const { data: databases = [], refetch: databasesRefetch } = useConnectionList()
-
-  const dataset = useMemo(() => buildDbTree(groups, databases), [groups, databases])
-
-  const filteredDataset = useMemo(() => (keyword ? filterTree(dataset, i => connectionMatches(i.connection, i.name, keyword)) : dataset), [dataset, keyword])
-  const groupMembers = useMemo(() => new Map(dataset.filter(i => i.isGroup).map(g => [g.id, g.children?.map(c => c.id) ?? []])), [dataset])
-
-  const [expanded, setExpanded] = useState(() => loadExpanded(EXPANDED_KEY))
-  const [filterExpanded, setFilterExpanded] = useState<{ keyword: string; ids: Set<string> } | null>(null)
-  const filtering = keyword.trim() !== ""
-  const shownExpanded = useMemo(() => {
-    if (!filtering) return expanded
-    if (filterExpanded?.keyword === keyword) return filterExpanded.ids
-    return new Set(filteredDataset.filter(i => i.isGroup).map(i => i.id))
-  }, [filtering, keyword, filterExpanded, filteredDataset, expanded])
-  const onExpandedChange = useCallback(
-    (ids: Set<string>) => {
-      if (filtering) {
-        setFilterExpanded({ keyword, ids })
-        return
-      }
-      setExpanded(ids)
-      saveExpanded(EXPANDED_KEY, ids)
-    },
-    [filtering, keyword]
-  )
 
   const refetch = () => {
     groupsRefetch()
@@ -87,7 +47,6 @@ export function SidebarConnection() {
         if (plan.kind === "group") {
           await reorderGroups.mutateAsync(plan.ids)
         } else {
-          if (plan.groupId && !expanded.has(plan.groupId)) onExpandedChange(new Set([...expanded, plan.groupId]))
           await reorderConnections.mutateAsync({ groupId: plan.groupId, ids: plan.ids })
         }
       } catch (e: any) {
@@ -95,7 +54,16 @@ export function SidebarConnection() {
         toast.add({ title: msg, type: "error" })
       }
     },
-    [expanded, onExpandedChange, reorderGroups, reorderConnections, t]
+    [reorderGroups, reorderConnections, t]
+  )
+
+  const matches = useCallback((item: Item, k: string) => connectionMatches(item.connection, item.name, k), [])
+  const iconClassName = useCallback(
+    (item: Item) => {
+      const color = item.isGroup ? (isConnectionColor(item.group?.color) ? item.group?.color : undefined) : resolveColor(item.connection, groups)
+      return color && CONNECTION_COLORS[color].tint
+    },
+    [groups]
   )
 
   return (
@@ -113,109 +81,42 @@ export function SidebarConnection() {
           <SidebarInput placeholder={t("filter")} onChange={e => setKeyword(e.target.value)} />
         </SidebarHeader>
 
-        <TreeDndProvider tree={dataset} enabled={!filtering} onDrop={onDrop}>
-          <TreeDropArea>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <TreeProvider
-                  expandedIds={shownExpanded}
-                  onExpandedChange={onExpandedChange}
-                  selectedIds={selectedIds}
-                  onSelectionChange={setSelectedIds}
-                  multiSelect
-                >
-                  <TreeView className="px-1 py-2">
-                    {filteredDataset.map((item: TreeItem) => (
-                      <RenderTreeItem key={item.id} item={item} memberIds={groupMembers.get(item.id)} reload={refetch} />
-                    ))}
-                  </TreeView>
-                </TreeProvider>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </TreeDropArea>
-        </TreeDndProvider>
+        <ConnectionTree
+          groups={groups}
+          connections={databases}
+          keyword={keyword}
+          matches={matches}
+          storageKey={EXPANDED_KEY}
+          activeId={selectedDb}
+          onOpen={c => connect(c, c.last_db || 0)}
+          onDrop={onDrop}
+          icon={item => <ConnectionModeIcon mode={item.connection?.mode} />}
+          iconClassName={iconClassName}
+          badges={(item, memberIds) => <Badges item={item} memberIds={memberIds} />}
+          actions={item => <ActionButton item={item} reload={refetch} />}
+        />
       </SidebarPanel>
     </>
   )
 }
 
-function TreeDropArea({ children }: { children: ReactNode }) {
-  const { className, rootProps, treeProps } = useTreeDndRoot()
-  return (
-    <SidebarContent className={className} {...rootProps}>
-      <SidebarGroup className="p-0" {...treeProps}>
-        {children}
-      </SidebarGroup>
-    </SidebarContent>
-  )
-}
-
-type RenderTreeItemProps = {
-  item: TreeItem
-  memberIds?: string[]
-  reload: () => void
-}
-
-function RenderTreeItem({ item, memberIds, reload }: RenderTreeItemProps) {
+function Badges({ item, memberIds }: { item: Item; memberIds: readonly string[] }) {
   const { t } = useTranslation()
-  const { connect, selectedDb } = useAppContext()
-  const isActive = !item.isGroup && item.id === selectedDb
-  const readOnly = !item.isGroup && Boolean(item.connection?.read_only)
-  const { data: groups = [] } = useGroupList()
-  const groupColor = item.group?.color
-  const color = item.isGroup ? (isConnectionColor(groupColor) ? groupColor : undefined) : resolveColor(item.connection, groups)
-  const dnd = useTreeDndNode(item)
-
+  if (item.isGroup) return <GroupStateSummary connectionIds={[...memberIds]} className="ml-1.5" />
   return (
-    <TreeNode
-      nodeId={item.id}
-      level={item.level}
-      isLast={item.level === 0}
-      onDoubleClick={
-        !item.isGroup
-          ? async e => {
-              e.stopPropagation()
-              if (item.connection) {
-                await connect(item.connection, item.connection.last_db || 0)
-              }
-            }
-          : undefined
-      }
-    >
-      <TreeNodeTrigger
-        className={cn("group/item px-1 py-1.5", isActive && "bg-accent text-accent-foreground font-medium rounded-md", dnd.className)}
-        {...dnd.props}
-      >
-        <TreeExpander hasChildren={item.isGroup} />
-        <TreeIcon
-          hasChildren={item.isGroup}
-          icon={item.isGroup ? undefined : <ConnectionModeIcon mode={item.connection?.mode} />}
-          className={color && CONNECTION_COLORS[color].tint}
-        />
-        <TreeLabel>{item.name}</TreeLabel>
-        {!item.isGroup && <ConnectionStateDot connectionId={item.id} className="ml-1.5" />}
-        {item.isGroup && <GroupStateSummary connectionIds={memberIds ?? []} className="ml-1.5" />}
-        {readOnly && (
-          <span title={t("read_only")} className="ml-auto mr-0.5 inline-flex shrink-0">
-            <LockIcon className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-          </span>
-        )}
-        <ActionButton item={item} reload={reload} />
-      </TreeNodeTrigger>
-
-      {item.isGroup && item.children && (
-        <TreeNodeContent hasChildren>
-          {item.children.map((child: TreeItem) => (
-            <RenderTreeItem key={child.id} item={child} reload={reload} />
-          ))}
-        </TreeNodeContent>
+    <>
+      <ConnectionStateDot connectionId={item.id} className="ml-1.5" />
+      {item.connection?.read_only && (
+        <span title={t("read_only")} className="ml-auto mr-0.5 inline-flex shrink-0">
+          <LockIcon className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+        </span>
       )}
-    </TreeNode>
+    </>
   )
 }
 
 type ActionButtonProps = {
-  item: TreeItem
+  item: Item
   reload: () => void
 }
 
@@ -256,7 +157,7 @@ const ActionButton = memo(function ActionButton({ item, reload }: ActionButtonPr
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="cursor-pointer ml-1 opacity-0 group-hover/item:opacity-100">
+        <div className="cursor-pointer">
           <MoreHorizontal className="h-4 w-4" />
         </div>
       </DropdownMenuTrigger>

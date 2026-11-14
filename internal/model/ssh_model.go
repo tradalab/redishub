@@ -1,16 +1,15 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
 	"strconv"
-	"time"
-
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/agent"
+	"strings"
 
 	scorixsqlx "github.com/tradalab/scorix/module/sqlx"
+	"github.com/tradalab/scorix/netx"
 )
 
 var _ SshModel = (*customSshModel)(nil)
@@ -31,59 +30,27 @@ func NewSshModel(conn func() scorixsqlx.Conn) SshModel {
 	}
 }
 
-func (s *Ssh) BuildAuthMethod() (ssh.AuthMethod, error) {
-	switch s.Kind {
-	case "password", "PASSWORD":
-		return ssh.Password(s.Password), nil
-	case "keypair", "KEYPAIR":
-		var signer ssh.Signer
-		var err error
+var ErrSSHAgentNotRunning = errors.New("ssh agent not running: SSH_AUTH_SOCK is not set")
 
-		if s.Passphrase != "" {
-			signer, err = ssh.ParsePrivateKeyWithPassphrase([]byte(s.PrivateKey), []byte(s.Passphrase))
-		} else {
-			signer, err = ssh.ParsePrivateKey([]byte(s.PrivateKey))
+func (s *Ssh) Netx() (*netx.SSH, error) {
+	out := &netx.SSH{
+		Addr:     s.Addr(),
+		Username: s.Username,
+		HostKey:  netx.HostKeyPolicy{Pinned: s.HostKey},
+	}
+	switch strings.ToLower(s.Kind) {
+	case "password":
+		out.Password = s.Password
+	case "keypair":
+		out.PrivateKey, out.Passphrase = s.PrivateKey, s.Passphrase
+	case "agent":
+		if out.Agent = os.Getenv("SSH_AUTH_SOCK"); out.Agent == "" {
+			return nil, ErrSSHAgentNotRunning
 		}
-
-		if err != nil {
-			return nil, fmt.Errorf("parse private key failed: %w", err)
-		}
-
-		return ssh.PublicKeys(signer), nil
-
-	case "agent", "AGENT":
-		socket := os.Getenv("SSH_AUTH_SOCK")
-		if socket == "" {
-			return nil, fmt.Errorf("ssh agent not running")
-		}
-
-		conn, err := net.Dial("unix", socket)
-		if err != nil {
-			return nil, fmt.Errorf("connect ssh agent failed: %w", err)
-		}
-
-		agentClient := agent.NewClient(conn)
-
-		return ssh.PublicKeysCallback(agentClient.Signers), nil
-
 	default:
 		return nil, fmt.Errorf("unsupported ssh kind: %s", s.Kind)
 	}
-}
-
-func (s *Ssh) BuildClientCfg() (*ssh.ClientConfig, error) {
-	authMethod, err := s.BuildAuthMethod()
-	if err != nil {
-		return nil, err
-	}
-	return &ssh.ClientConfig{
-		User: s.Username,
-		Auth: []ssh.AuthMethod{
-			authMethod,
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         time.Duration(s.Timeout) * time.Second,
-	}, nil
+	return out, nil
 }
 
 func (s *Ssh) Addr() string {

@@ -6,6 +6,7 @@ import (
 	"github.com/tradalab/scorix/module/browser"
 	"github.com/tradalab/scorix/module/clipboard"
 	"github.com/tradalab/scorix/module/env"
+	"github.com/tradalab/scorix/module/store"
 	"github.com/tradalab/scorix/module/updater"
 )
 
@@ -15,5 +16,6 @@ func registerModules(a *app.App) {
 	a.DefaultModule(browser.New())
 	a.DefaultModule(clipboard.New())
 	a.DefaultModule(env.New())
+	a.DefaultModule(store.New())
 	a.DefaultModule(updater.New())
 }

@@ -358,5 +358,20 @@
   "size": "Kích thước",
   "keys": "Khoá",
   "no_keys_match": "Không có khoá nào khớp bộ lọc",
-  "validation_error": "Lỗi nhập liệu"
+  "validation_error": "Lỗi nhập liệu",
+  "host_key": "Host key",
+  "host_key_untrusted": "Chưa tin cậy",
+  "host_key_help": "RedisHub chỉ kết nối tới SSH server giữ đúng key này. Bấm Test để xem key server đưa ra.",
+  "host_key_trust_title": "Tin cậy SSH host này?",
+  "host_key_trust_desc": "Server đưa ra một key RedisHub chưa từng thấy:\n{{fingerprint}}\nĐối chiếu với fingerprint quản trị viên đưa cho bạn trước khi tin cậy.",
+  "host_key_changed_title": "Host key SSH đã thay đổi",
+  "host_key_changed_desc": "Server đưa ra một key khác với key bạn đã tin cậy:\n{{fingerprint}}\nĐiều này xảy ra khi server được dựng lại, và cả khi có kẻ chặn giữa đường. Chỉ tin cậy khi quản trị viên xác nhận thay đổi.",
+  "host_key_trust": "Tin cậy",
+  "host_key_trusted": "Đã tin cậy host key. Bấm Lưu để giữ lại.",
+  "required": "Bắt buộc",
+  "port_range": "Từ 1 đến 65535",
+  "add": "Thêm",
+  "timeout_s": "Timeout (giây)",
+  "ssh_kind_keypair": "Cặp khoá",
+  "ssh_kind_agent": "SSH agent"
 }

@@ -79,6 +79,7 @@ security:
     env: true
     shell: true # browser module OpenUrl only
     clipboard: true # clipboard module, for copying a key name
+    store: true # store module, where the app's settings live
 
 logger:
   level: info # debug, info, warn, error
@@ -99,6 +100,8 @@ modules:
   browser:
     enabled: true
   clipboard:
+    enabled: true
+  store:
     enabled: true
   updater:
     enabled: true

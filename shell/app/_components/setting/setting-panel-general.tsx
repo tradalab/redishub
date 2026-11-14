@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 import { useUpdater } from "@/app/_components/updater/updater.context"
 import { useTheme } from "next-themes"
 import { useState } from "react"
@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Checkbox } from "@tradalab/lyra/ui"
 import { Label } from "@tradalab/lyra/ui"
 import { Button } from "@tradalab/lyra/ui"
-import { PlatePicker } from "@tradalab/lyra/blocks"
+import { PlatePicker, ReleaseNotes } from "@tradalab/lyra/blocks"
+import { openExternal } from "@/api/modules"
 import { Spinner } from "@tradalab/lyra/ui"
 import { version } from "../../../package.json"
 
@@ -131,9 +132,7 @@ export function SettingPanelGeneral() {
           <FieldDescription>
             {checked ? (newVersion ? t("update_available", { v: newVersion }) : t("up_to_date")) : `${t("current_version")}: v${version}`}
           </FieldDescription>
-          {/* Not translated: it comes from the manifest, which is one file for
-              every locale. Only with an update to describe. */}
-          {checked && newVersion && notes && <FieldDescription className="whitespace-pre-wrap">{notes}</FieldDescription>}
+          {checked && newVersion && notes && <ReleaseNotes notes={notes} onOpenLink={openExternal} className="text-muted-foreground" />}
         </Field>
       </FieldSet>
     </FieldGroup>

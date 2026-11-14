@@ -60,6 +60,9 @@ func main() {
 
 	a.OnReady(func(*app.App) {
 		ctx := context.Background()
+		if err := sc.MigrateSettings(ctx); err != nil {
+			log.Printf("settings migration failed (will retry next start): %v", err)
+		}
 		if err := sc.MigrateSecrets(ctx); err != nil {
 			log.Printf("secrets migration failed (will retry next start): %v", err)
 		}

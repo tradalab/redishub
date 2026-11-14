@@ -1,5 +1,5 @@
 import { transfer } from "@/api"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 
 export type ExportFile = { name: string; ext: "csv" | "json"; content: string }
 

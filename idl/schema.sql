@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS "ssh" (
     private_key TEXT NOT NULL DEFAULT '',
     passphrase  TEXT NOT NULL DEFAULT '',
     timeout     INTEGER NOT NULL DEFAULT 60,
+    host_key    TEXT NOT NULL DEFAULT '',
     created_at  DATETIME,
     updated_at  DATETIME,
     deleted_at  DATETIME
@@ -99,15 +100,6 @@ CREATE TABLE IF NOT EXISTS search_preset (
     deleted_at  DATETIME
 );
 
-CREATE TABLE IF NOT EXISTS "setting" (
-    id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-' || substr('89ab',abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
-    key         TEXT NOT NULL DEFAULT '' UNIQUE,
-    value       TEXT NOT NULL DEFAULT '',
-    created_at  DATETIME,
-    updated_at  DATETIME,
-    deleted_at  DATETIME
-);
-
 UPDATE "connection" SET
     group_id   = COALESCE(group_id, ''),
     ssh_id     = COALESCE(ssh_id, ''),
@@ -122,4 +114,3 @@ UPDATE "ssh" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_a
 UPDATE "tls" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
 UPDATE proxy SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
 UPDATE "group" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;
-UPDATE "setting" SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP), updated_at = COALESCE(updated_at, CURRENT_TIMESTAMP) WHERE created_at IS NULL OR updated_at IS NULL;

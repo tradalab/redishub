@@ -4,7 +4,7 @@ import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@tradalab/lyra/ui"
 import scorix from "@/lib/scorix"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 
 // Only the fields shown. mod:env:Info also carries appName and the OS
 // dark-mode flag, which answer nothing about which build is running.

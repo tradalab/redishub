@@ -35,12 +35,21 @@ func (l *UpsertLogic) Upsert(params *types.SshReq) (*types.UpsertRes, error) {
 	}
 
 	isNew := s == nil
+	existingHostKey := ""
+	if !isNew {
+		existingHostKey = s.HostKey
+	}
 	if isNew {
 		s = &model.Ssh{
 			ID: params.Id,
 		}
 	}
 
+	moved := !isNew && (s.Host != params.Host || s.Port != int64(params.Port))
+	s.HostKey = params.HostKey
+	if moved && s.HostKey == existingHostKey {
+		s.HostKey = ""
+	}
 	s.Host = params.Host
 	s.Port = int64(params.Port)
 	s.Username = params.Username

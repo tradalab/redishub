@@ -4,15 +4,19 @@ import { useCallback } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@tradalab/lyra/ui"
 import { useTranslation } from "react-i18next"
-import { setting } from "@/api"
-import type { SettingListRes } from "@/types"
+import { store } from "@/api/modules"
 
 const QUERY_KEY = ["settings"] as const
 
+type Settings = Record<string, string>
+
 function useSettingsQuery() {
-  return useQuery<SettingListRes>({
+  return useQuery<Settings>({
     queryKey: QUERY_KEY,
-    queryFn: () => setting.list({}),
+    queryFn: async () => {
+      const all = await store.all()
+      return Object.fromEntries(Object.entries(all ?? {}).filter((e): e is [string, string] => typeof e[1] === "string"))
+    },
     staleTime: Infinity,
   })
 }
@@ -20,7 +24,7 @@ function useSettingsQuery() {
 export function useSettings() {
   const q = useSettingsQuery()
   return {
-    settings: q.data?.items ?? [],
+    settings: q.data ?? {},
     loading: q.isLoading,
     refresh: q.refetch,
   }
@@ -32,19 +36,12 @@ export function useSetting(key: string, options?: { silent?: boolean }) {
   const q = useSettingsQuery()
   const silent = options?.silent
 
-  const value = q.data?.items?.find(s => s.key === key)?.value
+  const value = q.data?.[key]
 
   const { mutateAsync } = useMutation({
-    mutationFn: ({ key, value }: { key: string; value: string }) => setting.set({ key, value }),
+    mutationFn: ({ key, value }: { key: string; value: string }) => store.set({ key, value }),
     onMutate: ({ key, value }) => {
-      qc.setQueryData<SettingListRes>(QUERY_KEY, prev => {
-        const items = prev?.items ?? []
-        const idx = items.findIndex(s => s.key === key)
-        if (idx === -1) return { items: [...items, { key, value }] }
-        const next = [...items]
-        next[idx] = { key, value }
-        return { items: next }
-      })
+      qc.setQueryData<Settings>(QUERY_KEY, prev => ({ ...prev, [key]: value }))
     },
     onSuccess: () => {
       if (!silent) toast.add({ title: t("updated"), type: "success" })
@@ -57,7 +54,7 @@ export function useSetting(key: string, options?: { silent?: boolean }) {
 
   const setValue = useCallback(
     async (next: string | ((prev?: string) => string)) => {
-      const prev = qc.getQueryData<SettingListRes>(QUERY_KEY)?.items?.find(s => s.key === key)?.value
+      const prev = qc.getQueryData<Settings>(QUERY_KEY)?.[key]
       const val = typeof next === "function" ? next(prev) : next
       await mutateAsync({ key, value: val })
       return val

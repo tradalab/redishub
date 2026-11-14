@@ -4,11 +4,12 @@ package ssh
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/tradalab/rdms/internal/model"
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
-	"golang.org/x/crypto/ssh"
+	"github.com/tradalab/scorix/netx"
 )
 
 type TestLogic struct {
@@ -33,6 +34,7 @@ func (l *TestLogic) Test(params *types.SshReq) (*types.Empty, error) {
 		PrivateKey: params.PrivateKey,
 		Passphrase: params.Passphrase,
 		Timeout:    params.Timeout,
+		HostKey:    params.HostKey,
 	}
 
 	if params.Id != "" && (s.Password == "" || s.PrivateKey == "" || s.Passphrase == "") {
@@ -49,17 +51,21 @@ func (l *TestLogic) Test(params *types.SshReq) (*types.Empty, error) {
 		}
 	}
 
-	config, err := s.BuildClientCfg()
+	sshCfg, err := s.Netx()
 	if err != nil {
 		return nil, err
 	}
-
-	addr := s.Addr()
-	conn, err := ssh.Dial("tcp", addr, config)
+	route, err := netx.Open(netx.Config{Timeout: time.Duration(s.Timeout) * time.Second, SSH: sshCfg})
 	if err != nil {
+		return nil, err
+	}
+	defer route.Close()
+	if err := route.Check(l.ctx); err != nil {
+		if fe := svc.HostKeyFault(err); fe != err {
+			return nil, fe
+		}
 		return nil, fmt.Errorf("ssh connect failed: %w", err)
 	}
-	defer conn.Close()
 
 	return &types.Empty{}, nil
 }

@@ -60,7 +60,7 @@ import { useGroupList } from "@/hooks/api/group.api"
 import { resolveColor } from "@tradalab/lyra/utils"
 import { useExportKeys, useImportKeys, type ExportFormat } from "@/hooks/api/transfer.api"
 import { BrowserImportDialog } from "@/app/_components/browser-import-dialog"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 
 const EXPORT_FORMATS: { format: ExportFormat; label: string }[] = [
   { format: "ndjson", label: "NDJSON" },

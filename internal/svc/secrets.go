@@ -2,8 +2,6 @@ package svc
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 
 	scorixsecrets "github.com/tradalab/scorix/secrets"
@@ -29,10 +27,8 @@ func initSecretCodec() {
 }
 
 func (s *ServiceContext) MigrateSecrets(ctx context.Context) error {
-	if _, err := s.SettingModel.FindOneByKey(ctx, settingSecretsMigKy); err == nil {
+	if _, done := s.Store.Value(settingSecretsMigKy); done {
 		return nil
-	} else if !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("check migration flag: %w", err)
 	}
 
 	if err := scorixsecrets.Reseal(ctx, s.ConnectionModel.FindAll, s.ConnectionModel.Update); err != nil {
@@ -48,6 +44,5 @@ func (s *ServiceContext) MigrateSecrets(ctx context.Context) error {
 		return fmt.Errorf("re-seal proxy: %w", err)
 	}
 
-	_, err := s.SettingModel.Insert(ctx, &model.Setting{Key: settingSecretsMigKy, Value: "done"})
-	return err
+	return s.Store.Set(ctx, map[string]any{"key": settingSecretsMigKy, "value": "done"})
 }

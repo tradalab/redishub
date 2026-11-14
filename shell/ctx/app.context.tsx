@@ -3,7 +3,7 @@
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react"
 import { closedConnections, useTabStore } from "@/stores/tab.store"
 import { useBrowserViewStore } from "@/stores/browser-view.store"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 import { toast } from "@tradalab/lyra/ui"
 import { I18nextProvider } from "react-i18next"
 import i18n from "@/i18n"
@@ -11,6 +11,7 @@ import { ConnectionReq as ConnectionDO } from "@/types"
 import { useSetting } from "@/hooks/api/setting.api"
 import { useCompact, usePlate, type Plate } from "@tradalab/lyra/blocks"
 import { useConnect, useDisconnect } from "@/hooks/api/client.api"
+import { useRetryAfterTrust } from "@/hooks/use-host-key"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { SshProvider } from "@/app/_components/ssh/ssh.provider"
 import { TlsProvider } from "@/app/_components/tls/tls.provider"
@@ -78,6 +79,7 @@ function AppContextInner({ children }: { children: ReactNode }) {
   const selectedDbIdx = activeTab?.databaseIdx ?? 0
 
   const connectMutation = useConnect()
+  const retryAfterTrust = useRetryAfterTrust()
   const disconnectMutation = useDisconnect()
   const disconnectAsync = disconnectMutation.mutateAsync
 
@@ -104,7 +106,9 @@ function AppContextInner({ children }: { children: ReactNode }) {
     if (!database) return
     setLoading(true)
     try {
-      await connectMutation.mutateAsync({ connection_id: database.id, database_index: dbIdx })
+      const sshId = database.ssh_enable ? database.ssh_id : undefined
+      const res = await retryAfterTrust(sshId, () => connectMutation.mutateAsync({ connection_id: database.id, database_index: dbIdx }))
+      if (res.declined) return
       setSelectedTab("/browser")
       addTab({
         type: "general",

@@ -103,21 +103,6 @@ func TestClientManager_BuildOptions(t *testing.T) {
 		}
 	})
 
-	t.Run("SSHTunnelOptions", func(t *testing.T) {
-		cfg := &model.Connection{Network: "tcp", Host: "10.0.0.5", Port: 6379, SshEnable: 1}
-		ssh := &model.Ssh{Host: "bastion", Port: 22, Username: "u", Kind: "password", Password: "p"}
-		opts, _, err := m.buildOptions(context.TODO(), cfg, ssh, nil, nil, 0)
-		if err != nil {
-			t.Skipf("ssh build returned %v (no bastion in unit env) — option-shape check skipped", err)
-		}
-		if opts.Protocol != 2 {
-			t.Errorf("ssh must force RESP2, got protocol %d", opts.Protocol)
-		}
-		if opts.ReadTimeout != -1 || opts.WriteTimeout != -1 {
-			t.Errorf("ssh must disable go-redis r/w deadlines, got r=%v w=%v", opts.ReadTimeout, opts.WriteTimeout)
-		}
-	})
-
 	t.Run("TLSConfigBuilt", func(t *testing.T) {
 		cfg := &model.Connection{Network: "tcp", Host: "127.0.0.1", Port: 6379, TlsEnable: 1}
 		tls := &model.Tls{Verify: 0}
@@ -140,6 +125,9 @@ func TestClientManager_BuildOptions(t *testing.T) {
 		}
 		if _, _, err := m.buildOptions(context.TODO(), cfg, nil, nil, nil, 0); err != nil {
 			t.Fatalf("addr mapping must parse leniently, got %v", err)
+		}
+		if got := lenientAddrMap(cfg.AddrMapping); len(got) != 1 || got["10.0.0.1:6379"] != "1.2.3.4:6379" {
+			t.Fatalf("map = %v, want only the well-formed pair", got)
 		}
 	})
 }

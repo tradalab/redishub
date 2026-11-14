@@ -17,7 +17,7 @@ import { configs } from "@/configs"
 import { SettingDialog } from "@/app/_components/setting/setting-dialog"
 import { useAppContext } from "@/ctx/app.context"
 import { useTranslation } from "react-i18next"
-import { openExternal } from "@/lib/open-external"
+import { openExternal } from "@/api/modules"
 import { openConnectionIds, useTabStore } from "@/stores/tab.store"
 import { SidebarOpenConnection } from "@/app/_components/sidebar/sidebar-open-connection"
 

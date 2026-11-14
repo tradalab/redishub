@@ -9,22 +9,51 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/tradalab/rdms/internal/model"
+	"github.com/tradalab/scorix/fault"
 	"golang.org/x/crypto/ssh"
 )
 
 type bastion struct {
 	addr     string
+	hostKey  ssh.PublicKey
+	server   *ssh.ServerConfig
 	mu       sync.Mutex
 	sessions []*ssh.ServerConn
 	ended    chan struct{}
 }
 
 func startBastion(t *testing.T) *bastion {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = ln.Close() })
+
+	b := &bastion{addr: ln.Addr().String(), ended: make(chan struct{}, 16)}
+	b.rekey(t)
+	go func() {
+		for {
+			nc, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			b.mu.Lock()
+			cfg := b.server
+			b.mu.Unlock()
+			go b.serve(nc, cfg)
+		}
+	}()
+	return b
+}
+
+func (b *bastion) rekey(t *testing.T) {
 	t.Helper()
 	_, key, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
@@ -41,24 +70,9 @@ func startBastion(t *testing.T) *bastion {
 		return nil, errors.New("denied")
 	}}
 	cfg.AddHostKey(signer)
-
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = ln.Close() })
-
-	b := &bastion{addr: ln.Addr().String(), ended: make(chan struct{}, 16)}
-	go func() {
-		for {
-			nc, err := ln.Accept()
-			if err != nil {
-				return
-			}
-			go b.serve(nc, cfg)
-		}
-	}()
-	return b
+	b.mu.Lock()
+	b.server, b.hostKey = cfg, signer.PublicKey()
+	b.mu.Unlock()
 }
 
 func (b *bastion) serve(nc net.Conn, cfg *ssh.ServerConfig) {
@@ -128,7 +142,11 @@ func (b *bastion) waitEnded(t *testing.T, what string) {
 func (b *bastion) cfg() *model.Ssh {
 	host, portStr, _ := net.SplitHostPort(b.addr)
 	port, _ := strconv.ParseInt(portStr, 10, 64)
-	return &model.Ssh{Host: host, Port: port, Username: "u", Kind: "password", Password: "p", Timeout: 5}
+	return &model.Ssh{Host: host, Port: port, Username: "u", Kind: "password", Password: "p", Timeout: 5, HostKey: b.pin()}
+}
+
+func (b *bastion) pin() string {
+	return strings.TrimSpace(string(ssh.MarshalAuthorizedKey(b.hostKey)))
 }
 
 func pingWithin(c *Client, d time.Duration) error {
@@ -191,4 +209,48 @@ func TestSSHTunnel_RemoveClosesSession(t *testing.T) {
 		t.Fatalf("Remove: %v", err)
 	}
 	b.waitEnded(t, "Remove")
+}
+
+func TestSSHTunnel_UnpinnedBastionIsRefusedWithTheKeyToTrust(t *testing.T) {
+	m, cfg, b := tunnelled(t, 5)
+	s := b.cfg()
+	s.HostKey = ""
+	_, err := m.Add(cfg, s, nil, nil, 0)
+	fe, ok := errors.AsType[*fault.Error](err)
+	if !ok || fe.Code != CodeHostKeyUnknown {
+		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyUnknown)
+	}
+	if fe.Details["key"] != b.pin() || !strings.HasPrefix(fmt.Sprint(fe.Details["fingerprint"]), "SHA256:") {
+		t.Fatalf("details = %v, want the bastion's key and fingerprint", fe.Details)
+	}
+	if err := m.Test(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyUnknown {
+		t.Fatalf("Test err = %v, want fault %s", err, CodeHostKeyUnknown)
+	}
+}
+
+func TestSSHTunnel_ABastionWithAnotherKeySaysChanged(t *testing.T) {
+	m, cfg, b := tunnelled(t, 5)
+	s := b.cfg()
+	s.HostKey = startBastion(t).pin()
+	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyChanged {
+		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyChanged)
+	}
+}
+
+func TestSSHTunnel_ReopeningAnOpenClientWhoseBastionChangedKeySaysChanged(t *testing.T) {
+	m, cfg, b := tunnelled(t, 5)
+	s := b.cfg()
+	c, err := m.Add(cfg, s, nil, nil, 0)
+	if err != nil {
+		t.Fatalf("Add: %v", err)
+	}
+	b.rekey(t)
+	b.drop()
+	b.waitEnded(t, "drop")
+	if err := pingWithin(c, 5*time.Second); err == nil {
+		t.Fatal("ping through a bastion with another key succeeded")
+	}
+	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyChanged {
+		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyChanged)
+	}
 }

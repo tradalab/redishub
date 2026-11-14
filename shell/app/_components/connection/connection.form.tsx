@@ -1,5 +1,6 @@
 "use client"
 
+import { useRetryAfterTrust } from "@/hooks/use-host-key"
 import { useEffect, forwardRef, useImperativeHandle, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -184,6 +185,7 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
 
   const upsertConnection = useUpsertConnection()
   const testConnection = useTestConnection()
+  const retryAfterTrust = useRetryAfterTrust()
 
   useEffect(() => {
     const { mode, ...rest } = connection || {}
@@ -229,14 +231,16 @@ export const ConnectionForm = forwardRef<ConnectionFormRef, Props>(({ connection
       form.handleSubmit(async values => {
         const data = values as FormOutput
         try {
-          await testConnection.mutateAsync(data as any)
+          const sshId = (data.ssh_enable && data.ssh_id) || undefined
+          const res = await retryAfterTrust(sshId, () => testConnection.mutateAsync(data as any))
+          if (res.declined) return
           toast.add({ title: t("conn_success"), type: "success" })
         } catch (e: any) {
           const msg = e instanceof Error ? e.message : typeof e === "string" ? e : ""
           toast.add({ title: t("conn_failed"), description: msg, type: "error" })
         }
       })(),
-    [form, t, testConnection]
+    [form, t, testConnection, retryAfterTrust]
   )
 
   useImperativeHandle(

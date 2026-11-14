@@ -1,7 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { GroupItem as GroupDO, ConnectionReq as ConnectionDO } from "@/types"
-import { TreeItem } from "@/app/_components/tree"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -55,43 +53,4 @@ export function parseRedisInfo(infoText: string): InfoObject {
   }
 
   return result
-}
-
-const bySortOrder = (a: { sort_order: number; name: string }, b: { sort_order: number; name: string }) =>
-  a.sort_order - b.sort_order || a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" })
-
-export const buildDbTree = (groups: GroupDO[], unsortedConnections: ConnectionDO[]): TreeItem[] => {
-  const connections = [...unsortedConnections].sort(bySortOrder)
-  const groupIds = new Set(groups.map(g => g.id))
-  const grouped = [...groups].sort(bySortOrder).map((g: GroupDO) => ({
-    id: g.id,
-    name: g.name,
-    isGroup: true,
-    isLeaf: false,
-    level: 0,
-    group: g,
-    children: connections
-      .filter((c: ConnectionDO) => c.group_id === g.id)
-      .map((c: ConnectionDO) => ({
-        id: c.id,
-        name: c.name,
-        isGroup: false,
-        isLeaf: true,
-        level: 1,
-        connection: c,
-      })),
-  }))
-
-  const ungrouped = connections
-    .filter((c: ConnectionDO) => !c.group_id || !groupIds.has(c.group_id))
-    .map((c: ConnectionDO) => ({
-      id: c.id,
-      name: c.name,
-      isGroup: false,
-      isLeaf: true,
-      level: 0,
-      connection: c,
-    }))
-
-  return [...grouped, ...ungrouped]
 }

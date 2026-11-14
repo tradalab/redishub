@@ -13,9 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/internal/model"
 	"github.com/tradalab/rdms/internal/types"
-	"github.com/tradalab/rdms/pkg/netx"
-	"golang.org/x/crypto/ssh"
-	"golang.org/x/net/proxy"
+	"github.com/tradalab/scorix/netx"
 )
 
 type ClientManager struct {
@@ -59,6 +57,9 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 
 		if !isStale {
 			m.mu.RUnlock()
+			if err := c.hostKeyFault(cfg.DialTimeout); err != nil {
+				return nil, err
+			}
 			return c, nil
 		}
 
@@ -73,14 +74,14 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 
 	m.connecting(cfg.ID)
 
-	rdb, tunnel, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	rdb, route, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
 		m.forgetUnused(cfg.ID)
 		return nil, err
 	}
 
 	cli := NewClient(rdb, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
-	cli.tunnel = tunnel
+	cli.route = route
 	rdb.AddHook(stateHook{m: m, id: cfg.ID})
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
@@ -114,18 +115,22 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 	return cli, nil
 }
 
-func (m *ClientManager) init(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (redis.UniversalClient, *sshTunnel, error) {
-	options, tunnel, err := m.buildOptions(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+func (m *ClientManager) init(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (redis.UniversalClient, *netx.Route, error) {
+	options, route, err := m.buildOptions(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
 		return nil, nil, err
+	}
+	if err := route.Check(ctx); err != nil {
+		_ = route.Close()
+		return nil, nil, HostKeyFault(err)
 	}
 
 	rdb := redis.NewUniversalClient(options)
 
-	return rdb, tunnel, nil
+	return rdb, route, nil
 }
 
-func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (*redis.UniversalOptions, *sshTunnel, error) {
+func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) (*redis.UniversalOptions, *netx.Route, error) {
 	options := &redis.UniversalOptions{
 		Addrs:           []string{cfg.Addr()},
 		Username:        cfg.Username,
@@ -137,12 +142,6 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 		DisableIdentity: true,
 		IdentitySuffix:  "redishub_",
 		PoolSize:        10,
-	}
-
-	if cfg.SshEnable > 0 {
-		options.Protocol = 2
-		options.ReadTimeout = -1
-		options.WriteTimeout = -1
 	}
 
 	if cfg.SshEnable > 0 && sshCfg == nil {
@@ -200,125 +199,48 @@ func (m *ClientManager) buildOptions(ctx context.Context, cfg *model.Connection,
 		options.Addrs = []string{cfg.Addr()}
 	}
 
-	addrMap := make(map[string]string)
-	if cfg.AddrMapping != "" {
-		lines := append([]string{}, netx.SplitLines(cfg.AddrMapping)...)
-		for _, line := range lines {
-			if kv := netx.SplitKV(line, "="); len(kv) == 2 {
-				addrMap[kv[0]] = kv[1]
-			}
-		}
+	route, err := buildRoute(options.DialTimeout, lenientAddrMap(cfg.AddrMapping), cfg, sshCfg, proxyCfg)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	var baseDialer interface {
-		DialContext(ctx context.Context, network, addr string) (net.Conn, error)
-	}
-
-	if cfg.ProxyEnable > 0 && proxyCfg != nil {
-		switch proxyCfg.Protocol {
-		case "socks5":
-			auth := &proxy.Auth{
-				User:     proxyCfg.Username,
-				Password: proxyCfg.Password,
-			}
-			pd, err := proxy.SOCKS5("tcp", proxyCfg.Addr(), auth, proxy.Direct)
-			if err != nil {
-				return nil, nil, fmt.Errorf("socks5 proxy setup failed: %w", err)
-			}
-			if cd, ok := pd.(proxy.ContextDialer); ok {
-				baseDialer = cd
-			} else {
-				baseDialer = netx.NewContextWrapper(pd)
-			}
-		case "http":
-			baseDialer = &netx.HttpConnectDialer{
-				ProxyAddr: proxyCfg.Addr(),
-				Username:  proxyCfg.Username,
-				Password:  proxyCfg.Password,
-				Timeout:   options.DialTimeout,
-			}
-		default:
-			baseDialer = &net.Dialer{
-				Timeout:   options.DialTimeout,
-				KeepAlive: options.ReadTimeout,
-			}
-		}
-	} else {
-		baseDialer = &net.Dialer{
-			Timeout:   options.DialTimeout,
-			KeepAlive: options.ReadTimeout,
-		}
-	}
-
-	var tunnel *sshTunnel
-	if cfg.SshEnable > 0 {
-		sshConfig, err := sshCfg.BuildClientCfg()
-		if err != nil {
-			return nil, nil, err
-		}
-		sshAddr := sshCfg.Addr()
-
-		tunnel, err = newSSHTunnel(ctx, func(ctx context.Context) (*ssh.Client, error) {
-			sshConn, err := baseDialer.DialContext(ctx, "tcp", sshAddr)
-			if err != nil {
-				return nil, fmt.Errorf("ssh dial failed: %w", err)
-			}
-
-			if d, ok := ctx.Deadline(); ok {
-				_ = sshConn.SetDeadline(d)
-			}
-
-			c, chans, reqs, err := ssh.NewClientConn(sshConn, sshAddr, sshConfig)
-			if err != nil {
-				sshConn.Close()
-				return nil, fmt.Errorf("ssh handshake failed: %w", err)
-			}
-			_ = sshConn.SetDeadline(time.Time{})
-			return ssh.NewClient(c, chans, reqs), nil
-		})
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	options.Dialer = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		dialAddr := addr
-		if mapped, ok := addrMap[addr]; ok {
-			dialAddr = mapped
-		}
-
-		if tunnel != nil {
-			return tunnel.Dial(ctx, network, dialAddr)
-		}
-
-		conn, err := baseDialer.DialContext(ctx, network, dialAddr)
-		if err != nil {
-			return nil, err
-		}
-		return conn, nil
-	}
+	options.Dialer = route.Dial
 
 	if cfg.TlsEnable > 0 && tlsCfg != nil {
 		tlsConfig, err := tlsCfg.BuildTlsConfig()
 		if err != nil {
-			_ = tunnel.Close()
+			_ = route.Close()
 			return nil, nil, fmt.Errorf("tls build failed: %w", err)
 		}
 		options.TLSConfig = tlsConfig
 	}
 
-	return options, tunnel, nil
+	return options, route, nil
+}
+
+func buildRoute(timeout time.Duration, addrMap map[string]string, cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy) (*netx.Route, error) {
+	rc := netx.Config{Timeout: timeout, AddrMap: addrMap}
+	if cfg.ProxyEnable > 0 && proxyCfg != nil {
+		rc.Proxy = &netx.Proxy{Protocol: proxyCfg.Protocol, Addr: proxyCfg.Addr(), Username: proxyCfg.Username, Password: proxyCfg.Password}
+	}
+	if cfg.SshEnable > 0 {
+		s, err := sshCfg.Netx()
+		if err != nil {
+			return nil, err
+		}
+		rc.SSH = s
+	}
+	return netx.Open(rc)
 }
 
 func (m *ClientManager) Test(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *model.Proxy, tlsCfg *model.Tls, dbIdx int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
 	defer cancel()
 
-	rdb, tunnel, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
+	rdb, route, err := m.init(ctx, cfg, sshCfg, proxyCfg, tlsCfg, dbIdx)
 	if err != nil {
 		return err
 	}
-	defer tunnel.Close()
+	defer route.Close()
 	defer rdb.Close()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
@@ -400,4 +322,16 @@ func (m *ClientManager) Do(ctx context.Context, id string, dbIdx int, args ...in
 		return nil, err
 	}
 	return c.Rdb.Do(ctx, args...).Result()
+}
+
+func lenientAddrMap(s string) map[string]string {
+	out := map[string]string{}
+	for line := range strings.SplitSeq(s, "\n") {
+		k, v, ok := strings.Cut(line, "=")
+		k, v = strings.TrimSpace(k), strings.TrimSpace(v)
+		if ok && k != "" && v != "" {
+			out[k] = v
+		}
+	}
+	return out
 }

@@ -629,28 +629,6 @@ type SearchPresetUpsertReq struct {
 	KeyType  string      `json:"key_type"`
 }
 
-type SettingGetReq struct {
-	Key string `json:"key"`
-}
-
-type SettingGetRes struct {
-	Value string `json:"value"`
-}
-
-type SettingItem struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-type SettingListRes struct {
-	Items []SettingItem `json:"items"`
-}
-
-type SettingSetReq struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
 type SlowQueryItem struct {
 	Id         int64    `json:"id"`
 	Timestamp  int64    `json:"timestamp"`
@@ -674,6 +652,12 @@ type SshReq struct {
 	PrivateKey string `json:"private_key"`
 	Passphrase string `json:"passphrase"`
 	Timeout    int64  `json:"timeout"`
+	HostKey    string `json:"host_key"`
+}
+
+type SshTrustReq struct {
+	Id      string `json:"id"`
+	HostKey string `json:"host_key"`
 }
 
 type StreamValue struct {

@@ -8,7 +8,7 @@ import { transfer } from "@/api"
 import type { ServerStream } from "@/lib/scorix"
 import { formatBytes } from "@tradalab/lyra/utils"
 import { downloadBlob, fromBase64, toBase64 } from "@/lib/export-file"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 import type { TransferExportReq, TransferImportReq, TransferProgressEvent } from "@/types"
 
 export type ExportScope = Pick<TransferExportReq, "keys" | "prefix" | "filters" | "match_all" | "key_type">

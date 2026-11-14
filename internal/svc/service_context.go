@@ -14,12 +14,14 @@ import (
 	_ "modernc.org/sqlite"
 	// scorix:model:imports:end
 	"github.com/tradalab/scorix/app"
+	"github.com/tradalab/scorix/module/store"
 )
 
 type ServiceContext struct {
 	Cfg          *config.Config
 	RedisManager *ClientManager
 	sqlx         *scorixsqlx.Module
+	Store        *store.StoreModule
 	// Web mode serves remote browsers, so nothing may open a dialog or write a path on this host.
 	Web bool
 	// scorix:model:fields:start
@@ -29,7 +31,6 @@ type ServiceContext struct {
 	ProxyModel        model.ProxyModel
 	GroupModel        model.GroupModel
 	SearchPresetModel model.SearchPresetModel
-	SettingModel      model.SettingModel
 	// scorix:model:fields:end
 
 	emit   func(name string, data any)
@@ -44,10 +45,13 @@ func NewServiceContext(a *app.App) *ServiceContext {
 	sqlxMod.RegisterDriver("sqlite", func(dsn string) (*sqlx.DB, error) { return sqlx.Connect("sqlite", dsn) })
 	a.Module(sqlxMod)
 	// scorix:model:init:end
+	st := store.New()
+	a.Module(st)
 	return &ServiceContext{
 		Cfg:          &config.Config{},
 		RedisManager: NewManager(),
 		sqlx:         sqlxMod,
+		Store:        st,
 		// scorix:model:assigns:start
 		ConnectionModel:   model.NewConnectionModel(sqlxMod.Conn),
 		SshModel:          model.NewSshModel(sqlxMod.Conn),
@@ -55,7 +59,6 @@ func NewServiceContext(a *app.App) *ServiceContext {
 		ProxyModel:        model.NewProxyModel(sqlxMod.Conn),
 		GroupModel:        model.NewGroupModel(sqlxMod.Conn),
 		SearchPresetModel: model.NewSearchPresetModel(sqlxMod.Conn),
-		SettingModel:      model.NewSettingModel(sqlxMod.Conn),
 		// scorix:model:assigns:end
 		emit:   a.Emit,
 		emitTo: a.EmitTo,

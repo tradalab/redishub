@@ -9,6 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tradalab/rdms/internal/model"
+	"github.com/tradalab/scorix/netx"
 )
 
 type Client struct {
@@ -27,7 +28,7 @@ type Client struct {
 	MonitorMu     sync.Mutex
 	ReadOnly      atomic.Bool
 	writeCmds     map[string]struct{}
-	tunnel        *sshTunnel
+	route         *netx.Route
 	stopBeat      context.CancelFunc
 }
 
@@ -59,7 +60,9 @@ func (c *Client) close() {
 	}
 	c.closeStreams()
 	_ = c.Rdb.Close()
-	_ = c.tunnel.Close()
+	if c.route != nil {
+		_ = c.route.Close()
+	}
 }
 
 func (c *Client) GetInfo(ctx context.Context, sections ...string) (map[string]map[string]string, error) {

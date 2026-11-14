@@ -358,5 +358,20 @@
   "size": "サイズ",
   "keys": "キー",
   "no_keys_match": "フィルターに一致するキーはありません",
-  "validation_error": "入力エラー"
+  "validation_error": "入力エラー",
+  "host_key": "ホスト鍵",
+  "host_key_untrusted": "未承認",
+  "host_key_help": "RedisHub はこの鍵を持つ SSH サーバーにのみ接続します。テストを実行すると、サーバーが提示する鍵を確認できます。",
+  "host_key_trust_title": "この SSH ホストを信頼しますか?",
+  "host_key_trust_desc": "サーバーが RedisHub の知らない鍵を提示しました:\n{{fingerprint}}\n信頼する前に、管理者から受け取ったフィンガープリントと照合してください。",
+  "host_key_changed_title": "SSH ホスト鍵が変わりました",
+  "host_key_changed_desc": "サーバーが信頼済みの鍵とは異なる鍵を提示しました:\n{{fingerprint}}\nサーバーの再構築でも、通信の途中に第三者がいる場合でも起こります。管理者が変更を確認した場合にのみ信頼してください。",
+  "host_key_trust": "信頼する",
+  "host_key_trusted": "ホスト鍵を信頼しました。保持するには保存を押してください。",
+  "required": "必須",
+  "port_range": "1 から 65535 まで",
+  "add": "追加",
+  "timeout_s": "タイムアウト (秒)",
+  "ssh_kind_keypair": "鍵ペア",
+  "ssh_kind_agent": "SSH エージェント"
 }

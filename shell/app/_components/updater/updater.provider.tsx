@@ -1,13 +1,14 @@
 "use client"
 
 import { ReactNode, useEffect, useRef, useState, useCallback } from "react"
-import { isWebMode } from "@/lib/mode"
+import { isWebMode } from "@/lib/scorix"
 import { useTranslation } from "react-i18next"
 import scorix from "@/lib/scorix"
-import { openExternal } from "@/lib/open-external"
+import { openExternal } from "@/api/modules"
 import { system } from "@/api"
 import { cn } from "@/lib/utils"
 import { useSetting, useSettings } from "@/hooks/api/setting.api"
+import { ReleaseNotes } from "@tradalab/lyra/blocks"
 import { Spinner, toast } from "@tradalab/lyra/ui"
 import { UpdaterContext } from "./updater.context"
 
@@ -77,7 +78,7 @@ export const UpdaterProvider = ({ children }: { children: ReactNode }) => {
       title: t("update_available", { v: newVersion }),
       description: (
         <div className="w-full">
-          <div className="whitespace-pre-line">{notes}</div>
+          <ReleaseNotes notes={notes} onOpenLink={openExternal} className="max-h-60 overflow-y-auto" />
           <div className="flex gap-2 mt-2">
             <button
               data-button="true"

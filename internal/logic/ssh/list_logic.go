@@ -38,6 +38,7 @@ func (l *ListLogic) List(params *types.Empty) (*types.SshListRes, error) {
 			PrivateKey: "",
 			Passphrase: "",
 			Timeout:    s.Timeout,
+			HostKey:    s.HostKey,
 		})
 	}
 

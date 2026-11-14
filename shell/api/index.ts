@@ -79,6 +79,7 @@ export const ssh = {
   list: (params: T.Empty) => scorix.invoke<T.SshListRes>("ssh:list", params),
   test: (params: T.SshReq) => scorix.invoke<T.Empty>("ssh:test", params),
   upsert: (params: T.SshReq) => scorix.invoke<T.UpsertRes>("ssh:upsert", params),
+  trust: (params: T.SshTrustReq) => scorix.invoke<T.Empty>("ssh:trust", params),
   delete: (params: T.IdReq) => scorix.invoke<T.Empty>("ssh:delete", params),
 };
 
@@ -104,12 +105,6 @@ export const group = {
   upsert: (params: T.GroupUpsertReq) => scorix.invoke<T.UpsertRes>("group:upsert", params),
   delete: (params: T.IdReq) => scorix.invoke<T.Empty>("group:delete", params),
   reorder: (params: T.GroupReorderReq) => scorix.invoke<T.Empty>("group:reorder", params),
-};
-
-export const setting = {
-  list: (params: T.Empty) => scorix.invoke<T.SettingListRes>("setting:list", params),
-  set: (params: T.SettingSetReq) => scorix.invoke<T.Empty>("setting:set", params),
-  get: (params: T.SettingGetReq) => scorix.invoke<T.SettingGetRes>("setting:get", params),
 };
 
 export const analysis = {

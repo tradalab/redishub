@@ -125,6 +125,7 @@ frontend, `in` is the frontend to Go.
 | `ssh:list` | `Empty` | `SshListRes` | unary | - | - |
 | `ssh:test` | `SshReq` | `Empty` | unary | - | - |
 | `ssh:upsert` | `SshReq` | `UpsertRes` | unary | - | - |
+| `ssh:trust` | `SshTrustReq` | `Empty` | unary | - | - |
 | `ssh:delete` | `IdReq` | `Empty` | unary | - | - |
 
 ## tls
@@ -166,16 +167,6 @@ frontend, `in` is the frontend to Go.
 | `group:upsert` | `GroupUpsertReq` | `UpsertRes` | unary | - | - |
 | `group:delete` | `IdReq` | `Empty` | unary | - | - |
 | `group:reorder` | `GroupReorderReq` | `Empty` | unary | - | - |
-
-## setting
-
-### Commands
-
-| Command | Request | Reply | Arity | Middleware | MCP |
-|---|---|---|---|---|---|
-| `setting:list` | `Empty` | `SettingListRes` | unary | - | - |
-| `setting:set` | `SettingSetReq` | `Empty` | unary | - | - |
-| `setting:get` | `SettingGetReq` | `SettingGetRes` | unary | - | - |
 
 ## analysis
 

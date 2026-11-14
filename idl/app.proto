@@ -51,6 +51,14 @@ message SshReq {
   string private_key = 7;
   string passphrase  = 8;
   int64  timeout     = 9;
+  // host_key is the bastion's public key in authorized_keys form, pinned once the user confirmed its
+  // fingerprint. Not a secret, so List returns it. Empty means no key is trusted yet.
+  string host_key    = 10;
+}
+
+message SshTrustReq {
+  string id       = 1;
+  string host_key = 2;
 }
 
 message TlsReq {
@@ -410,28 +418,6 @@ message ConnectionReorderReq {
   repeated string ids = 2;
 }
 
-message SettingListRes {
-  repeated SettingItem items = 1;
-}
-
-message SettingItem {
-  string key   = 1;
-  string value = 2;
-}
-
-message SettingSetReq {
-  string key   = 1;
-  string value = 2;
-}
-
-message SettingGetReq {
-  string key = 1;
-}
-
-message SettingGetRes {
-  string value = 1;
-}
-
 message IdReq {
   string id = 1;
 }
@@ -663,6 +649,7 @@ service ssh {
   rpc List(Empty) returns (SshListRes);
   rpc Test(SshReq) returns (Empty);
   rpc Upsert(SshReq) returns (UpsertRes);
+  rpc Trust(SshTrustReq) returns (Empty);
   rpc Delete(IdReq) returns (Empty);
 }
 
@@ -688,12 +675,6 @@ service group {
   rpc Upsert(GroupUpsertReq) returns (UpsertRes);
   rpc Delete(IdReq) returns (Empty);
   rpc Reorder(GroupReorderReq) returns (Empty);
-}
-
-service setting {
-  rpc List(Empty) returns (SettingListRes);
-  rpc Set(SettingSetReq) returns (Empty);
-  rpc Get(SettingGetReq) returns (SettingGetRes);
 }
 
 message AnalysisProfileReq {

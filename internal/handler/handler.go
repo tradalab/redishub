@@ -17,7 +17,6 @@ import (
 	"github.com/tradalab/rdms/internal/logic/preset"
 	"github.com/tradalab/rdms/internal/logic/proxy"
 	"github.com/tradalab/rdms/internal/logic/pubsub"
-	"github.com/tradalab/rdms/internal/logic/setting"
 	"github.com/tradalab/rdms/internal/logic/ssh"
 	"github.com/tradalab/rdms/internal/logic/system"
 	"github.com/tradalab/rdms/internal/logic/tls"
@@ -322,6 +321,12 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 		}
 		return h(ctx, r)
 	})
+	reg(a, "ssh:trust", func(ctx context.Context, r *types.SshTrustReq) (any, error) {
+		h := func(ctx context.Context, a any) (any, error) {
+			return ssh.NewTrustLogic(ctx, svcCtx).Trust(a.(*types.SshTrustReq))
+		}
+		return h(ctx, r)
+	})
 	reg(a, "ssh:delete", func(ctx context.Context, r *types.IdReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return ssh.NewDeleteLogic(ctx, svcCtx).Delete(a.(*types.IdReq))
@@ -397,24 +402,6 @@ func RegisterHandlers(a *app.App, svcCtx *svc.ServiceContext) {
 	reg(a, "group:reorder", func(ctx context.Context, r *types.GroupReorderReq) (any, error) {
 		h := func(ctx context.Context, a any) (any, error) {
 			return group.NewReorderLogic(ctx, svcCtx).Reorder(a.(*types.GroupReorderReq))
-		}
-		return h(ctx, r)
-	})
-	reg(a, "setting:list", func(ctx context.Context, r *types.Empty) (any, error) {
-		h := func(ctx context.Context, a any) (any, error) {
-			return setting.NewListLogic(ctx, svcCtx).List(a.(*types.Empty))
-		}
-		return h(ctx, r)
-	})
-	reg(a, "setting:set", func(ctx context.Context, r *types.SettingSetReq) (any, error) {
-		h := func(ctx context.Context, a any) (any, error) {
-			return setting.NewSetLogic(ctx, svcCtx).Set(a.(*types.SettingSetReq))
-		}
-		return h(ctx, r)
-	})
-	reg(a, "setting:get", func(ctx context.Context, r *types.SettingGetReq) (any, error) {
-		h := func(ctx context.Context, a any) (any, error) {
-			return setting.NewGetLogic(ctx, svcCtx).Get(a.(*types.SettingGetReq))
 		}
 		return h(ctx, r)
 	})

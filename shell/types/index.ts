@@ -630,28 +630,6 @@ export interface SearchPresetUpsertReq {
   key_type: string;
 }
 
-export interface SettingGetReq {
-  key: string;
-}
-
-export interface SettingGetRes {
-  value: string;
-}
-
-export interface SettingItem {
-  key: string;
-  value: string;
-}
-
-export interface SettingListRes {
-  items?: SettingItem[];
-}
-
-export interface SettingSetReq {
-  key: string;
-  value: string;
-}
-
 export interface SlowQueryItem {
   id: number;
   timestamp: number;
@@ -675,6 +653,12 @@ export interface SshReq {
   private_key: string;
   passphrase: string;
   timeout: number;
+  host_key: string;
+}
+
+export interface SshTrustReq {
+  id: string;
+  host_key: string;
 }
 
 export interface StreamValue {

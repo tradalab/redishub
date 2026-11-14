@@ -358,5 +358,20 @@
   "size": "Size",
   "keys": "Keys",
   "no_keys_match": "No keys match the filter",
-  "validation_error": "Validation error"
+  "validation_error": "Validation error",
+  "host_key": "Host key",
+  "host_key_untrusted": "Not trusted yet",
+  "host_key_help": "RedisHub only connects to the SSH server holding this key. Press Test to see the key the server presents.",
+  "host_key_trust_title": "Trust this SSH host?",
+  "host_key_trust_desc": "The server presents a key RedisHub has not seen before:\n{{fingerprint}}\nCompare it with the fingerprint your administrator gave you before trusting it.",
+  "host_key_changed_title": "SSH host key changed",
+  "host_key_changed_desc": "The server presents a different key from the one you trusted:\n{{fingerprint}}\nThis happens when the server was rebuilt, and also when someone sits in between. Trust it only once your administrator confirms the change.",
+  "host_key_trust": "Trust",
+  "host_key_trusted": "Host key trusted. Press Save to keep it.",
+  "required": "Required",
+  "port_range": "Between 1 and 65535",
+  "add": "Add",
+  "timeout_s": "Timeout (s)",
+  "ssh_kind_keypair": "Key pair",
+  "ssh_kind_agent": "SSH agent"
 }

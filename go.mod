@@ -14,7 +14,6 @@ require (
 	github.com/tradalab/scorix v0.40.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/crypto v0.57.0
-	golang.org/x/net v0.59.0
 	modernc.org/sqlite v1.52.0
 )
 
@@ -50,6 +49,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	golang.org/x/image v0.20.0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
@@ -60,3 +60,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
+
+replace github.com/tradalab/scorix => ../../scorix

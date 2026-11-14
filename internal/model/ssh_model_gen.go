@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	sshFindOneSQL  = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
-	sshFindAllSQL  = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `deleted_at` IS NULL"
-	sshFindManySQL = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `id` IN (?) AND `deleted_at` IS NULL"
-	sshInsertSQL   = "INSERT INTO `ssh` (`id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
-	sshUpdateSQL   = "UPDATE `ssh` SET `host` = ?, `port` = ?, `username` = ?, `kind` = ?, `password` = ?, `private_key` = ?, `passphrase` = ?, `timeout` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
+	sshFindOneSQL  = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`host_key`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `id` = ? AND `deleted_at` IS NULL LIMIT 1"
+	sshFindAllSQL  = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`host_key`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `deleted_at` IS NULL"
+	sshFindManySQL = "SELECT `id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`host_key`,`created_at`,`updated_at`,`deleted_at` FROM `ssh` WHERE `id` IN (?) AND `deleted_at` IS NULL"
+	sshInsertSQL   = "INSERT INTO `ssh` (`id`,`host`,`port`,`username`,`kind`,`password`,`private_key`,`passphrase`,`timeout`,`host_key`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+	sshUpdateSQL   = "UPDATE `ssh` SET `host` = ?, `port` = ?, `username` = ?, `kind` = ?, `password` = ?, `private_key` = ?, `passphrase` = ?, `timeout` = ?, `host_key` = ?, `updated_at` = ?, `deleted_at` = ? WHERE `id` = ?"
 	sshDeleteSQL   = "UPDATE `ssh` SET `deleted_at` = ? WHERE `id` = ?"
 )
 
@@ -49,6 +49,7 @@ type (
 		PrivateKey string       `db:"private_key" json:"private_key"`
 		Passphrase string       `db:"passphrase" json:"passphrase"`
 		Timeout    int64        `db:"timeout" json:"timeout"`
+		HostKey    string       `db:"host_key" json:"host_key"`
 		CreatedAt  time.Time    `db:"created_at" json:"created_at"`
 		UpdatedAt  time.Time    `db:"updated_at" json:"updated_at"`
 		DeletedAt  sql.NullTime `db:"deleted_at" json:"deleted_at"`
@@ -77,6 +78,7 @@ func (m *defaultSshModel) Insert(ctx context.Context, data *Ssh) (sql.Result, er
 		data.PrivateKey,
 		data.Passphrase,
 		data.Timeout,
+		data.HostKey,
 		data.CreatedAt,
 		data.UpdatedAt,
 		data.DeletedAt,
@@ -121,6 +123,7 @@ func (m *defaultSshModel) Update(ctx context.Context, data *Ssh) error {
 		data.PrivateKey,
 		data.Passphrase,
 		data.Timeout,
+		data.HostKey,
 		data.UpdatedAt,
 		data.DeletedAt,
 		data.ID,
