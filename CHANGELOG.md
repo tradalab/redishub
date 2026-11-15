@@ -2,6 +2,33 @@
 
 ---
 
+## [1.19.0]
+
+### 🚀 Features
+
+- **ssh:** SSH host keys are pinned. The first time a tunnel reaches a bastion, RedisHub shows its fingerprint and asks whether to trust it - from Test in the SSH form, Test in the connection form, or when the connection opens. If the bastion later shows a different key, the prompt says so with a red confirm button, and nothing connects until you choose. Before this, any host key was accepted
+- **ssh:** Sign in through `ssh-agent` - the `agent` auth type uses the agent at `SSH_AUTH_SOCK`
+- **updater:** Release notes are drawn with headings, lists, bold, `code` and links, in the update toast and the settings panel, and GitHub Releases now carry them
+- **sidebar:** The connection filter ignores Vietnamese accents - `da nang` finds `Máy Đà Nẵng`
+
+### 🐛 Fixes
+
+- **ssh:** Connections through an SSH tunnel keep RESP3 and their read and write timeouts, which were turned off for tunnels before
+- **ssh:** A connection still open when its bastion changed host key now asks again instead of retrying forever behind "Cannot reach the server"
+
+### ⚠️ Behavior changes
+
+- **ssh:** After upgrading, every saved SSH config asks once to trust its host key, since no key was pinned before
+- **ssh:** Saving an SSH config keeps its pinned key; changing its host or port drops the pin
+- **security:** A secret that cannot be decrypted on this machine reads as empty and is kept as it is on save, instead of showing the ciphertext as the password
+- **settings:** Settings move into `store.json` beside the database on first launch; nothing to do by hand
+
+### 🔧 Chores
+
+- **deps:** Scorix v0.42.0 and Lyra 3.19.0 - connection forms, the connection tree, release notes, SSH dialing, secrets, ordering and settings now come from the shared framework
+
+---
+
 ## [1.18.1]
 
 ### 🔧 Chores
