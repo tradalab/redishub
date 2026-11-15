@@ -7,7 +7,6 @@
 ### 🚀 Features
 
 - **ssh:** SSH host keys are pinned. The first time a tunnel reaches a bastion, RedisHub shows its fingerprint and asks whether to trust it - from Test in the SSH form, Test in the connection form, or when the connection opens. If the bastion later shows a different key, the prompt says so with a red confirm button, and nothing connects until you choose. Before this, any host key was accepted
-- **ssh:** Sign in through `ssh-agent` - the `agent` auth type uses the agent at `SSH_AUTH_SOCK`
 - **updater:** Release notes are drawn with headings, lists, bold, `code` and links, in the update toast and the settings panel, and GitHub Releases now carry them
 - **sidebar:** The connection filter ignores Vietnamese accents - `da nang` finds `Máy Đà Nẵng`
 
