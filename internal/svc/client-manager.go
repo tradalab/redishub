@@ -57,7 +57,10 @@ func (m *ClientManager) Add(cfg *model.Connection, sshCfg *model.Ssh, proxyCfg *
 
 		if !isStale {
 			m.mu.RUnlock()
-			if err := c.hostKeyFault(cfg.DialTimeout); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.DialTimeout)*time.Second)
+			err := c.route.VerifyHostKey(ctx)
+			cancel()
+			if err != nil {
 				return nil, err
 			}
 			return c, nil
@@ -122,7 +125,10 @@ func (m *ClientManager) init(ctx context.Context, cfg *model.Connection, sshCfg 
 	}
 	if err := route.Check(ctx); err != nil {
 		_ = route.Close()
-		return nil, nil, HostKeyFault(err)
+		if fe, ok := netx.HostKeyFault(err); ok {
+			return nil, nil, fe
+		}
+		return nil, nil, err
 	}
 
 	rdb := redis.NewUniversalClient(options)

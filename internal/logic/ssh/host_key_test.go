@@ -70,7 +70,7 @@ func TestPointingTheConfigAtAnotherHostDropsTheOldPin(t *testing.T) {
 		t.Fatalf("editing the user dropped the pin: %q", got)
 	}
 
-	req.Host = "bastion-b"
+	req.Host, req.HostKey = "bastion-b", ""
 	upsert(t, sc, ctx, req)
 	if got := hostKeyOf(t, sc, ctx, req.Id); got != "" {
 		t.Fatalf("a new host kept the old host's pin: %q", got)
@@ -80,6 +80,18 @@ func TestPointingTheConfigAtAnotherHostDropsTheOldPin(t *testing.T) {
 	upsert(t, sc, ctx, req)
 	if got := hostKeyOf(t, sc, ctx, req.Id); got != pinB {
 		t.Fatalf("a pin confirmed for the new address was dropped: %q", got)
+	}
+}
+
+func TestAnEditThatSendsNoKeyKeepsThePin(t *testing.T) {
+	sc, ctx := sshContext(t)
+	req := types.SshReq{Host: "bastion-a", Port: 22, Username: "u", Kind: "password", Password: "p", HostKey: pinA}
+	req.Id = upsert(t, sc, ctx, req)
+
+	req.Username, req.Timeout, req.HostKey = "v", 30, ""
+	upsert(t, sc, ctx, req)
+	if got := hostKeyOf(t, sc, ctx, req.Id); got != pinA {
+		t.Fatalf("an edit without a key cleared the pin: %q", got)
 	}
 }
 

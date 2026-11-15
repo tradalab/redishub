@@ -61,7 +61,7 @@ func (l *TestLogic) Test(params *types.SshReq) (*types.Empty, error) {
 	}
 	defer route.Close()
 	if err := route.Check(l.ctx); err != nil {
-		if fe := svc.HostKeyFault(err); fe != err {
+		if fe, ok := netx.HostKeyFault(err); ok {
 			return nil, fe
 		}
 		return nil, fmt.Errorf("ssh connect failed: %w", err)

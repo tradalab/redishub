@@ -9,6 +9,7 @@ import (
 	"github.com/tradalab/rdms/internal/model"
 	"github.com/tradalab/rdms/internal/svc"
 	"github.com/tradalab/rdms/internal/types"
+	"github.com/tradalab/scorix/netx"
 )
 
 type UpsertLogic struct {
@@ -46,10 +47,7 @@ func (l *UpsertLogic) Upsert(params *types.SshReq) (*types.UpsertRes, error) {
 	}
 
 	moved := !isNew && (s.Host != params.Host || s.Port != int64(params.Port))
-	s.HostKey = params.HostKey
-	if moved && s.HostKey == existingHostKey {
-		s.HostKey = ""
-	}
+	s.HostKey = netx.PinAfterEdit(existingHostKey, params.HostKey, !moved)
 	s.Host = params.Host
 	s.Port = int64(params.Port)
 	s.Username = params.Username

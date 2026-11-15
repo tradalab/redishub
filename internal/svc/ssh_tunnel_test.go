@@ -16,6 +16,7 @@ import (
 
 	"github.com/tradalab/rdms/internal/model"
 	"github.com/tradalab/scorix/fault"
+	"github.com/tradalab/scorix/netx"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -217,14 +218,14 @@ func TestSSHTunnel_UnpinnedBastionIsRefusedWithTheKeyToTrust(t *testing.T) {
 	s.HostKey = ""
 	_, err := m.Add(cfg, s, nil, nil, 0)
 	fe, ok := errors.AsType[*fault.Error](err)
-	if !ok || fe.Code != CodeHostKeyUnknown {
-		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyUnknown)
+	if !ok || fe.Code != netx.CodeHostKeyUnknown {
+		t.Fatalf("err = %v, want fault %s", err, netx.CodeHostKeyUnknown)
 	}
 	if fe.Details["key"] != b.pin() || !strings.HasPrefix(fmt.Sprint(fe.Details["fingerprint"]), "SHA256:") {
 		t.Fatalf("details = %v, want the bastion's key and fingerprint", fe.Details)
 	}
-	if err := m.Test(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyUnknown {
-		t.Fatalf("Test err = %v, want fault %s", err, CodeHostKeyUnknown)
+	if err := m.Test(cfg, s, nil, nil, 0); fault.CodeOf(err) != netx.CodeHostKeyUnknown {
+		t.Fatalf("Test err = %v, want fault %s", err, netx.CodeHostKeyUnknown)
 	}
 }
 
@@ -232,8 +233,8 @@ func TestSSHTunnel_ABastionWithAnotherKeySaysChanged(t *testing.T) {
 	m, cfg, b := tunnelled(t, 5)
 	s := b.cfg()
 	s.HostKey = startBastion(t).pin()
-	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyChanged {
-		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyChanged)
+	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != netx.CodeHostKeyChanged {
+		t.Fatalf("err = %v, want fault %s", err, netx.CodeHostKeyChanged)
 	}
 }
 
@@ -250,7 +251,7 @@ func TestSSHTunnel_ReopeningAnOpenClientWhoseBastionChangedKeySaysChanged(t *tes
 	if err := pingWithin(c, 5*time.Second); err == nil {
 		t.Fatal("ping through a bastion with another key succeeded")
 	}
-	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != CodeHostKeyChanged {
-		t.Fatalf("err = %v, want fault %s", err, CodeHostKeyChanged)
+	if _, err := m.Add(cfg, s, nil, nil, 0); fault.CodeOf(err) != netx.CodeHostKeyChanged {
+		t.Fatalf("err = %v, want fault %s", err, netx.CodeHostKeyChanged)
 	}
 }

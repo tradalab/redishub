@@ -3,12 +3,11 @@
 import { forwardRef, useEffect, useImperativeHandle } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { Form, SshFields, sshDefaults, type SshValues } from "@tradalab/lyra/blocks"
+import { Form, SshFields, hostKeyAsk, sshDefaults, type SshValues } from "@tradalab/lyra/blocks"
 import { toast } from "@tradalab/lyra/ui"
 import { useDeleteSsh, useTestSsh, useUpsertSsh } from "@/hooks/api/ssh.api"
 import { useConfigLabels } from "@/hooks/use-config-labels"
 import { useConfirmHostKey } from "@/hooks/use-host-key"
-import { hostKeyAsk } from "@/lib/host-key"
 import { SshReq as SshDO } from "@/types"
 
 export interface SshFormRef {
@@ -49,7 +48,7 @@ export const SshForm = forwardRef<SshFormRef, Props>(({ ssh, saved, onSaved, onD
 
   const submit = form.handleSubmit(async values => {
     try {
-      await upsertSsh.mutateAsync(values)
+      await upsertSsh.mutateAsync({ ...values, host_key: values.host_key === (ssh.host_key ?? "") ? "" : values.host_key })
       toast.add({ title: t("saved"), type: "success" })
       onSaved?.()
     } catch (e) {
