@@ -11,7 +11,7 @@ require (
 	github.com/pressly/goose/v3 v3.27.1
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/samber/lo v1.53.0
-	github.com/tradalab/scorix v0.40.0
+	github.com/tradalab/scorix v0.42.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/crypto v0.57.0
 	modernc.org/sqlite v1.52.0
@@ -60,5 +60,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 )
-
-replace github.com/tradalab/scorix => ../../scorix
