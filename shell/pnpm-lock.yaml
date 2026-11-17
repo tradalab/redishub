@@ -179,8 +179,8 @@ importers:
         specifier: ^8.21.3
         version: 8.21.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@tradalab/lyra':
-        specifier: ^3.19.0
-        version: 3.19.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.4.2(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(@types/node@20.19.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)
+        specifier: ^3.21.0
+        version: 3.21.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.4.2(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(@types/node@20.19.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -1982,8 +1982,8 @@ packages:
   '@tanstack/virtual-core@3.19.9':
     resolution: {integrity: sha512-Syiaf3w69dFyYv4o2mqJ1/2VtBJTNq5Hu5cVXfnzOuJKFpUojukQR13ZW+5NvdMJM7GFHeNPmveMNhoIubiFyA==}
 
-  '@tradalab/lyra@3.19.0':
-    resolution: {integrity: sha512-53kGNUhctcpQ9iam8DiEm55gCG1pgC8Eeq80PSdX5lemTMIOAdFfYbAyYbKb47G+B0VXhw3VjOaP4PWmnw+0gQ==}
+  '@tradalab/lyra@3.21.0':
+    resolution: {integrity: sha512-CD/glXR0x9z0RrmB/G2gEaZDjmOcO9hUcBuUmkB/ODWh4DWr3QTraJH+EICDXrPvNxKzpV8+bdoaM5Fh+Px/VQ==}
     engines: {node: '>=20.9.0'}
     peerDependencies:
       next: ^16.0.0
@@ -6615,7 +6615,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.19.9': {}
 
-  '@tradalab/lyra@3.19.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.4.2(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(@types/node@20.19.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)':
+  '@tradalab/lyra@3.21.0(@date-fns/tz@1.5.0)(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(next@16.4.2(@babel/core@7.29.0(supports-color@7.2.0))(@opentelemetry/api@1.9.0)(@types/node@20.19.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(sass@1.89.2))(react-dom@19.1.0(react@19.1.0))(react-is@16.13.1)(react@19.1.0)(redux@5.0.1)(supports-color@7.2.0)(typescript@5.8.3)':
     dependencies:
       '@base-ui/react': 1.6.0(@date-fns/tz@1.5.0)(@types/react@19.1.8)(date-fns@4.4.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@shadcn/react': 0.3.1(@types/react@19.1.8)(react@19.1.0)
